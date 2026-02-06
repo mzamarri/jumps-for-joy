@@ -41,6 +41,7 @@ export default function Cart() {
                 <RentalRequestStepper prevStep={prevStep}/>
                 <div className="px-24">
                     <Section
+                        className="px-8 py-16 space-y-8 rounded-lg"
                         formRef={formRef}
                         step={step} 
                         nextStep={nextStep} 
@@ -52,7 +53,7 @@ export default function Cart() {
     )
 }
 
-function Section({ formRef, step, nextStep, prevStep }) {
+function Section({ formRef, step, nextStep, prevStep, className }) {
     const sectionRef = useRef(null);
 
     const SectionContent = stepperSections.find(section => section.step === step).section;
@@ -60,7 +61,7 @@ function Section({ formRef, step, nextStep, prevStep }) {
     useEffect(() => window.scrollTo({ top: 0 }), [step])
 
     return (
-        <section ref={sectionRef} className="">
+        <section ref={sectionRef} className={className}>
             <SectionContent formRef={formRef} nextStep={nextStep} prevStep={prevStep}/>
         </section>
     )
@@ -68,42 +69,44 @@ function Section({ formRef, step, nextStep, prevStep }) {
 
 function RentalRequestStepper({ prevStep }) {
     return (
-        <div className='sticky top-(--h-nav) z-1'>
+        <div className='sticky top-(--h-nav) z-1 bg-brand-blue-light'>
             <button
                 type="button"
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-4 bg-gray-400 rounded-md"
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-4 bg-brand-blue text-white rounded-md hover:bg-brand-blue-dark hover:cursor-pointer"
                 onClick={prevStep}
             >
                 Go Back
             </button>
-            <ol className='min-h-(--h-stepper) flex justify-center items-center bg-gray-200'>
-                <li className='flex items-center'>
-                    <div className='w-12 h-12 bg-orange-400 rounded-full flex justify-center items-center'>
-                        1
-                    </div>
-                    <p className='ml-4' >
-                        Cart
-                    </p>
-                    <div className='h-px w-24 mx-4 bg-black '/>
-                </li>
-                <li className='flex items-center'>
-                    <div className='w-12 h-12 bg-orange-400 rounded-full flex justify-center items-center'>
-                        2
-                    </div>
-                    <p className='ml-4'>
-                        Details
-                    </p>
-                    <div className='h-px w-24 mx-4 bg-black'/>
-                </li>
-                <li className='flex items-center'>
-                    <div className='w-12 h-12 bg-orange-400 rounded-full flex justify-center items-center'>
-                        3
-                    </div>
-                    <p className='ml-4'>
-                        Review
-                    </p>
-                </li>
-            </ol>
+            <div className="">
+                <ol className='min-h-(--h-stepper) flex justify-center items-center '>
+                    <li className='flex items-center'>
+                        <div className='w-12 h-12 bg-brand-blue border-2 border-brand-blue text-white rounded-full flex justify-center items-center'>
+                            1
+                        </div>
+                        <p className='ml-4' >
+                            Cart
+                        </p>
+                        <div className='h-px w-24 mx-4 bg-black '/>
+                    </li>
+                    <li className='flex items-center'>
+                        <div className='w-12 h-12 bg-white border-2 border-brand-blue text-brand-blue-dark rounded-full flex justify-center items-center'>
+                            2
+                        </div>
+                        <p className='ml-4'>
+                            Details
+                        </p>
+                        <div className='h-px w-24 mx-4 bg-black'/>
+                    </li>
+                    <li className='flex items-center'>
+                        <div className='w-12 h-12 bg-white border-2 border-brand-blue text-brand-blue-dark rounded-full flex justify-center items-center'>
+                            3
+                        </div>
+                        <p className='ml-4'>
+                            Review
+                        </p>
+                    </li>
+                </ol>
+            </div>
         </div>
     )
 }

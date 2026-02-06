@@ -1,7 +1,12 @@
 @import "tailwindcss";
 
-/* html:root {
-    --h-nav: calc(16 * var(--spacing));
-    --subbar-height: calc(20 * var(--spacing))
-} */
+@theme {
+  --color-brand-blue: #4A90E2;
+  --color-brand-blue-light: #EAF6FE;
+  --color-brand-blue-pale: #EAF6FE;
+  --color-brand-blue-dark: #357ABD;
+  --color-brand-yellow: #FFD600;
+  --color-brand-red: #E53935;
+  --color-brand-brown: #A67C52;
+}
 

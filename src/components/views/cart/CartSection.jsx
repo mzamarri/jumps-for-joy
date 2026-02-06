@@ -23,9 +23,12 @@ export default function CartSection({ nextStep }) {
 
     return (
         <>
-            <h1 className='text-4xl py-4 flex justify-center items-center'>Cart</h1>
-            <div className='relative flex justify-end bg-blue-200' style={{"--cs-container-width": "calc(130 * var(--spacing))"}}> 
-                <ul className='items flex-1 flex flex-col gap-4 p-4 bg-green-400'>
+            <div className='text-center space-y-2'>
+                <h1 className='text-6xl font-semibold'>Your Cart</h1>
+                <p className='text-gray-500'>Make sure to check you have the correct items</p>
+            </div>
+            <div className='relative flex justify-end space-x-8' style={{"--cs-container-width": "calc(130 * var(--spacing))"}}> 
+                <ul className='items flex-1 flex flex-col gap-4'>
                     {
                         cart.map(cartItem => {
                             return (
@@ -41,28 +44,28 @@ export default function CartSection({ nextStep }) {
 
                 </ul>
                 <div 
-                    className='cart-summary h-fit sticky top-0 w-120 bg-yellow-500 p-4' 
+                    className='cart-summary h-fit sticky top-0 w-96 shadow-lg' 
                     style={{
                         top: "calc(var(--h-nav) + var(--h-stepper))"
                     }}
                 >
-                    <div className='cost-summary bg-gray-500 px-16 py-12 space-y-3 text-center rounded-lg'>
-                        <h2 className='text-xl pb-4'>Order Summary</h2>
-                        <h3 className='flex justify-between'>
+                    <div className='cost-summary bg-white border border-gray-300 p-8 space-y-3 rounded-lg'>
+                        <h2 className='text-xl text-brand-blue-dark pb-4'>Order Summary</h2>
+                        <h3 className='flex justify-between text-gray-500'>
                             <span>SubTotal: </span>
                             <span>{`$${calcSubTotal()}`}</span>
                         </h3>
-                        <h1 className='flex justify-between'>
+                        <h1 className='flex justify-between text-gray-500'>
                             <span>Delivery Fee: </span>
                             <span>{`$${deliveryFee}`}</span>
                         </h1>
-                        <h3 className='flex justify-between text-lg py-4 border-t'>
+                        <h3 className='flex justify-between text-lg py-4 border-t border-gray-300'>
                             <span>Total: </span>
                             <span>{`$${deliveryFee + calcSubTotal()}`}</span>
                         </h3>
                         <button 
                             type="button"
-                            className='w-full bg-green-400 py-4 rounded-3xl'
+                            className='w-full bg-brand-blue text-white py-4 rounded-3xl hover:cursor-pointer hover:bg-brand-blue-dark'
                             onClick={nextStep}
                         >
                             Details and Service Info

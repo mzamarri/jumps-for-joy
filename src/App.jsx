@@ -31,7 +31,7 @@ function App() {
     const [ currentTab, setCurrentTab ] = useState(navTabs[0]);
 
     return (
-        <>
+        <div className='bg-brand-blue-light'>
             <BookingProvider>
                 <div className="min-h-screen" style={{"--h-nav": "4rem"}}>
                     <NavBar tabs={navTabs} currentTab={currentTab} setCurrentTab={setCurrentTab}/>
@@ -39,13 +39,13 @@ function App() {
                 </div>
             </BookingProvider>
             <Footer/>
-        </>
+        </div>
     )
 } 
 
 function NavBar({ tabs, currentTab, setCurrentTab  }) {
     return (
-        <header class='sticky z-1 top-0 bg-sky-400 w-full'>
+        <header class='sticky z-1 top-0 bg-brand-blue w-full'>
             <nav class='h-(--h-nav) text-white'>
                 <ul class='h-full flex justify-end'>
                     {
@@ -53,7 +53,7 @@ function NavBar({ tabs, currentTab, setCurrentTab  }) {
                             return (
                                 <li 
                                     className={`h-full flex justify-center items-center px-6 ${
-                                        tab === currentTab ? "bg-sky-800" : "hover:bg-sky-600"
+                                        tab === currentTab ? "bg-brand-blue" : "hover:bg-brand-blue-dark"
                                     }`}
                                     key={tab.id}
                                     onClick={() => setCurrentTab(tab)}
@@ -71,7 +71,7 @@ function NavBar({ tabs, currentTab, setCurrentTab  }) {
 
 function Footer() {
     return (
-        <footer className='bg-sky-400'>
+        <footer className='bg-brand-blue'>
             <div className='flex justify-center items-center h-100'>
                 <h1 className='text-white p-4'>
                     Footer Goes Here

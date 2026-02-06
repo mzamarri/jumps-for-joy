@@ -11,22 +11,25 @@ export default function Item({item, updateItem, removeItem}) {
     }
 
     return (
-        <li className='bg-blue-700 p-4 rounded-xl flex gap-4'>
+        <li className='bg-white border border-gray-300 p-4 rounded-xl flex gap-4 shadow-lg'>
             <div className='image h-40 w-40 bg-gray-400'/>
-            <div className='info flex flex-col bg-yellow-200 flex-1'>
-                <h2 className='text-lg py-2 text-center'>Item Name</h2>
-                <div className='flex-1 flex bg-orange-300 justify-around items-center'>
-                    <div className='flex items-center bg-red-300'>
+            <div className='info flex justify-between items-center flex-1'>
+                <div className="">
+                    <h2 className='text-lg'>Item Name</h2>
+                    <p className="text-gray-500">${item.cost} each</p>
+                </div>
+                <div className='flex justify-around items-center space-x-8'>
+                    <div className='flex items-center rounded-lg  border border-gray-300 bg-white'>
                         <button 
                             type='button'
-                            className='bg-gray-400 py-4 px-6 rounded-2xl'
+                            className='p-4 hover:cursor-pointer'
                             onClick={() => updateCartValue(item.quantity - 1)}
                         >
                             -
                         </button>
                         <input
                             min='1'
-                            className='mx-4 w-12 bg-white text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none'
+                            className='w-8 focus:outline-none text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none'
                             type='number'
                             value={value}
                             onChange={e => setValue(e.target.value)}
@@ -40,14 +43,14 @@ export default function Item({item, updateItem, removeItem}) {
                         />
                         <button
                             type='button'
-                            className='bg-gray-400 py-4 px-6 rounded-2xl'
+                            className='p-4 hover:cursor-pointer'
                             onClick={() => updateCartValue(item.quantity + 1)}
                         >
                             +
                         </button>
                     </div>
-                    <h2 className='text-lg'>Cost: {item.cost * item.quantity}</h2>
-                    <button className='p-4 bg-red-500 text-white rounded-2xl' onClick={() => removeItem(item.id)}>Remove</button>
+                    <h2 className='text-lg font-semibold'>${item.cost * item.quantity}</h2>
+                    <button className='text-brand-red hover:cursor-pointer rounded-2xl' onClick={() => removeItem(item.id)}>Remove</button>
                 </div>
             </div>
         </li>
