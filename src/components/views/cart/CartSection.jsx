@@ -49,7 +49,7 @@ export default function CartSection({ nextStep }) {
                         top: "calc(var(--h-nav) + var(--h-stepper))"
                     }}
                 >
-                    <div className='cost-summary bg-white border border-gray-300 p-8 space-y-3 rounded-lg'>
+                    <div className='cost-summary bg-white border border-gray-400 p-8 space-y-3 rounded-lg'>
                         <h2 className='text-xl text-brand-blue-dark pb-4'>Order Summary</h2>
                         <h3 className='flex justify-between text-gray-500'>
                             <span>SubTotal: </span>
@@ -59,7 +59,7 @@ export default function CartSection({ nextStep }) {
                             <span>Delivery Fee: </span>
                             <span>{`$${deliveryFee}`}</span>
                         </h1>
-                        <h3 className='flex justify-between text-lg py-4 border-t border-gray-300'>
+                        <h3 className='flex justify-between text-lg py-4 border-t border-gray-400'>
                             <span>Total: </span>
                             <span>{`$${deliveryFee + calcSubTotal()}`}</span>
                         </h3>

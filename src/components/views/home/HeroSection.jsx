@@ -1,37 +1,38 @@
 import { useState } from 'react';
 
+const services = [
+    {
+        id: 1,
+        title: "Slide 1",
+        description: "Description 1",
+        image: "img 1",
+        bgColor: "bg-blue-200"
+    },
+    {
+        id: 2,
+        title: "Slide 2",
+        description: "Description 2",
+        image: "img 2",
+        bgColor: "bg-blue-400"
+        
+    },
+    {
+        id: 3,
+        title: "Slide 3",
+        description: "Description 3",
+        image: "img 3",
+        bgColor: "bg-blue-600"
+    },
+    {
+        id: 4,
+        title: "Slide 4",
+        description: "Description 4",
+        image: "img 4",
+        bgColor: "bg-blue-800"
+    }
+]
+
 export default function HeroSection() {
-    var services = [
-        {
-            id: 1,
-            title: "Slide 1",
-            description: "Description 1",
-            image: "img 1",
-            bgColor: "bg-blue-200"
-        },
-        {
-            id: 2,
-            title: "Slide 2",
-            description: "Description 2",
-            image: "img 2",
-            bgColor: "bg-blue-400"
-            
-        },
-        {
-            id: 3,
-            title: "Slide 3",
-            description: "Description 3",
-            image: "img 3",
-            bgColor: "bg-blue-600"
-        },
-        {
-            id: 4,
-            title: "Slide 4",
-            description: "Description 4",
-            image: "img 4",
-            bgColor: "bg-blue-800"
-        }
-    ]
 
     const [ currentSlide, setCurrentSlide ] = useState(0);
 
@@ -46,7 +47,7 @@ export default function HeroSection() {
     const currentService = services[currentSlide];
 
     return (
-        <div class="hero-section w-full h-full relative">
+        <div class="hero-section w-full relative" style={{height: "calc(100vh - var(--h-nav))"}}>
             <div class={`image ${currentService.bgColor} w-full h-full absolute -z-1`}>
 
             </div>

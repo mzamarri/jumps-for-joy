@@ -11,7 +11,7 @@ export default function Item({item, updateItem, removeItem}) {
     }
 
     return (
-        <li className='bg-white border border-gray-300 p-4 rounded-xl flex gap-4 shadow-lg'>
+        <li className='bg-white border border-gray-400 p-4 rounded-xl flex gap-4 shadow-lg'>
             <div className='image h-40 w-40 bg-gray-400'/>
             <div className='info flex justify-between items-center flex-1'>
                 <div className="">
@@ -19,17 +19,17 @@ export default function Item({item, updateItem, removeItem}) {
                     <p className="text-gray-500">${item.cost} each</p>
                 </div>
                 <div className='flex justify-around items-center space-x-8'>
-                    <div className='flex items-center rounded-lg  border border-gray-300 bg-white'>
+                    <div className='flex items-center rounded-2xl  border border-gray-400 bg-brand-blue'>
                         <button 
                             type='button'
-                            className='p-4 hover:cursor-pointer'
+                            className='p-4 text-white hover:cursor-pointer'
                             onClick={() => updateCartValue(item.quantity - 1)}
                         >
                             -
                         </button>
                         <input
                             min='1'
-                            className='w-8 focus:outline-none text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none'
+                            className='w-8 text-white focus:outline-none text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none'
                             type='number'
                             value={value}
                             onChange={e => setValue(e.target.value)}
@@ -43,7 +43,7 @@ export default function Item({item, updateItem, removeItem}) {
                         />
                         <button
                             type='button'
-                            className='p-4 hover:cursor-pointer'
+                            className='p-4 text-white hover:cursor-pointer'
                             onClick={() => updateCartValue(item.quantity + 1)}
                         >
                             +

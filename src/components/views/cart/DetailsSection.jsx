@@ -1,12 +1,9 @@
 import { useCart } from 'context/CartContext'
-import { useState } from 'react';
 
 export default function DetailsSection({ formRef, nextStep }) {
     const { formData } = useCart();
-    const [ canProceed, setCanProceed ] = useState(false);
 
     const handleNext = () => {
-        if (canProceed) {
             const form = new FormData(formRef.current);
             formData.current = {
                 primaryContact: {
@@ -30,7 +27,6 @@ export default function DetailsSection({ formRef, nextStep }) {
                 notes: form.get("notes")
             }
             nextStep();
-        } 
     }
 
     return (
@@ -39,37 +35,20 @@ export default function DetailsSection({ formRef, nextStep }) {
                 <h1 className='text-6xl font-semibold'>Request Details</h1>
                 <p className='text-gray-500'>This will help us prepare an accurate quote & schedule</p>
             </div>
-            <div className='bg-white border border-gray-300 rounded-lg overflow-hidden shadow-lg'>
+            <div className='bg-white border border-gray-400 rounded-lg overflow-hidden shadow-lg'>
                 <PrimaryContact/>
                 <RentalAddress/>
                 <RentalSchdule/>
                 <Notes/>
-                <div className="flex justify-center space-x-2 py-8 mx-4 border-y border-gray-300">
-                    <input
-                        type="checkbox"
-                        id="agree"
-                        name="agree"
-                        onChange={e => setCanProceed(e.target.checked)}
-                    />
-                    <label htmlFor="agree" className="flex justify-center">
-                        I understand this is a request, not a booking
-                    </label>
-                </div>
-                <div className='flex justify-center py-8'>
-                    <button 
-                        type="button"
-                        className={`py-4 px-16 rounded-lg ${
-                            canProceed 
-                                ? "bg-brand-blue hover:bg-brand-blue-dark hover:cursor-pointer text-white"
-                                : "bg-gray-300 text-gray-500"
-                        }`}
-                        onClick={handleNext}
-                    >
-                        Review
-                    </button>
-                </div>
             </div>
-            <div className="flex flex-col">
+            <div className='flex justify-center'>
+                <button 
+                    type="button"
+                    className="py-4 px-16 rounded-lg bg-brand-blue hover:bg-brand-blue-dark hover:cursor-pointer text-white"
+                    onClick={handleNext}
+                >
+                    Review
+                </button>
             </div>
         </>
     )
@@ -206,7 +185,7 @@ function RentalSchdule() {
                         <select
                             id="duration"
                             name="duration"
-                            className="bg-white p-2 rounded-sm border border-gray-300"
+                            className="bg-white p-2 rounded-sm border border-gray-400"
                         >
                             <option>Select Duration</option>
                             <option>Same Day</option>
@@ -229,7 +208,7 @@ function Notes() {
             </div>
             <div className='px-4 py-8'>
                 <textarea
-                    className="bg-white w-full p-2 rounded-sm border border-gray-300"
+                    className="bg-white w-full p-2 rounded-sm border border-gray-400"
                     rows="10"
                 />
             </div>
@@ -246,7 +225,7 @@ function UserInput({ id, name, type, className, label, required}) {
                     type={type}
                     id={id}
                     name={name}
-                    className="bg-white p-2 rounded-sm border-gray-300 border"
+                    className="bg-white p-2 rounded-sm border-gray-400 border"
                     required={required}
                 />
             </div>

@@ -87,6 +87,7 @@ const fieldSections = [
 export default function ReviewSection() {
     const [ editingField, setEditingField ] = useState("");
     const { formData, saveFormData } = useCart();
+    const [ canProceed, setCanProceed ] = useState(false);
 
     const handleEdit = (field) => setEditingField(field)
 
@@ -96,11 +97,14 @@ export default function ReviewSection() {
     }
 
     const submitRequest = () => {
-        // emailjs.send("test_service", "contact_form", {
-        //     formData: {...formData.current},
-        //     email: "miguelazamarripar@gmail.com",
-        //     name: "Mike"
-        // }, "Ng-Hc13eVaX6RDXkP")
+        if (canProceed) {
+            console.log("Request Sent!");
+            // emailjs.send("test_service", "contact_form", {
+            //     formData: {...formData.current},
+            //     email: "miguelazamarripar@gmail.com",
+            //     name: "Mike"
+            // }, "Ng-Hc13eVaX6RDXkP")
+        }
     }
 
     const getFormVal = (section, field) => formData.current[section][field]
@@ -111,12 +115,18 @@ export default function ReviewSection() {
     }
 
     return (
-        <section className="my-12 space-y-12">
-            <div className="bg-gray-300 p-8 space-y-16">
+        <>
+            <div className='text-center'>
+                <h1 className='text-6xl font-semibold'>Final Review</h1>
+                <p className='text-gray-500'>Please double check information and submit request</p>
+            </div>
+            <div className="bg-white border border-gray-400 rounded-lg overflow-hidden shadow-lg">
                 {fieldSections.map(section => (        
-                    <div className='space-y-4' key={section}>
-                        <h1 className='text-lg'>{section.title}</h1>
-                        <div className='space-y-4'>
+                    <div className='' key={section}>
+                        <div className='bg-brand-blue px-4 py-8 border-b border-gray-400'>
+                            <h1 className='text-2xl text-white'>{section.title}</h1>
+                        </div>
+                        <div className=''>
                             { section.fields.map(field => (
                                 <UserInput
                                     key={field.id}
@@ -133,10 +143,50 @@ export default function ReviewSection() {
                     </div>
                 ))}
             </div>
-            <button onClick={submitRequest} className="p-4 bg-blue-300">
-                Submit Request
-            </button>
-        </section>
+            <div className='bg-white border-3 border-brand-blue rounded-lg px-4'>
+                <div className='py-8'>
+                    <h2 className='text-lg text-brand-blue-dark'>Order Summary</h2>
+                </div>
+                <div className='divide-y-1 divide-gray-400 border-b border-gray-400'>
+                    {[...Array(5)].map(() => (
+                        <div className='flex justify-between items-end py-4'>
+                            <div>
+                                <h2 className='text-lg'>Item Name</h2>
+                                <p className='text-gray-500 text-sm'>qty: 1 x $15</p>
+                            </div>
+                            <p className='text-brand-blue-dark'>$199.99</p>
+                        </div>
+                    ))}
+                </div>
+                <div className='border-y border-gray-400 space-y-2 mt-4 py-4 text-gray-500'>
+                    <p className=''>Subtotal: $200</p>
+                    <p className=''>Delviery Fee: $50</p>
+                </div>
+                <div className='py-8'>
+                    <h1 className='text-2xl '>Total: $5000</h1>
+                </div>
+            </div>
+            <div className='flex flex-col items-center space-y-8'>
+                <div className='flex justify-center gap-2'>
+                        <input
+                            type="checkbox"
+                            id="agree"
+                            name="agree"
+                            onChange={e => setCanProceed(e.target.checked)}
+                        />
+                        <label htmlFor="agree" className="flex justify-center">
+                            I understand this is a request, not a booking
+                        </label>
+                </div>
+                <button onClick={submitRequest} className={`py-4 px-16 rounded-lg ${
+                    canProceed 
+                        ? "text-white bg-brand-blue hover:cursor-pointer hover:bg-brand-blue-dark"
+                        : "bg-gray-300 text-gray-500"
+                }`}>
+                    Submit Request
+                </button>
+            </div>
+        </>
     )
 }
 
@@ -154,14 +204,14 @@ function UserInput({ type, name, label, edit, save, editingField, getFormVal }) 
     }
 
     return (
-        <div className="flex">
+        <div className="flex px-4 py-8 border-b border-gray-400">
             {name === editingField ? (
                 <>
                     <div className="flex-9 flex">
                         <label className="flex-1" htmlFor={name}> {label}</label>
                         <div className='flex-1'>
                             <input 
-                                className="bg-white"
+                                className="bg-brand-blue-light p-2 border border-gray-400 rounded-sm"
                                 type={type}
                                 id={name}
                                 onChange={e => setValue(e.target.value)}
@@ -173,7 +223,7 @@ function UserInput({ type, name, label, edit, save, editingField, getFormVal }) 
                     </div>
                     <button
                         type="button"
-                        className="flex-1 bg-red-200"
+                        className="flex-1 hover:cursor-pointer"
                         onClick={() => save(name, value)}
                         onMouseDown={() => saveClicked.current = true}
                     >
@@ -190,7 +240,7 @@ function UserInput({ type, name, label, edit, save, editingField, getFormVal }) 
                     </div>
                     <button
                         type="button"
-                        className="flex-1"
+                        className="flex-1 hover:cursor-pointer"
                         onClick={() => edit(name)}
                     >
                         Edit

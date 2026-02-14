@@ -6,7 +6,16 @@
   --color-brand-blue-pale: #EAF6FE;
   --color-brand-blue-dark: #357ABD;
   --color-brand-yellow: #FFD600;
+  --color-brand-yellow-dark: #FFB300;
   --color-brand-red: #E53935;
   --color-brand-brown: #A67C52;
+
+  /* Semantic status colors */
+  --color-success: #22C55E; /* green */
+  --color-error: var(--color-brand-red);
+  --color-warning: var(--color-brand-yellow-dark);
 }
 
+:root {
+  font-family: sans-serif;
+}

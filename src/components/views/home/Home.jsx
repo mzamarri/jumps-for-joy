@@ -27,10 +27,9 @@ export default function Home() {
         <div className='home relative z-0 overflow-hidden'>
             {
                 sections.map((section, idx) => {
-                    const bgColors = ["bg-transparent", "bg-red-500", "bg-green-500", "bg-orange-500", "bg-gray-500"]
 
                     return (
-                        <section key={section.id} className={`h-[calc(100vh-var(--h-nav))] ${bgColors[idx % bgColors.length]}`}>
+                        <section key={section.id} className={`flex`}>
                             {section.component}
                         </section>
                     )

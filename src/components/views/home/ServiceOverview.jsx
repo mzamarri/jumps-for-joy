@@ -1,79 +1,41 @@
 import { Carousel, Accordion } from 'components/ui_features'
-
-const exampleData = [
-    {
-        id : 0,
-        title: "Title 0",
-        description: "Description 0"
-    },
-    {
-        id: 1,
-        title: "Title 1",
-        description: "Description 1"
-    },
-    {
-        id: 2,
-        title: "Title 2",
-        description: "Description 2"
-    },
-    {
-        id: 3,
-        title: "Title 3",
-        description: "Description 3"
-    },
-    {
-        id: 4,
-        title: "Title 4",
-        description: "Description 4"
-    },
-    {
-        id: 5,
-        title: "Title 5",
-        description: "Description 5"
-    },
-    {
-        id: 6,
-        title: "Title 6",
-        description: "Description 6"
-    },
-    {
-        id: 7,
-        title: "Title 7",
-        description: "Description 7"
-    },
-    {
-        id: 8,
-        title: "Title 8",
-        description: "Description 8"
-    },
-]
+import fullLogo from '/full-logo.png'
 
 export default function ServiceOverview() {
     return (
-        <div className="service-overview w-full h-full flex">
-            <div className='service-info w-1/2 text-center px-4'>
-                <h1 className='text-5xl mt-8'>More Than Just Bounce Houses</h1>
-                <p className='text-xl my-2'>
-                    Bounce houses are at the heart of our rental services, offering 
-                    a fun and engaging centerpiece for parties and events of all kinds. 
-                    Alongside our inflatable rentals, we provide a selection of event 
-                    essentials such as tables, chairs, and additional equipment to help 
-                    hosts create a complete and well-organized setup. By offering multiple 
-                    rental options in one place, we make planning easier and reduce the 
-                    need to coordinate with multiple vendors.
-                </p>
-                <p className='text-xl my-2'>
-                    Whether you’re hosting a small backyard celebration or a larger 
-                    gathering, our services are designed to adapt to different spaces, 
-                    guest counts, and event layouts. Below, you’ll find a selection of 
-                    featured rentals that highlight the variety of services and equipment 
-                    we offer.
-
-                </p>
+        <div className="service-overview px-24 py-12 flex space-x-8">
+            <div className='flex-2'>
+                <img src={fullLogo} alt='Logo' className='border-brand-red rounded-lg object-cover object-top' />
             </div>
-            <div className='faq w-1/2'>
-                <div className='accordian-container w-full h-min flex justify-center translate-y-50'>
-                    <Accordion/>
+            <div className='flex-3 flex justify-center items-center'>
+                <div className='text-center space-y-8'>
+                    <div className='space-y-4 rounded-lg flex flex-col bg-brand-yellow p-12'>
+                        <h1 className='text-6xl font-bold text-brand-blue-dark bg-brand-yellow rounded-lg'>
+                            More Than Just Bounce Houses
+                        </h1>
+                        <h2 className='text-3xl font-semibold text-brand-red'>
+                            Your Prefered Choice for a Full Party Experience
+                        </h2>
+                        <p className=''>
+                            Bounce houses are at the heart of our rental services, offering 
+                            a fun and engaging centerpiece for parties and events of all kinds. 
+                            Alongside our inflatable rentals, we provide a selection of event 
+                            essentials such as tables, chairs, and additional equipment to help 
+                            hosts create a complete and well-organized setup. By offering multiple 
+                            rental options in one place, we make planning easier and reduce the 
+                            need to coordinate with multiple vendors. Whether you’re hosting a small 
+                            backyard celebration or a larger gathering, our services are designed to 
+                            adapt to different spaces, guest counts, and event layouts.
+                        </p>
+                    </div>
+                    <div className='flex flex-col items-center space-y-4'>
+                        <p className=''>
+                            Want inspiration for your next event? Check out our social media to 
+                            see real setups, creative ideas, and the fun we help create for our 
+                            customers!
+                        </p>
+                        <div className='h-24 w-1/3 bg-gray-500'/>
+                    </div>
                 </div>
             </div>
         </div>
