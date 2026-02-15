@@ -8,9 +8,9 @@ export default function ServiceOverview() {
                 <img src={fullLogo} alt='Logo' className='border-brand-red rounded-lg object-cover object-top' />
             </div>
             <div className='flex-3 flex justify-center items-center'>
-                <div className='text-center space-y-8'>
-                    <div className='space-y-4 rounded-lg flex flex-col bg-brand-yellow p-12'>
-                        <h1 className='text-6xl font-bold text-brand-blue-dark bg-brand-yellow rounded-lg'>
+                <div className='text-center space-y-'>
+                    <div className='space-y-4 flex flex-col py-8'>
+                        <h1 className='text-6xl font-bold text-brand-blue-dar  rounded-lg'>
                             More Than Just Bounce Houses
                         </h1>
                         <h2 className='text-3xl font-semibold text-brand-red'>

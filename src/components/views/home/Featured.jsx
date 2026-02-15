@@ -2,7 +2,7 @@ import { Carousel } from "components/ui_features";
 
 export default function Featured() {
     return (
-        <div className='relative w-full h-full overflow-hidden bg-brand-blue-light px-24 py-12'>
+        <div className='relative w-full h-full overflow-hidden px-24 py-12'>
             <div className='h-full flex flex-col justify-center space-y-8'>
                 <div className='flex justify-center'>
                     <div className='w-fit space-y-2 rounded-lg text-center'>
@@ -30,7 +30,7 @@ function Card() {
                     <p className='text-gray-500'>description</p>
                 </div>
                 <p className='text-lg'>$100</p>
-                <button className='w-full py-4 rounded-full bg-brand-blue text-white group-hover:bg-brand-red group-hover:text-whi'>
+                <button className='w-full py-4 rounded-lg bg-brand-red text-white group-hover:bg-brand-red group-hover:text-whi'>
                     Add to Card
                 </button>
             </div>

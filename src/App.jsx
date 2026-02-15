@@ -33,7 +33,7 @@ function App() {
     const [ currentTab, setCurrentTab ] = useState(navTabs[0]);
 
     return (
-        <div className='bg-white'>
+        <div className='bg-gray-100'>
             <BookingProvider>
                 <div className="min-h-screen" style={{"--h-nav": "4rem"}}>
                     <NavBar tabs={navTabs} currentTab={currentTab} setCurrentTab={setCurrentTab}/>

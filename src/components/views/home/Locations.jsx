@@ -11,7 +11,7 @@ export default function Locations() {
 				{/* <h1 className='text-4xl'>What Delivery Looks Like</h1>
 				<p>Information on delivery process</p> */}
 			</div>
-			<div className='bg-brand-blue-light border-2 border-gray-300 rounded-lg shadow-lg overflow-hidden'>
+			<div className='bg-white border-2 border-gray-300 rounded-lg shadow-lg overflow-hidden'>
 				<div className='bg-brand-blue text-white px-4 py-8'>
 					<h1 className='text-4xl'>List of Areas We Service</h1>
 				</div>
