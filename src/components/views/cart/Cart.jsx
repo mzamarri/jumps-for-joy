@@ -69,7 +69,7 @@ function Section({ formRef, step, nextStep, prevStep, className }) {
 
 function RentalRequestStepper({ prevStep }) {
     return (
-        <div className='sticky top-(--h-nav) z-1 bg-brand-blue-light'>
+        <div className='sticky top-(--h-nav) z-1 bg-brand-yellow'>
             <button
                 type="button"
                 className="absolute left-4 top-1/2 -translate-y-1/2 p-4 bg-brand-blue text-white rounded-md hover:bg-brand-blue-dark hover:cursor-pointer"
@@ -83,7 +83,7 @@ function RentalRequestStepper({ prevStep }) {
                         <div className='w-12 h-12 bg-brand-blue border-2 border-brand-blue text-white rounded-full flex justify-center items-center'>
                             1
                         </div>
-                        <p className='ml-4' >
+                        <p className='ml-2' >
                             Cart
                         </p>
                         <div className='h-px w-24 mx-4 bg-black '/>
@@ -92,7 +92,7 @@ function RentalRequestStepper({ prevStep }) {
                         <div className='w-12 h-12 bg-white border-2 border-brand-blue text-brand-blue-dark rounded-full flex justify-center items-center'>
                             2
                         </div>
-                        <p className='ml-4'>
+                        <p className='ml-2'>
                             Details
                         </p>
                         <div className='h-px w-24 mx-4 bg-black'/>
@@ -101,7 +101,7 @@ function RentalRequestStepper({ prevStep }) {
                         <div className='w-12 h-12 bg-white border-2 border-brand-blue text-brand-blue-dark rounded-full flex justify-center items-center'>
                             3
                         </div>
-                        <p className='ml-4'>
+                        <p className='ml-2'>
                             Review
                         </p>
                     </li>

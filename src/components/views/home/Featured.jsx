@@ -30,7 +30,7 @@ function Card() {
                     <p className='text-gray-500'>description</p>
                 </div>
                 <p className='text-lg'>$100</p>
-                <button className='w-full py-4 rounded-lg bg-brand-red text-white group-hover:bg-brand-red group-hover:text-whi'>
+                <button className='w-full py-4 rounded-lgw bg-brand-red text-white group-hover:bg-brand-red group-hover:text-whi'>
                     Add to Card
                 </button>
             </div>
