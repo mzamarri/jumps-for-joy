@@ -1,0 +1,30 @@
+[
+    {
+        "id": "bounce-house",
+        "name": "Bounce House"
+    },
+    {
+        "id": "combos",
+        "name": "Inflatable Combos"
+    },
+    {
+        "id": "water-slides",
+        "name": "Water Slides"
+    },
+    {
+        "id": "dry-slides",
+        "name": "Dry Slides"
+    },
+    {
+        "id": "tables-chairs",
+        "name": "Tables and Chairs"
+    },
+    {
+        "id": "tents",
+        "name": "Tents"
+    },
+    {
+        "id": "generators",
+        "name": "Generators"
+    }
+]

@@ -1,0 +1,5 @@
+export { default as HeroSection } from './HeroSection.jsx'
+export { default as ServiceOverview } from './ServiceOverview'
+export { default as Locations } from './Locations'
+export { default as RentalCategories } from './RentalCategories'
+export { default as Featured } from './Featured'
