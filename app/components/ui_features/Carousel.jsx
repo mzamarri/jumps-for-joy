@@ -1,13 +1,23 @@
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue } from 'motion/react';
 
 const DRAG_BUFFER = 50;
 const GAP = 4;
 
-export default function Carousel({ cards=[] }) {
-    const cardsRef = useRef([]);
+export default function Carousel({ cards=[], Card }) {
     const dragX = useMotionValue(0);
-    const [cardIndex, setCardIndex] = useState(0);
+    const [ cardIndex, setCardIndex ] = useState(0);
+    const [ cardOffset, setCardOffset ] = useState(0);
+    const cardRef = useRef(null); 
+
+    console.log("Card index: " + cardIndex)
+    console.log("dragX: " + dragX.get());
+    console.log("Card Offset: " + cardOffset);
+
+    useLayoutEffect(() => {
+        if (!cardRef.current) return
+        setCardOffset(cardRef.current.offsetLeft)
+    }, [cardIndex])
 
     const handleDragEnd = () => { 
         const x = dragX.get();
@@ -23,6 +33,8 @@ export default function Carousel({ cards=[] }) {
             setCardIndex(cardIndex - 1);
             console.log(cardIndex);
         }
+
+        dragX.set(0); 
     }
 
     const prevCard = () => {
@@ -32,8 +44,6 @@ export default function Carousel({ cards=[] }) {
     const nextCard = () => {
         if (cardIndex < cards.length - 3) setCardIndex(cardIndex + 1);
     }
-
-    const cardOffset = cardsRef.current[cardIndex] ? cardsRef.current[cardIndex].offsetLeft : 0;
 
     return (
         <div className='h-full'>
@@ -46,19 +56,21 @@ export default function Carousel({ cards=[] }) {
                         left: 0,
                         right: 0
                     }}
-                    animate={{
+                    animate={{ 
                         translateX: -cardOffset
                     }}
                     onDragEnd={handleDragEnd}
                 >
-                    {cards.map((card, i) => (
+                    {cards.map((card, idx) => (
                         <div 
-                            key={i}
-                            className='h-[95%] shrink-0 bg-white border border-gray-400 rounded-lg shadow-xl' 
-                            style={{width: `calc((100% - 2 * (${GAP} * var(--spacing))) / 3)`}}
-                            ref={dn => cardsRef.current[i] = dn}
+                            key={card.id}
+                            ref={ idx === cardIndex ? cardRef : null}
+                            className='bg-gray-500 h-96 shrink-0'
+                            style={{
+                                width: `calc((100% - (2 * var(--spacing) * ${GAP})) / 3)`
+                            }}
                         >
-                            {card}
+                           
                         </div>
                     ))}
                 </motion.div>

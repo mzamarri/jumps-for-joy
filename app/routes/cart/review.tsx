@@ -1,8 +1,10 @@
 import { useState, useRef } from 'react'
-import { useCart } from 'context/CartContext'
+import { Link, useOutletContext } from "react-router";
+import { ArrowLeft } from 'lucide-react';
 import emailjs from '@emailjs/browser'
+import type { CartOutletContext, FieldName, ReviewSection } from "./types.js";
 
-const fieldSections = [
+const fieldSections: ReviewSection[] = [
     {
         id: "primaryContact",
         title: "Primary Contact",
@@ -61,8 +63,8 @@ const fieldSections = [
         ]
     },
         {
-        id: "schedule",
-        title: "Rental Schedule",
+        id: "eventInfo",
+        title: "Event Information",
         fields: [
             {
                 id: "date",
@@ -78,6 +80,16 @@ const fieldSections = [
                 id: "duration",
                 type: "text",
                 label: "Duration"
+            },
+            {
+                id: "eventType",
+                type: "text",
+                label: "Event Type"
+            },
+            {
+                id: "surfaceType",
+                type: "text",
+                label: "Surface Type"
             }
         ]
     },
@@ -85,48 +97,57 @@ const fieldSections = [
 ]
 
 export default function ReviewSection() {
-    const [ editingField, setEditingField ] = useState("");
-    const { formData, saveFormData } = useCart();
+    const [ editingField, setEditingField ] = useState<FieldName | "">("");
+    const { draft, setDraft } = useOutletContext<CartOutletContext>();
     const [ canProceed, setCanProceed ] = useState(false);
 
-    const handleEdit = (field) => setEditingField(field)
+    const handleEdit = (field: FieldName) => setEditingField(field)
 
-    const handleSave = (section, field, nextVal) => {
-        saveFormData(section, field, nextVal);
-        setEditingField(false);
+    const handleSave = (field: FieldName, nextVal: string) => {
+        setDraft(prev => ({
+            ...prev,
+            [field]: nextVal
+        }));
+        setEditingField("");
     }
 
     const submitRequest = () => {
         if (canProceed) {
             console.log("Request Sent!");
             // emailjs.send("test_service", "contact_form", {
-            //     formData: {...formData.current},
+            //     formData: {...draft},
             //     email: "miguelazamarripar@gmail.com",
             //     name: "Mike"
             // }, "Ng-Hc13eVaX6RDXkP")
         }
     }
 
-    const getFormVal = (section, field) => formData.current[section][field]
+    const getFormVal = (field: FieldName): string => draft[field] ?? "";
 
     const logFormData = () => {
         console.log("Form Data:");
-        console.log(formData.current);
+        console.log(draft);
     }
 
     return (
-        <>
-            <div className='text-center'>
-                <h1 className='text-6xl font-semibold'>Final Review</h1>
-                <p className='text-gray-500'>Please double check information and submit request</p>
+        <div
+            className="px-24 py-8 space-y-8"
+        >
+            <Link
+                to="/details"
+                className="inline-flex items-center gap-2 text-primary font-semibold hover:underline"
+            >
+                <ArrowLeft className="w-4 h-4" /> Back To Details
+            </Link>
+            <div className='text-center space-y-2'>
+                <h1 className='text-6xl font-bold'>Final <span className="text-primary">Review</span></h1>
+                <p className='text-lg text-muted-foreground'>Please double check information and submit request</p>
             </div>
-            <div className="bg-white border border-gray-400 rounded-lg overflow-hidden shadow-lg">
+            <div className="space-y-8">
                 {fieldSections.map(section => (        
-                    <div className='' key={section}>
-                        <div className='bg-brand-blue px-4 py-8 border-b border-gray-400'>
-                            <h1 className='text-2xl text-white'>{section.title}</h1>
-                        </div>
-                        <div className=''>
+                    <div className='text-foreground bg-card border border-border rounded-lg p-8 space-y-4 shadow-md' key={section.id}>
+                        <h1 className='text-2xl font-semibold text-primary'>{section.title}</h1>
+                        <div className='divide-y divide-border'>
                             { section.fields.map(field => (
                                 <UserInput
                                     key={field.id}
@@ -134,35 +155,35 @@ export default function ReviewSection() {
                                     name={field.id}
                                     label={field.label}
                                     edit={handleEdit}
-                                    save={(field, value) => handleSave(section, field, value)}
+                                    save={handleSave}
                                     editingField={editingField}
-                                    getFormVal={(field) => getFormVal(section.id, field)}
+                                    getFormVal={getFormVal}
                                 />
                             )) }
                         </div>
                     </div>
                 ))}
             </div>
-            <div className='bg-white border-3 border-brand-blue rounded-lg px-4'>
-                <div className='py-8'>
-                    <h2 className='text-lg text-brand-blue-dark'>Order Summary</h2>
+            <div className='text-foreground bg-card border border-border rounded-lg p-8 shadow-md'>
+                <div className='pb-8'>
+                    <h2 className='text-lg text-primary'>Order Summary</h2>
                 </div>
-                <div className='divide-y-1 divide-gray-400 border-b border-gray-400'>
-                    {[...Array(5)].map(() => (
-                        <div className='flex justify-between items-end py-4'>
+                <div className='divide-y divide-border border-b border-border'>
+                    {[...Array(5)].map((_, idx) => (
+                        <div key={`summary-item-${idx}`} className='flex justify-between items-end py-4'>
                             <div>
                                 <h2 className='text-lg'>Item Name</h2>
-                                <p className='text-gray-500 text-sm'>qty: 1 x $15</p>
+                                <p className='text-muted-foreground text-sm'>qty: 1 x $15</p>
                             </div>
-                            <p className='text-brand-blue-dark'>$199.99</p>
+                            <p className='text-primary'>$199.99</p>
                         </div>
                     ))}
                 </div>
-                <div className='border-y border-gray-400 space-y-2 mt-4 py-4 text-gray-500'>
+                <div className='border-y border-border space-y-2 mt-4 py-4 text-muted-foreground'>
                     <p className=''>Subtotal: $200</p>
                     <p className=''>Delviery Fee: $50</p>
                 </div>
-                <div className='py-8'>
+                <div className='pt-8'>
                     <h1 className='text-2xl '>Total: $5000</h1>
                 </div>
             </div>
@@ -174,23 +195,33 @@ export default function ReviewSection() {
                             name="agree"
                             onChange={e => setCanProceed(e.target.checked)}
                         />
-                        <label htmlFor="agree" className="flex justify-center">
+                        <label htmlFor="agree" className="flex justify-center text-muted-foreground">
                             I understand this is a request, not a booking
                         </label>
                 </div>
                 <button onClick={submitRequest} className={`py-4 px-16 rounded-lg ${
                     canProceed 
-                        ? "text-white bg-brand-blue hover:cursor-pointer hover:bg-brand-blue-dark"
+                        ? "text-white bg-primary hover:cursor-pointer hover:bg-primary-dark"
                         : "bg-gray-300 text-gray-500"
                 }`}>
                     Submit Request
                 </button>
             </div>
-        </>
+        </div>
     )
 }
 
-function UserInput({ type, name, label, edit, save, editingField, getFormVal }) {
+type UserInputProps = {
+    type: string;
+    name: FieldName;
+    label: string;
+    edit: (field: FieldName) => void;
+    save: (field: FieldName, value: string) => void;
+    editingField: FieldName | "";
+    getFormVal: (field: FieldName) => string;
+};
+
+function UserInput({ type, name, label, edit, save, editingField, getFormVal }: UserInputProps) {
     const [ value, setValue ] = useState(getFormVal(name));
     const lastValue = useRef(getFormVal(name));
     const saveClicked = useRef(false);
@@ -204,16 +235,17 @@ function UserInput({ type, name, label, edit, save, editingField, getFormVal }) 
     }
 
     return (
-        <div className="flex px-4 py-8 border-b border-gray-400">
+        <div className="flex items-center justify-between gap-6 py-5">
             {name === editingField ? (
                 <>
-                    <div className="flex-9 flex">
-                        <label className="flex-1" htmlFor={name}> {label}</label>
+                    <div className="flex flex-1 items-center justify-between gap-6">
+                        <label className="font-semibold min-w-52" htmlFor={name}> {label}</label>
                         <div className='flex-1'>
                             <input 
-                                className="bg-brand-blue-light p-2 border border-gray-400 rounded-sm"
+                                className="w-full bg-background p-2 border border-border rounded-sm"
                                 type={type}
                                 id={name}
+                                value={value}
                                 onChange={e => setValue(e.target.value)}
                                 onFocus={() => lastValue.current = value}
                                 onBlur={handleBlur}
@@ -223,7 +255,7 @@ function UserInput({ type, name, label, edit, save, editingField, getFormVal }) 
                     </div>
                     <button
                         type="button"
-                        className="flex-1 hover:cursor-pointer"
+                        className="hover:cursor-pointer font-semibold text-primary"
                         onClick={() => save(name, value)}
                         onMouseDown={() => saveClicked.current = true}
                     >
@@ -232,15 +264,13 @@ function UserInput({ type, name, label, edit, save, editingField, getFormVal }) 
                 </>
             ) : (
                 <>
-                    <div 
-                        className="flex-9 flex"
-                    >
-                        <p className='flex-1'>{label}</p>
-                        <p className="flex-1">{value}</p>
+                    <div className="flex flex-1 items-center justify-between gap-6">
+                        <p className='font-semibold min-w-52'>{label}</p>
+                        <p className="flex-1 text-muted-foreground">{value}</p>
                     </div>
                     <button
                         type="button"
-                        className="flex-1 hover:cursor-pointer"
+                        className="hover:cursor-pointer font-semibold text-primary"
                         onClick={() => edit(name)}
                     >
                         Edit

@@ -1,234 +1,332 @@
-import { useCart } from 'context/CartContext'
+import { useState } from "react";
+import { Link, useOutletContext } from "react-router"
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import type { CartOutletContext, InputConfig, SectionConfig } from "./types.js";
 
-export default function DetailsSection({ formRef, nextStep }) {
-    const { formData } = useCart();
+const formSections: SectionConfig[] = [
+    {
+        id: "user-details",
+        name: "User Details",
+        fields: [
+            [
+                {
+                    label: "First Name",
+                    input: {
+                        id: "first-name",
+                        name: "firstName",
+                        type: "text",
+                        required: true
+                    }
+                },
+                {
+                    label: "Last Name",
+                    input: {
+                        id: "last-name",
+                        name: "lastName",
+                        type: "text",
+                        required: true
+                    }
+                }
+            ],
+            [
+                {
+                    label: "Phone Number",
+                    input: {
+                        id: "phone-number",
+                        name: "phoneNumber",
+                        type: "text",
+                        required: true
+                    }
 
-    const handleNext = () => {
-            const form = new FormData(formRef.current);
-            formData.current = {
-                primaryContact: {
-                    firstName: form.get("firstName"),
-                    lastName: form.get("lastName"),
-                    phoneNumber: form.get("phoneNumber"),
-                    email: form.get("email")
                 },
-                rentalAddress: {
-                    street: form.get("street"),
-                    unit: form.get("unit"),
-                    city: form.get("city"),
-                    state: form.get("state"),
-                    zip: form.get("zip")
+                {
+                    label: "Email Address",
+                    input: {
+                        id: "email",
+                        name: "email",
+                        type: "text",
+                        required: true
+                    }
+                }
+            ]
+        ]
+    },
+    {
+        id: "setup-location",
+        name: "Setup Location",
+        fields: [
+            {
+                label: "Street Address",
+                input: {
+                    id: "street",
+                    name: "street",
+                    type: "text",
+                    required: true
+                }
+            },
+            [
+                {
+                    label: "Unit/Apt",
+                    input: {
+                        id: "unit",
+                        name: "unit",
+                        type: "text",
+                        required: false
+                    }
                 },
-                schedule: {
-                    date: form.get("date"),
-                    time: form.get("time"),
-                    duration: form.get("duration")
+                {
+                    label: "City",
+                    input: {
+                        id: "city",
+                        name: "city",
+                        type: "text",
+                        required: true
+                    }
                 },
-                notes: form.get("notes")
+                {
+                    label: "State",
+                    input: {
+                        id: "state",
+                        name: "state",
+                        type: "text",
+                        required: true
+                    }
+                },
+                {
+                    label: "Zip",
+                    input: {
+                        id: "zip",
+                        name: "zip",
+                        type: "text",
+                        required: true
+                    }
+                }
+            ]
+        ]
+    },
+    {
+        id: "event-info",
+        name: "Event Information",
+        fields: [
+            [
+                {
+                    label: "Rental Date",
+                    input: {
+                        id: "date",
+                        name: "date",
+                        type: "date",
+                        required: true
+                    }
+                },
+                {
+                    label: "Setup Time",
+                    input: {
+                        id: "time",
+                        name: "time",
+                        type: "time",
+                        required: true
+                    }
+                },
+                {
+                    label: "Duration",
+                    input: {
+                        id: "duration",
+                        name: "duration",
+                        type: "select",
+                        required: true,
+                        options: [
+                            {
+                                value: "",
+                                disabled: true,
+                                displayText: "Select "
+                            },
+                            {
+                                value: "same day",
+                                displayText: "Same Day"
+                            }
+                        ]
+                    }
+                }
+            ],
+            [
+                {
+                    label: "Event Type",
+                    input: {
+                        id: "event-type",
+                        name: "eventType",
+                        type: "text",
+                        required: false,
+                    }
+                },
+                {
+                    label: "Surface Type for Setup",
+                    input: {
+                        id: "surface-type",
+                        name: "surfaceType",
+                        type: "text",
+                        required: true
+                    }
+                }
+            ],
+            {
+                label: "Special Instructions/Important Information",
+                input: {
+                    id: "notes",
+                    name: "notes",
+                    type: "text-area",
+                    required: false,
+                    rows: 6
+                }
             }
-            nextStep();
+        ]
     }
+]
+
+export default function DetailsSection() {
+    const { draft, setDraft } = useOutletContext<CartOutletContext>();
 
     return (
-        <>
+        <div
+            className="px-24 py-8 space-y-8"
+        >
+            <Link
+                to="/cart"
+                className="inline-flex items-center gap-2 text-primary font-semibold hover:underline"
+            >
+                <ArrowLeft className="w-4 h-4" /> Back To Cart
+            </Link>
             <div className='text-center space-y-2'>
-                <h1 className='text-6xl font-semibold'>Request Details</h1>
-                <p className='text-gray-500'>This will help us prepare an accurate quote & schedule</p>
+                <h1 className='text-6xl font-bold'>Request <span className="text-primary">Details</span></h1>
+                <p className='text-lg text-muted-foreground'>This will help us prepare an accurate quote & schedule</p>
             </div>
-            <div className='bg-white border border-gray-400 rounded-lg overflow-hidden shadow-lg'>
-                <PrimaryContact/>
-                <RentalAddress/>
-                <RentalSchdule/>
-                <Notes/>
+            <div className='text-foreground bg-card border border-border rounded-lg p-8 space-y-16'>
+                {formSections.map(section => (
+                    <div
+                        key={section.id}
+                        className="space-y-4"
+                    >
+                        <h1 className="text-2xl font-semibold text-primary">{section.name}</h1>
+                        {section.fields.map((field, idx) => Array.isArray(field)
+                            ? (
+                                <div key={`field-row-${section.id}-${idx}`} className="flex gap-8">
+                                    {
+                                        field.map(({ label, input, grow }) => (
+                                            <UserInput
+                                                key={input.id}
+                                                label={label}
+                                                input={input}
+                                                grow={grow}
+                                                initialValue={draft[input.name]}
+                                                setDraft={setDraft}
+                                            />
+                                        ))
+                                    }
+                                </div>
+                            )
+                            : (
+                                <UserInput
+                                    key={field.input.id}
+                                    label={field.label}
+                                    input={field.input}
+                                    grow={field.grow}
+                                    initialValue={draft[field.input.name]}
+                                    setDraft={setDraft}
+                                />
+                            )
+                        )}
+                    </div>
+                ))}
             </div>
             <div className='flex justify-center'>
-                <button 
+                <Link 
                     type="button"
-                    className="py-4 px-16 rounded-lg bg-brand-blue hover:bg-brand-blue-dark hover:cursor-pointer text-white"
-                    onClick={handleNext}
+                    to="/review"
+                    className="py-3 px-16 rounded-xl bg-accent text-accent-foreground font-semibold hover:bg-accent/90 cursor-pointer flex justify-center items-center gap-2"
                 >
-                    Review
-                </button>
+                    Review Request <ArrowRight className="w-4 h-4"/>
+                </Link>
             </div>
-        </>
+        </div>
     )
 }
 
-function PrimaryContact() {
-    return (
-        <>
-            <div className='bg-brand-blue py-8 px-4'>
-                <h2 className='text-2xl text-white'>Primary Contact</h2>
-            </div>
-            <div className='space-y-4 px-4 py-8'>
-                <div className='flex gap-8'>
-                    <UserInput
-                        id="first-name"
-                        name="firstName"
-                        type="text"
-                        className="flex-1"
-                        label="First Name"
-                        required
-                    />
-                    <UserInput
-                        type="text"
-                        id="last-name"
-                        name="lastName"
-                        className="flex-1"
-                        label="Last Name"
-                        required
-                    />
-                </div>
-                <div className="flex justify-between gap-8">
-                    <UserInput
-                        type="tel"
-                        id="phone-number"
-                        name="phoneNumber"
-                        className="flex-1"
-                        label="Phone Number"
-                        required
-                    />
-                    <UserInput
-                        type="email"
-                        id="email"
-                        name="email"
-                        className="flex-3"
-                        label="Email Address"
-                        required
-                    />
-                </div>
-            </div>
-        </>
-    )
-}
+type UserInputProps = {
+    label: string;
+    input: InputConfig;
+    grow?: number | undefined;
+    initialValue: string;
+    setDraft: CartOutletContext["setDraft"];
+};
 
-function RentalAddress() {
-    return (
-        <>
-            <div className='bg-brand-blue py-8 px-4'>
-                <h2 className='text-2xl text-white'>Rental Service Location</h2>
-            </div>
-            <div className='space-y-4 px-4 py-8'>
-                <div className='flex gap-8'>
-                    <UserInput
-                        id="street"
-                        name="street"
-                        type="text"
-                        className="flex-4"
-                        label="Street Address"
-                        required
-                    />
-                    <UserInput
-                        type="number"
-                        id="unit"
-                        name="unit"
-                        className="flex-1"
-                        label="Unit/Apt"
-                        required
-                    />
-                </div>
-                <div className="flex gap-8">
-                    <UserInput
-                        type="text"
-                        id="city"
-                        name="city"
-                        className="flex-1"
-                        label="City"
-                        required
-                    />
-                    <UserInput
-                        type="text"
-                        id="state"
-                        name="state"
-                        className="flex-1"
-                        label="State"
-                        required
-                    />
-                    <UserInput
-                        type="text"
-                        id="zip"
-                        name="zip"
-                        className="flex-1"
-                        label="Zip"
-                        required
-                    />
-                </div>
-            </div>
-        </>
-    )
-}
+function UserInput({ label, input, grow=1, initialValue, setDraft }: UserInputProps) {
+    const { id, name, type, required } = input;
+    const [value, setValue] = useState(initialValue);
 
-function RentalSchdule() {
-    return (
-        <>
-            <div className='bg-brand-blue px-4 py-8'>
-                <h2 className='text-2xl text-white'>Rental Schedule</h2>
-            </div>
-            <div className="px-4 py-8 flex gap-16">
-                <UserInput
-                    type="date"
-                    id="date"
-                    name="date"
-                    label="Rental Date"
-                    className=""
-                />
-                <UserInput
-                    type="time"
-                    id="time"
-                    name="time"
-                    className=""
-                    label="Start Time"
-                />
-                <div>
-                    <div className="flex flex-col space-y-2">
-                        <label htmlFor="duration">Duration</label>
-                        <select
-                            id="duration"
-                            name="duration"
-                            className="bg-white p-2 rounded-sm border border-gray-400"
-                        >
-                            <option>Select Duration</option>
-                            <option>Same Day</option>
-                            <option>Over Night</option>
-                            <option>2-3 Days</option>
-                            <option>1 Week</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </>
-    )
-}
+    const handleFieldChange = (nextValue: string) => {
+        setValue(nextValue);
+        setDraft(prev => ({
+            ...prev,
+            [name]: nextValue
+        }));
+    };
 
-function Notes() {
     return (
-        <>
-            <div className='bg-brand-blue px-4 py-8 '>
-                <h2 className='text-2xl text-white'>Notes (Optional)</h2>
-            </div>
-            <div className='px-4 py-8'>
-                <textarea
-                    className="bg-white w-full p-2 rounded-sm border border-gray-400"
-                    rows="10"
-                />
-            </div>
-        </>
-    )
-}
-
-function UserInput({ id, name, type, className, label, required}) {
-    return (
-        <div className={className}>
-            <div className="flex flex-col space-y-2">
-                <label htmlFor={name}>{ label }</label>
-                <input
-                    type={type}
-                    id={id}
-                    name={name}
-                    className="bg-white p-2 rounded-sm border-gray-400 border"
-                    required={required}
-                />
-            </div>
+        <div 
+            className="flex flex-col space-y-2"
+            style={{flexGrow: grow}}
+        >
+            <label 
+                htmlFor={id}
+                className="font-semibold"
+            >
+                { `${label} ${required && "*"}` }
+            </label>
+            {
+                type === "text-area"
+                    ? (
+                        <textarea
+                            id={id}
+                            name={name}
+                            className="bg-background p-2 rounded-sm border border-border"
+                            required={required}
+                            rows={input.rows}
+                            value={value}
+                            onChange={e => handleFieldChange(e.target.value)}
+                        />
+                    ) 
+                    : type === "select"
+                        ? (
+                            <select
+                                id={id}
+                                name={name}
+                                className="bg-background p-2 rounded-sm border border-border"
+                                required={required}
+                                value={value}
+                                onChange={e => handleFieldChange(e.target.value)}
+                            >
+                                {input.options?.map((option, idx) => (
+                                    <option
+                                        key={idx}
+                                        value={option.value}
+                                        disabled={option.disabled}
+                                    >
+                                        {option.displayText}
+                                    </option>
+                                ))}
+                            </select>
+                        ) 
+                        : (
+                            <input
+                                type={type}
+                                id={id}
+                                name={name}
+                                className="bg-background p-2 rounded-sm border border-border"
+                                required={required}
+                                value={value}
+                                onChange={e => handleFieldChange(e.target.value)}
+                            />
+                        )
+            }
         </div>
     )
 }

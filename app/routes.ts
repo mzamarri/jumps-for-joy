@@ -2,7 +2,10 @@ import { type RouteConfig, index, route, layout, prefix } from "@react-router/de
 
 export default [
     index('./routes/home/index.tsx'),
-    route("rentals", "./routes/rentals/rentals.tsx", [
+    route("about", "./routes/about.tsx"),
+    route("contact", "./routes/contact.tsx"),
+    route("faq", "./routes/faq.tsx"),
+    ...prefix("rentals", [
         index("./routes/rentals/index.tsx"),
         route(":categoryId", "./routes/rentals/catalog.tsx"),
         route(":categoryId/:itemId", "./routes/rentals/details.tsx")
@@ -10,6 +13,6 @@ export default [
     layout("./routes/cart/layout.tsx", [
         route("cart", "./routes/cart/cart.tsx"),
         route("details", "./routes/cart/details.tsx"),
-        route("confirmation", "./routes/cart/review.tsx") 
+        route("review", "./routes/cart/review.tsx") 
     ])
 ] satisfies RouteConfig;

@@ -1,25 +1,28 @@
-import { useState, useRef, useEffect } from "react"
+import { useRef, useState } from "react"
+import { Check } from "lucide-react"
 import { CartProvider } from "context/CartContext"
-import { Form, Outlet } from "react-router"
+import { Form, Outlet, useLocation } from "react-router"
+import { initialRequestDraft } from "./types.js";
 
 
 const stepperSections = [
     {
         step: 1,
-        name: "cart",
+        name: "Cart",
     },
     {
         step: 2,
-        name: "details",
+        name: "Details",
     },
     {
         step: 3,
-        name: "review",
+        name: "Review",
     }
 ]
 
 export default function CartLayout() {
     const formRef = useRef(null);
+    const [draft, setDraft] = useState(initialRequestDraft);
 
     return (
         <CartProvider>
@@ -28,66 +31,49 @@ export default function CartLayout() {
                 onSubmit={e => e.preventDefault()}
                 className=""
             >
-                <RentalRequestStepper/>
-                <div className="px-24">
-                    <Outlet/>
-                </div>
+                <RentalRequestStepper />
+                <Outlet context={{ draft, setDraft }} />
             </Form>
         </CartProvider>
     )
 }
 
-// function Section({ formRef, step, nextStep, prevStep, className }) {
-//     const sectionRef = useRef(null);
-
-//     const SectionContent = stepperSections.find(section => section.step === step).section;
-
-//     useEffect(() => window.scrollTo({ top: 0 }), [step])
-
-//     return (
-//         <section ref={sectionRef} className={className}>
-//             <SectionContent formRef={formRef} nextStep={nextStep} prevStep={prevStep}/>
-//         </section>
-//     )
-// }
-
 function RentalRequestStepper() {
+    const location = useLocation();
+
+    console.log("Location " + location.pathname)
+    let step = 1;
+    if (location.pathname === "/details") {
+        step = 2;
+    } else if (location.pathname === "/review") {
+        step = 3;
+    }
+
     return (
-        <div className='sticky top-(--h-nav) z-1 bg-brand-yellow'>
-            <button
-                type="button"
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-4 bg-brand-blue text-white rounded-md hover:bg-brand-blue-dark hover:cursor-pointer"
-            >
-                Go Back
-            </button>
+        <div className='bg-card border-b border-border'>
             <div className="">
                 <ol className='min-h-(--h-stepper) flex justify-center items-center '>
-                    <li className='flex items-center'>
-                        <div className='w-12 h-12 bg-brand-blue border-2 border-brand-blue text-white rounded-full flex justify-center items-center'>
-                            1
-                        </div>
-                        <p className='ml-2' >
-                            Cart
-                        </p>
-                        <div className='h-px w-24 mx-4 bg-black '/>
-                    </li>
-                    <li className='flex items-center'>
-                        <div className='w-12 h-12 bg-white border-2 border-brand-blue text-brand-blue-dark rounded-full flex justify-center items-center'>
-                            2
-                        </div>
-                        <p className='ml-2'>
-                            Details
-                        </p>
-                        <div className='h-px w-24 mx-4 bg-black'/>
-                    </li>
-                    <li className='flex items-center'>
-                        <div className='w-12 h-12 bg-white border-2 border-brand-blue text-brand-blue-dark rounded-full flex justify-center items-center'>
-                            3
-                        </div>
-                        <p className='ml-2'>
-                            Review
-                        </p>
-                    </li>
+                    {stepperSections.map(s => (
+                        <li className='flex items-center gap-2'>
+                            <div className={`w-10 h-10 font-bold rounded-full flex justify-center items-center ${
+                                step > s.step 
+                                    ? "bg-secondary text-secondary-foreground"
+                                    : (step === s.step)
+                                        ? "bg-primary text-primary-foreground"
+                                        : "bg-muted text-muted-foreground"
+                            }`}>
+                                {
+                                    s.step < step
+                                        ? <Check className="w-5 h-5" />
+                                        : s.step
+                                }
+                            </div>
+                            <span className='hidden sm:inline font-semibold text-foreground' >
+                                {s.name}
+                            </span>
+                            {s.step < 3 && <div className='h-px w-24 mx-4 bg-border '/>}
+                        </li>
+                    ))}
                 </ol>
             </div>
         </div>

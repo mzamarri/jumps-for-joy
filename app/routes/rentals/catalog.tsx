@@ -1,5 +1,7 @@
 import { Link, NavLink, useLoaderData } from "react-router"
-import catalog from "data/catalog.json"
+import { useState } from "react"
+import catalog from "data/categories.json"
+import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react"
 
 export function clientLoader() {
     console.log("loading data...");
@@ -21,29 +23,39 @@ export default function RentalCatalog({ loaderData, params }) {
     return (
             <div className='px-16 space-y-8'>
                 <CategoryTabs/>
-                <div className=''>
+                <div className='space-y-4'>
+                    <Link
+                        to="/rentals"
+                        className='inline-flex items-center gap-2 text-primary font-semibold hover:underline'
+                    >
+                        <ArrowLeft className="w-4 h-4"/> Back to Rental Categories
+                    </Link>
                     <div className='text-center'>
-                        <h1 className='text-3xl'>{category.name}</h1>
-                        <p className='text-lg'>Some text about this type of rental</p>
+                        <h1 className='text-4xl font-bold '>{category.name}</h1>
+                        <p className='text-lg text-muted-foreground font-semibold'>Some text about this type of rental</p>
                     </div>
-                    <ul className='p-4 gap-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:p-6 lg:gap-6'>
+                    <ul className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6'>
                         {
                             rentals.map((item, idx) => {
                                 return (
                                     <Link 
                                         key={idx} 
                                         to={item.id}
-                                        className='text-center p-4 bg-gray-200 rounded-lg border border-gray-300 shadow-lg cursor-pointer'
+                                        className='bg-card overflow-hidden rounded-lg shadow-lg hover:shadow-xl cursor-pointer'
                                     >
-                                        <div className='bg-gray-600 h-64'></div>
-                                        <h1 className='text-3xl'>Product</h1>
-                                        <p className=''>Other very brief information</p>
-                                        <h3 className='text-xl'>$100</h3>
-                                        <button
-                                            className='p-4 w-full rounded-lg bg-brand-red cursor-pointer hover:bg-brand-blue-dark text-white'
-                                        >
-                                            Add to Cart
-                                        </button>
+                                        <div className='bg-gray-500 h-64'></div>
+                                        <div className='p-5 space-y-2'>
+                                            <div className='flex justify-between'>
+                                                <h1 className='text-lg text-foreground font-bold'>Product</h1>
+                                                <span className='text-lg text-primary font-bold'>$100</span>
+                                            </div>
+                                            <p className='text-sm text-muted-foreground mb-4'>Other very brief information</p>
+                                            <button
+                                                className='py-2 w-full rounded-lg bg-accent cursor-pointer hover:bg-accent/90 text-accent-foreground'
+                                            >
+                                                Add to Cart
+                                            </button>
+                                        </div>
                                     </Link>
                                 )
                             })
@@ -56,37 +68,60 @@ export default function RentalCatalog({ loaderData, params }) {
 
 function CategoryTabs() {
     const categories = useLoaderData();
+    const [open, setOpen] = useState(false);
 
     return (
-        <div className="sticky top-(--h-nav) group">
-            <div className='bg-brand-yellow border border-gray-300 rounded-b-full text-center'>
-                <h1 className='py-2'>
-                    Hover to choose other category
-                </h1>
-            </div>
-            <div className='absolute left-0 right-0 top-0 group-hover:h-auto h-0 overflow-hidden bg-brand-yellow'>
-                <h1 className='text-center py-2'>
-                    Choose a Category
-                </h1>
-                <ul className='px-8 pt-4 pb-8 grid grid-cols-2 gap-4'>
-                    {
-                        categories.map(category => {
-                            return (
-                                <NavLink
-                                    key={category}
-                                    to={`../${category.id}`}
-                                    className={({ isActive }) => {
-                                        isActive 
-                                            ? 'bg-brand-red '
-                                            : 'bg-brand-blue hover:bg-brand-red/50'
-                                    }}
-                                >
-                                    {category.name}
-                                </NavLink>
-                            )
-                        })
-                    }
-                </ul>
+        <div className="sticky top-(--h-nav)">
+            <div 
+                className={`bg-background border-x border-b border-gray-300 text-center shadow-lg  ${
+                    open ? "rounded-b-xl" : "rounded-b-full"     
+                }`}
+            >
+                {
+                    open ? (
+                        <>
+                            <span 
+                                className='py-3 inline-flex items-center gap-2 cursor-pointer text-foreground font-semibold'
+                                onClick={() => setOpen(false)}
+                            >
+                                Choose a Category <ChevronUp className="w-4 h-4" />
+                            </span>
+                            <ul className='px-8 pt-4 pb-8 grid grid-cols-2 gap-4'>
+                                {
+                                    categories.map(category => {
+                                        return (
+                                            <NavLink
+                                                key={category}
+                                                to={`/rentals/${category.id}`}
+                                                className={({ isActive }) => `py-2 rounded-full
+                                                    ${isActive 
+                                                        ? 'bg-primary text-primary-foreground'
+                                                        : "bg-card text-foreground border border-border hover:bg-secondary/30 hover:border-secondary"
+                                                    }
+                                                `}
+                                                onClick={() => setOpen(false)}
+                                            >
+                                                {category.name}
+                                            </NavLink>
+                                        )
+                                    })
+                                }
+                            </ul> 
+                        </>
+                    ) : (
+                        <div 
+                            className='flex items-center justify-center gap-2 text-foreground font-semibold cursor-pointer'
+                            onClick={() => setOpen(true)}
+                        >
+                            <span className='py-3 flex justify-center items-center gap-2'>
+                                Current Category: <span className="text-primary">Category Goes Here</span> 
+                                <ChevronDown 
+                                    className="w-4 h-4"
+                                />
+                            </span>                   
+                        </div>
+                    )
+                }
             </div>
         </div>
     )

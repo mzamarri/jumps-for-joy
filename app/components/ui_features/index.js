@@ -1,2 +1,5 @@
 export { default as Carousel } from './Carousel'
+export { default as SnapCarousel } from './SnapCarousel'
 export { default as Accordion } from './Accordion'
+export { default as InfoOverlay } from './InfoOverlay'
+export { default as Dropdown } from './Dropdown'

@@ -1,6 +1,8 @@
+import { Link } from "react-router"
 import { useCart } from 'context/CartContext'
+import { ArrowLeft } from "lucide-react";
 
-export default function DetailsSection({ formRef, nextStep }) {
+export default function DetailsSection({ formRef, }) {
     const { formData } = useCart();
 
     const handleNext = () => {
@@ -26,38 +28,46 @@ export default function DetailsSection({ formRef, nextStep }) {
                 },
                 notes: form.get("notes")
             }
-            nextStep();
     }
 
     return (
-        <>
+        <div
+            className="px-16 py-8 space-y-8"
+        >
+            <Link
+                to="/cart"
+                className="inline-flex items-center gap-2 text-primary font-semibold hover:underline"
+            >
+                <ArrowLeft className="w-4 h-4" /> Back To Cart
+            </Link>
             <div className='text-center space-y-2'>
-                <h1 className='text-6xl font-semibold'>Request Details</h1>
-                <p className='text-gray-500'>This will help us prepare an accurate quote & schedule</p>
+                <h1 className='text-6xl font-bold'>Request <span className="text-primary">Details</span></h1>
+                <p className='text-lg text-muted-foreground'>This will help us prepare an accurate quote & schedule</p>
             </div>
-            <div className='bg-white border border-gray-400 rounded-lg overflow-hidden shadow-lg'>
+            <div className='bg-card border border-border rounded-lg overflow-hidden shadow-lg'>
                 <PrimaryContact/>
                 <RentalAddress/>
                 <RentalSchdule/>
                 <Notes/>
             </div>
             <div className='flex justify-center'>
-                <button 
+                <Link 
                     type="button"
-                    className="py-4 px-16 rounded-lg bg-brand-blue hover:bg-brand-blue-dark hover:cursor-pointer text-white"
+                    to="/review"
+                    className="py-4 px-16 rounded-lg bg-accent hover:bg-accent-light hover:cursor-pointer text-white"
                     onClick={handleNext}
                 >
                     Review
-                </button>
+                </Link>
             </div>
-        </>
+        </div>
     )
 }
 
 function PrimaryContact() {
     return (
         <>
-            <div className='bg-brand-blue py-8 px-4'>
+            <div className='bg-primary py-8 px-4'>
                 <h2 className='text-2xl text-white'>Primary Contact</h2>
             </div>
             <div className='space-y-4 px-4 py-8'>
@@ -105,7 +115,7 @@ function PrimaryContact() {
 function RentalAddress() {
     return (
         <>
-            <div className='bg-brand-blue py-8 px-4'>
+            <div className='bg-primary py-8 px-4'>
                 <h2 className='text-2xl text-white'>Rental Service Location</h2>
             </div>
             <div className='space-y-4 px-4 py-8'>
@@ -161,7 +171,7 @@ function RentalAddress() {
 function RentalSchdule() {
     return (
         <>
-            <div className='bg-brand-blue px-4 py-8'>
+            <div className='bg-primary px-4 py-8'>
                 <h2 className='text-2xl text-white'>Rental Schedule</h2>
             </div>
             <div className="px-4 py-8 flex gap-16">
@@ -185,7 +195,7 @@ function RentalSchdule() {
                         <select
                             id="duration"
                             name="duration"
-                            className="bg-white p-2 rounded-sm border border-gray-400"
+                            className="bg-white p-2 rounded-sm border border-border"
                         >
                             <option>Select Duration</option>
                             <option>Same Day</option>
@@ -203,12 +213,12 @@ function RentalSchdule() {
 function Notes() {
     return (
         <>
-            <div className='bg-brand-blue px-4 py-8 '>
+            <div className='bg-primary px-4 py-8 '>
                 <h2 className='text-2xl text-white'>Notes (Optional)</h2>
             </div>
             <div className='px-4 py-8'>
                 <textarea
-                    className="bg-white w-full p-2 rounded-sm border border-gray-400"
+                    className="bg-white w-full p-2 rounded-sm border border-border"
                     rows="10"
                 />
             </div>
@@ -225,7 +235,7 @@ function UserInput({ id, name, type, className, label, required}) {
                     type={type}
                     id={id}
                     name={name}
-                    className="bg-white p-2 rounded-sm border-gray-400 border"
+                    className="bg-white p-2 rounded-sm border border-border"
                     required={required}
                 />
             </div>
