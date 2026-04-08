@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { InfoOverlay } from 'components/ui_features';
+import { InfoOverlay } from 'components/ui';
 import { MapPin, Truck, Toolbox, CircleAlert, ChevronRight, Mail, Phone } from 'lucide-react'
 
 const areaCards = [

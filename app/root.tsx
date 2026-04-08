@@ -1,5 +1,6 @@
-import { BookingProvider } from 'context/BookingContext'
-import bhLogo from '/logo.png'
+import { CartProvider, useCart } from 'context/CartContext'
+import { ToastProvider } from 'context/ToastContext'
+import bhLogo from './assets/logo.png'
 import {
     NavLink,
     Link,
@@ -9,8 +10,8 @@ import {
     Scripts,
     ScrollRestoration
 } from "react-router"
-import { ShoppingCart, Mail, Phone, MapPin, Clock3 } from 'lucide-react'
-import Dropdown from 'components/ui_features/Dropdown'
+import { ShoppingCart, Mail, Phone, MapPin, Clock3, Menu } from 'lucide-react'
+import Dropdown from 'components/ui/Dropdown'
 
 export function Layout({
     children
@@ -74,32 +75,42 @@ const navTabs = [
         label: "Cart",
     }
 ]
+
+const mobileNavItems = navTabs.flatMap(tab => {
+    if ('tabs' in tab) return tab.tabs;
+    if (tab.id === 'cart') return [];
+    return [{ id: tab.id, path: tab.path, label: tab.label }];
+});
+
 export default function Root() {
     return (
         <div className='bg-background'>
-            <BookingProvider>
-                <div className="min-h-screen" style={{"--h-nav": "4rem"}}>
-                    <NavBar/>
-                    <Outlet/>
-                </div>
-            </BookingProvider>
+            <ToastProvider>
+                <CartProvider>
+                    <div className="" style={{"--h-nav": "4rem"}}>
+                        <NavBar/>
+                        <Outlet/>
+                    </div>
+                </CartProvider>
+            </ToastProvider>
             <Footer/>
         </div>
     );
 }
 
 function NavBar() {
+    const { totalItems } = useCart();
     return (
-        <header className='h-(--h-nav) sticky z-1 top-0 bg-primary text-primary-foreground flex justify-between shadow-lg'>
+        <header className='h-(--h-nav) sticky z-1 top-0 bg-primary text-primary-foreground flex justify-between shadow-lg sm:px-3 md:px-0'>
             <Link
                 to="/"
-                className='flex items-center cursor-pointer'
+                className='flex items-center cursor-pointer min-w-0'
             >
-                <img src={bhLogo} alt="Logo Image" className="h-full"/>
-                <h1 className='text-xl font-bold'>Jump For Joy <span className="text-secondary font-semibold">Inflatables</span></h1>
+                <img src={bhLogo} alt="Logo Image" className="h-14 w-14 md:h-16 md:w-16"/>
+                <h1 className='text-sm font-bold leading-tight sm:text-base md:text-xl'>Jump For Joy <span className="text-secondary font-semibold">Inflatables</span></h1>
             </Link>
-            <nav className=''>
-                <ul className='h-full flex justify-end px-4'>
+            <nav className='hidden md:block'>
+                <ul className='h-full flex justify-end px-4 gap-8'>
                     {
                         navTabs.map(tab => {
                             return (
@@ -113,21 +124,30 @@ function NavBar() {
                                                 label='More' 
                                                 align="right" 
                                                 items={tab.tabs}
-                                                buttonClassName="px-4"
+                                                buttonClassName="h-auto"
                                                 menuClassName="bg-primary"  
                                             /> 
                                         ) : (
                                             <NavLink 
                                                 to={tab.path}
-                                                className={({ isActive }) => `font-semibold transition-colors px-4 flex justify-center items-center gap-2 ${
+                                                className={({ isActive }) => `relative font-semibold transition-colors flex justify-center items-center ${
                                                     tab.id === "cart" 
-                                                        ? `bg-accent px-8 py-2 rounded-lg` 
-                                                        : `h-full ${
+                                                        ? `bg-accent hover:bg-accent/90 px-8 py-2 rounded-lg gap-2` 
+                                                        : ` ${
                                                             isActive ? "text-secondary" : "text-primary-foreground/80 hover:text-primary-foreground"  
                                                         }`
                                                 }`}
                                             >  
-                                                {tab.id === "cart" && <ShoppingCart className="w-4 h-4" />}
+                                                {tab.id === "cart" && (
+                                                    <>
+                                                        <ShoppingCart className="w-4 h-4" />
+                                                        {totalItems > 0 && (
+                                                            <span className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center rounded-full bg-secondary text-secondary-foreground text-xs font-bold">
+                                                                {totalItems > 99 ? "99+" : totalItems}
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                )}
                                                 {tab.label}
                                             </NavLink>
                                         )
@@ -137,6 +157,30 @@ function NavBar() {
                         })
                     }
                 </ul>
+            </nav>
+            <nav className='md:hidden flex items-center gap-2'>
+                <NavLink
+                    to="/cart"
+                    className='relative flex items-center justify-center gap-2 h-10 w-10 sm:h-auto sm:w-auto sm:px-8 sm:py-2 rounded-lg bg-accent text-accent-foreground'
+                    aria-label="Cart"
+                >
+                    <ShoppingCart className="w-5 h-5 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Cart</span>
+                    {totalItems > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 flex items-center justify-center rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold">
+                            {totalItems > 99 ? "99+" : totalItems}
+                        </span>
+                    )}
+                </NavLink>
+                <Dropdown
+                    label={<Menu className="h-5 w-5" />}
+                    items={mobileNavItems}
+                    align="right"
+                    showChevron={false}
+                    buttonClassName="h-10 w-10 justify-center hover:bg-primary-foreground/15"
+                    menuClassName="min-w-52 sm:rounded-2xl border border-primary-foreground/12 bg-primary px- py-1 shadow-2xl"
+                    itemClassName="justify-start rounded-x px-4 py-3"
+                />
             </nav>
         </header>
     )
@@ -160,22 +204,23 @@ function Footer() {
     ];
 
     return (
-        <footer className='bg-primary text-primary-foreground mt-12'>
-            <div className='px-24 py-12'>
-                <div className='grid grid-cols-1 md:grid-cols-12 gap-8'>
-                    <div className='md:col-span-5 space-y-4'>
-                        <img src={bhLogo} alt="Jump For Joy Logo" className="h-20 w-auto" />
-                        <div className='space-y-1'>
-                            <h2 className='text-2xl font-bold'>Jump For Joy</h2>
-                            <p className='text-secondary font-semibold'>Inflatables</p>
+        <footer className='bg-primary text-primary-foreground'>
+            <div className='p-4 sm:p-8'>
+                <div className='grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-12 gap-8'>
+                    <div className='sm:col-span-2 lg:col-span-5 lg:row-span-2 space-y-4'>
+                        <div className=''>
+                            <img src={bhLogo} alt="Jump For Joy Logo" className="h-20 w-auto" />
+                            <div className='space-y-1'>
+                                <h2 className='text-2xl font-bold'>Jump For Joy <span className="text-secondary">Inflatables</span></h2>
+                                <p className='text-sm italic text-primary-foreground/75'>1 Peter 1:8</p>
+                            </div>
                         </div>
                         <p className='max-w-md text-primary-foreground/80 text-sm'>
                             Safe, clean, and reliable inflatable rentals for birthdays, schools,
                             churches, and community events. We deliver, set up, and pick up so you can focus on the fun.
                         </p>
                     </div>
-
-                    <div className='md:col-span-3 space-y-3'>
+                    <div className='sm:col-span-1 lg:col-span-3 lg:row-span-2 space-y-3'>
                         <h3 className='font-bold text-lg'>Quick Links</h3>
                         <ul className='space-y-2 text-sm'>
                             {quickLinks.map(link => (
@@ -190,26 +235,24 @@ function Footer() {
                             ))}
                         </ul>
                     </div>
-
-                    <div className='md:col-span-4 space-y-5'>
-                        <div className='space-y-3'>
-                            <h3 className='font-bold text-lg'>Contact</h3>
-                            <ul className='space-y-2 text-sm text-primary-foreground/85'>
-                                <li className='flex items-center gap-2'>
-                                    <Phone className='w-4 h-4 text-secondary' />
-                                    <span>(555) 555-0199</span>
-                                </li>
-                                <li className='flex items-center gap-2'>
-                                    <Mail className='w-4 h-4 text-secondary' />
-                                    <span>bookings@jumpforjoy.com</span>
-                                </li>
-                                <li className='flex items-center gap-2'>
-                                    <MapPin className='w-4 h-4 text-secondary' />
-                                    <span>Serving the greater local area</span>
-                                </li>
-                            </ul>
-                        </div>
-
+                    <div className='sm:col-span-1 lg:col-span-4 lg:row-span-1 space-y-3'>
+                        <h3 className='font-bold text-lg'>Contact</h3>
+                        <ul className='space-y-2 text-sm text-primary-foreground/85'>
+                            <li className='flex items-center gap-2'>
+                                <Phone className='w-4 h-4 text-secondary' />
+                                <span>(555) 555-0199</span>
+                            </li>
+                            <li className='flex items-center gap-2'>
+                                <Mail className='w-4 h-4 text-secondary' />
+                                <span>bookings@jumpforjoy.com</span>
+                            </li>
+                            <li className='flex items-center gap-2'>
+                                <MapPin className='w-4 h-4 text-secondary' />
+                                <span>Serving the greater local area</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div className='sm:col-span-2 lg:col-span-4 lg:row-span-1 space-y-5'>
                         <div className='space-y-2'>
                             <h3 className='font-bold text-lg flex items-center gap-2'>
                                 <Clock3 className='w-4 h-4 text-secondary' />
@@ -228,7 +271,7 @@ function Footer() {
                 </div>
 
                 <div className='border-t border-primary-foreground/25 mt-10 pt-4 text-xs text-primary-foreground/70'>
-                    <p>&copy; {new Date().getFullYear()} Jump For Joy Inflatables. All rights reserved.</p>
+                    <p className="flex justify-center">&copy; {new Date().getFullYear()} Jump For Joy Inflatables. All rights reserved.</p>
                 </div>
             </div>
         </footer>

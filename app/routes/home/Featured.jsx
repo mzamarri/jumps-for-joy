@@ -1,5 +1,15 @@
-import { Carousel } from "components/ui_features";
-import { Star, ShoppingCart } from "lucide-react"
+import { RentalItemCard } from "components/ui";
+import { Star } from "lucide-react"
+import { getRentalItem } from "data/rentalItems";
+
+const featuredItems = [
+    { categoryId: "bounce-house", item: getRentalItem("bounce-house", "rainbow-castle") },
+    { categoryId: "bounce-house", item: getRentalItem("bounce-house", "party-palace") },
+    { categoryId: "combos", item: getRentalItem("combos", "bounce-slide-combo") },
+    { categoryId: "water-slides", item: getRentalItem("water-slides", "splash-rush") },
+    { categoryId: "dry-slides", item: getRentalItem("dry-slides", "summit-slide") },
+    { categoryId: "bounce-house", item: getRentalItem("bounce-house", "jumbo-fun-house") },
+].filter(entry => entry.item);
 
 export default function Featured() {
     return (
@@ -17,30 +27,11 @@ export default function Featured() {
                 </div>
                 <div className='carousel-container relative w-full h-2/3'>
                     <div className='grid grid-cols-3 gap-9'>
-                        {[<Card/>, <Card/>, <Card/>, <Card/>, <Card/>, <Card/>]}
+                        {featuredItems.map(({ categoryId, item }) => (
+                            <RentalItemCard key={`${categoryId}-${item.id}`} categoryId={categoryId} item={item} />
+                        ))}
                     </div>
                 </div>
-            </div>
-        </div>
-    )
-}
-
-function Card() {
-    return (
-        <div className='bg-card rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer'>
-            <div className='h-48 bg-gray-400'/>
-            <div className='space-y-2 p-5'>
-                <div className='flex justify-between'>
-                    <h1 className='text-lg text-foreground font-bold'>Item Name</h1>
-                    <span className='text-lg text-primary font-bold'>$100</span>
-                </div>
-                <p className='text-sm text-muted-foreground mb-4'>Description of the Item goes here</p>
-                <button className='w-full py-2 rounded-lg bg-accent hover:bg-accent/90 text-accent-foreground cursor-pointer flex gap-3 justify-center items-center'>
-                    <ShoppingCart 
-                        className='w-4 h-4'
-                    />
-                    Add to Card
-                </button>
             </div>
         </div>
     )

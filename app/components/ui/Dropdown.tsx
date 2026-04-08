@@ -17,6 +17,7 @@ type DropdownProps = {
     menuClassName?: string
     itemClassName?: string
     align?: 'left' | 'right'
+    showChevron?: boolean
 }
 
 export default function Dropdown({
@@ -27,6 +28,7 @@ export default function Dropdown({
     menuClassName = '',
     itemClassName = '',
     align = 'left',
+    showChevron = true,
 }: DropdownProps) {
     const [open, setOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -63,36 +65,38 @@ export default function Dropdown({
     }, [])
 
     return (
-        <div ref={containerRef} className="relative h-full flex items-center">
+        <div ref={containerRef} className="sm:relative">
             <button
                 type="button"
                 aria-expanded={open}
                 aria-controls={menuId}
                 className={[
-                    'inline-flex h-full items-center gap-2 font-semibold transition-colors cursor-pointer',
+                    'inline-flex items-center gap-2 font-semibold transition-colors cursor-pointer',
                     hasActiveItem ? activeButtonClassName : 'text-primary-foreground/80 hover:text-primary-foreground',
                     buttonClassName,
                 ].join(' ').trim()}
                 onClick={() => setOpen(current => !current)}
             >
                 <span>{label}</span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`.trim()} />
+                {showChevron && (
+                    <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`.trim()} />
+                )}
             </button>
 
             {open && (
                 <div
                     id={menuId}
                     className={[
-                        'absolute top-full z-20 min-w-56 overflow-hidden border border-border rounded-sm shadow-2xl',
+                        'absolute top-full w-screen z-20 min-w-56 overflow-hidden border border-border',
                         align === 'right' ? 'right-0' : 'left-0',
                         menuClassName,
                     ].join(' ')}
                 >
-                    <ul className="p-1">
+                    <ul className="sm:p-1">
                         {items.map(item => (
                             <li 
                                 key={item.id}
-                                className='border-b border-primary-foreground/70 last:border-none'
+                                className='border-b border-primary-foreground/20 last:border-none'
                             >
                                 <NavLink
                                     to={item.path}

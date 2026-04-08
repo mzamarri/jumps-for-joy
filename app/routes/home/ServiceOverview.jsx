@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { InfoOverlay } from 'components/ui_features'
+import { InfoOverlay } from 'components/ui'
 import { Instagram, Facebook, Balloon, PartyPopper, ShieldCheck, CalendarCheck, ChevronRight } from 'lucide-react'
-import bounceHouse from '/Logo-bounce-house-remade.png'
+import bounceHouse from '../../assets/Logo-bounce-house-remade.png'
 
 const cards = [
     {
@@ -50,9 +50,9 @@ export default function ServiceOverview() {
             <div className='flex justify-center items-center'>
                 <div className='w-full max-w-6xl text-center space-y-6'>
                     <span className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-semibold text-sm rounded-full">
-                        <Balloon/> What We Do
+                        <Balloon className='w-4 h-4'/> What We Do
                     </span>
-                    <div className='flex gap-8'>
+                    <div className='flex items-center gap-16'>
                         <div className='space-y-4 text-center'>
                             <h1 className='text-6xl font-bold text-foreground rounded-lg'>
                                 More Than Just <span className='text-primary'>Bounce Houses</span>
@@ -69,7 +69,7 @@ export default function ServiceOverview() {
                                 adapt to different spaces, guest counts, and event layouts.
                             </p>
                         </div>
-                        <div className='relative max-w-sm bg-secondary/90 overflow-hidden rounded-full border-9 border-primary'>
+                        <div className='relative max-w-sm bg-secondary/90 overflow-hidden rounded-full border-16 border-primary'>
                             <div
                                 className='absolute inset-0 bg-card'
                             />

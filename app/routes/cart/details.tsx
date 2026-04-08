@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link, useOutletContext } from "react-router"
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, MapPin, User } from "lucide-react";
 import type { CartOutletContext, InputConfig, SectionConfig } from "./types.js";
 
 const formSections: SectionConfig[] = [
     {
         id: "user-details",
         name: "User Details",
+        icon: User,
         fields: [
             [
                 {
@@ -54,6 +55,7 @@ const formSections: SectionConfig[] = [
     {
         id: "setup-location",
         name: "Setup Location",
+        icon: MapPin,
         fields: [
             {
                 label: "Street Address",
@@ -65,15 +67,6 @@ const formSections: SectionConfig[] = [
                 }
             },
             [
-                {
-                    label: "Unit/Apt",
-                    input: {
-                        id: "unit",
-                        name: "unit",
-                        type: "text",
-                        required: false
-                    }
-                },
                 {
                     label: "City",
                     input: {
@@ -107,6 +100,7 @@ const formSections: SectionConfig[] = [
     {
         id: "event-info",
         name: "Event Information",
+        icon: CalendarDays,
         fields: [
             [
                 {
@@ -187,7 +181,7 @@ export default function DetailsSection() {
 
     return (
         <div
-            className="px-24 py-8 space-y-8"
+            className="max-w-4xl m-4 sm:mx-8 lg:mx-auto py-4 sm:py-8 space-y-8"
         >
             <Link
                 to="/cart"
@@ -196,56 +190,60 @@ export default function DetailsSection() {
                 <ArrowLeft className="w-4 h-4" /> Back To Cart
             </Link>
             <div className='text-center space-y-2'>
-                <h1 className='text-6xl font-bold'>Request <span className="text-primary">Details</span></h1>
+                <h1 className='text-4xl sm:text-5xl font-bold'>Request <span className="text-primar">Details</span></h1>
                 <p className='text-lg text-muted-foreground'>This will help us prepare an accurate quote & schedule</p>
             </div>
-            <div className='text-foreground bg-card border border-border rounded-lg p-8 space-y-16'>
+            <div className='text-foreground bg-card border border-border p-4 sm:p-6 space-y-16'>
                 {formSections.map(section => (
                     <div
                         key={section.id}
-                        className="space-y-4"
+                        className="space-y-6 sm:space-y-8"
                     >
-                        <h1 className="text-2xl font-semibold text-primary">{section.name}</h1>
-                        {section.fields.map((field, idx) => Array.isArray(field)
-                            ? (
-                                <div key={`field-row-${section.id}-${idx}`} className="flex gap-8">
-                                    {
-                                        field.map(({ label, input, grow }) => (
-                                            <UserInput
-                                                key={input.id}
-                                                label={label}
-                                                input={input}
-                                                grow={grow}
-                                                initialValue={draft[input.name]}
-                                                setDraft={setDraft}
-                                            />
-                                        ))
-                                    }
-                                </div>
-                            )
-                            : (
-                                <UserInput
-                                    key={field.input.id}
-                                    label={field.label}
-                                    input={field.input}
-                                    grow={field.grow}
-                                    initialValue={draft[field.input.name]}
-                                    setDraft={setDraft}
-                                />
-                            )
-                        )}
+                        <h1 className="text-xl md:text-2xl font-semibold bg-muted p-4 rounded-lg text-primar flex items-center gap-3">
+                            <div className="bg-primary/10 w-10 h-10 flex justify-center items-center rounded-xl">
+                                <section.icon className="h-5 w-5 text-primary" />
+                            </div>
+                            {section.name}
+                        </h1>
+                        <div className="space-y-4">
+                            {section.fields.map((field, idx) => Array.isArray(field)
+                                ? (
+                                    <div key={`field-row-${section.id}-${idx}`} className="flex flex-col md:flex-row gap-4 sm:gap-8">
+                                        {
+                                            field.map(({ label, input, grow }) => (
+                                                <UserInput
+                                                    key={input.id}
+                                                    label={label}
+                                                    input={input}
+                                                    grow={grow}
+                                                    initialValue={draft[input.name]}
+                                                    setDraft={setDraft}
+                                                />
+                                            ))
+                                        }
+                                    </div>
+                                )
+                                : (
+                                    <UserInput
+                                        key={field.input.id}
+                                        label={field.label}
+                                        input={field.input}
+                                        grow={field.grow}
+                                        initialValue={draft[field.input.name]}
+                                        setDraft={setDraft}
+                                    />
+                                )
+                            )}
+                        </div>
                     </div>
                 ))}
             </div>
-            <div className='flex justify-center'>
-                <Link 
-                    type="button"
-                    to="/review"
-                    className="py-3 px-16 rounded-xl bg-accent text-accent-foreground font-semibold hover:bg-accent/90 cursor-pointer flex justify-center items-center gap-2"
-                >
-                    Review Request <ArrowRight className="w-4 h-4"/>
-                </Link>
-            </div>
+            <Link 
+                to="/review"
+                className="py-3 rounded-xl bg-accent text-accent-foreground font-semibold hover:bg-accent/90 cursor-pointer flex justify-center items-center gap-2"
+            >
+                Review Request <ArrowRight className="w-4 h-4"/>
+            </Link>
         </div>
     )
 }
@@ -272,14 +270,14 @@ function UserInput({ label, input, grow=1, initialValue, setDraft }: UserInputPr
 
     return (
         <div 
-            className="flex flex-col space-y-2"
+            className="min-w-0 flex flex-col space-y-2"
             style={{flexGrow: grow}}
         >
             <label 
                 htmlFor={id}
                 className="font-semibold"
             >
-                { `${label} ${required && "*"}` }
+                { `${label}${required ? " *" : ""}` }
             </label>
             {
                 type === "text-area"

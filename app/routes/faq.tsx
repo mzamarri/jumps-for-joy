@@ -1,4 +1,4 @@
-import { Accordion } from "components/ui_features";
+import { Accordion } from "components/ui";
 
 const faqs = [
     {

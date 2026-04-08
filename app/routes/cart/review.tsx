@@ -1,13 +1,17 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Link, useOutletContext } from "react-router";
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Save, SquarePen, User, MapPin, CalendarDays } from 'lucide-react';
 import emailjs from '@emailjs/browser'
+import { useCart } from "context/CartContext";
 import type { CartOutletContext, FieldName, ReviewSection } from "./types.js";
+
+const deliveryFee = 25;
 
 const fieldSections: ReviewSection[] = [
     {
         id: "primaryContact",
         title: "Primary Contact",
+        icon: User,
         fields: [
             {
                 id: "firstName",
@@ -34,6 +38,7 @@ const fieldSections: ReviewSection[] = [
     {
         id: "rentalAddress",
         title: "Rental Address",
+        icon: MapPin,
         fields: [
             {
                 id: "street",
@@ -65,6 +70,7 @@ const fieldSections: ReviewSection[] = [
         {
         id: "eventInfo",
         title: "Event Information",
+        icon: CalendarDays,
         fields: [
             {
                 id: "date",
@@ -100,6 +106,9 @@ export default function ReviewSection() {
     const [ editingField, setEditingField ] = useState<FieldName | "">("");
     const { draft, setDraft } = useOutletContext<CartOutletContext>();
     const [ canProceed, setCanProceed ] = useState(false);
+    const { cart } = useCart();
+    const subtotal = cart.reduce((sum, item) => sum + item.cost * item.quantity, 0);
+    const total = subtotal + deliveryFee;
 
     const handleEdit = (field: FieldName) => setEditingField(field)
 
@@ -114,11 +123,6 @@ export default function ReviewSection() {
     const submitRequest = () => {
         if (canProceed) {
             console.log("Request Sent!");
-            // emailjs.send("test_service", "contact_form", {
-            //     formData: {...draft},
-            //     email: "miguelazamarripar@gmail.com",
-            //     name: "Mike"
-            // }, "Ng-Hc13eVaX6RDXkP")
         }
     }
 
@@ -129,9 +133,15 @@ export default function ReviewSection() {
         console.log(draft);
     }
 
+    const formatCurrency = (value: number) =>
+        new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+        }).format(value);
+
     return (
         <div
-            className="px-24 py-8 space-y-8"
+            className="max-w-4xl m-4 sm:mx-8 lg:mx-auto py-8 space-y-8"
         >
             <Link
                 to="/details"
@@ -140,13 +150,18 @@ export default function ReviewSection() {
                 <ArrowLeft className="w-4 h-4" /> Back To Details
             </Link>
             <div className='text-center space-y-2'>
-                <h1 className='text-6xl font-bold'>Final <span className="text-primary">Review</span></h1>
+                <h1 className='text-4xl md:text-5xl font-bold'>Final <span className="text-primar">Review</span></h1>
                 <p className='text-lg text-muted-foreground'>Please double check information and submit request</p>
             </div>
             <div className="space-y-8">
                 {fieldSections.map(section => (        
-                    <div className='text-foreground bg-card border border-border rounded-lg p-8 space-y-4 shadow-md' key={section.id}>
-                        <h1 className='text-2xl font-semibold text-primary'>{section.title}</h1>
+                    <div className='text-foreground bg-card border border-border rounded-xl overflow-hidden' key={section.id}>
+                        <h1 className='text-xl md:text-2xl border-b border-border bg-muted py-6 px-4 md:px-8 font-bold flex gap-4 items-center'>
+                            <div className="bg-primary/10 w-10 h-10 flex justify-center items-center rounded-xl">
+                                <section.icon className="h-5 w-5 text-primary" />
+                            </div>
+                            {section.title}
+                        </h1>
                         <div className='divide-y divide-border'>
                             { section.fields.map(field => (
                                 <UserInput
@@ -164,27 +179,48 @@ export default function ReviewSection() {
                     </div>
                 ))}
             </div>
-            <div className='text-foreground bg-card border border-border rounded-lg p-8 shadow-md'>
-                <div className='pb-8'>
-                    <h2 className='text-lg text-primary'>Order Summary</h2>
+            <div className='text-foreground bg-card border border-border rounded-xl overflow-hidden'>
+                <div className='px-4 md:px-8 py-6 border-b border-border bg-primary text-primary-foreground'>
+                    <h1 className='text-2xl font-semibold'>Order Summary</h1>
                 </div>
-                <div className='divide-y divide-border border-b border-border'>
-                    {[...Array(5)].map((_, idx) => (
-                        <div key={`summary-item-${idx}`} className='flex justify-between items-end py-4'>
-                            <div>
-                                <h2 className='text-lg'>Item Name</h2>
-                                <p className='text-muted-foreground text-sm'>qty: 1 x $15</p>
-                            </div>
-                            <p className='text-primary'>$199.99</p>
-                        </div>
-                    ))}
-                </div>
-                <div className='border-y border-border space-y-2 mt-4 py-4 text-muted-foreground'>
-                    <p className=''>Subtotal: $200</p>
-                    <p className=''>Delviery Fee: $50</p>
-                </div>
-                <div className='pt-8'>
-                    <h1 className='text-2xl '>Total: $5000</h1>
+                <div className="px-4 md:px-8 py-4 space-y-4">
+                    <div className='space-y-4 py-4'>
+                        {cart.length > 0 ? (
+                            cart.map(item => (
+                                <div key={item.id} className='flex items-end justify-between gap-4'>
+                                    <div>
+                                        <h2 className='text-lg font-semibold text-foreground'>
+                                            {String(item.name ?? "Rental Item")}
+                                        </h2>
+                                        <p className='text-sm text-muted-foreground'>
+                                            qty: {item.quantity} x {formatCurrency(item.cost)}
+                                        </p>
+                                    </div>
+                                    <p className='rounded-full bg-secondary/20 px-4 py-2 font-semibold text-secondary-foreground'>
+                                        {formatCurrency(item.cost * item.quantity)}
+                                    </p>
+                                </div>
+                            ))
+                        ) : (
+                            <p className='text-muted-foreground'>
+                                No items have been added to your cart yet.
+                            </p>
+                        )}
+                    </div>
+                    <div className='border-y border-border space-y-2 py-4 text-muted-foreground'>
+                        <p className='flex justify-between gap-4'>
+                            <span>Subtotal:</span>
+                            <span>{formatCurrency(subtotal)}</span>
+                        </p>
+                        <p className='flex justify-between gap-4'>
+                            <span>Delivery Fee:</span>
+                            <span>{formatCurrency(deliveryFee)}</span>
+                        </p>
+                    </div>
+                    <div className='flex items-center justify-between gap-4 py-4'>
+                        <h1 className='text-2xl font-semibold text-foreground'>Total:</h1>
+                        <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
+                    </div>
                 </div>
             </div>
             <div className='flex flex-col items-center space-y-8'>
@@ -195,14 +231,14 @@ export default function ReviewSection() {
                             name="agree"
                             onChange={e => setCanProceed(e.target.checked)}
                         />
-                        <label htmlFor="agree" className="flex justify-center text-muted-foreground">
+                        <label htmlFor="agree" className="flex justify-center">
                             I understand this is a request, not a booking
                         </label>
                 </div>
-                <button onClick={submitRequest} className={`py-4 px-16 rounded-lg ${
+                <button onClick={submitRequest} className={`py-3 w-full rounded-lg ${
                     canProceed 
-                        ? "text-white bg-primary hover:cursor-pointer hover:bg-primary-dark"
-                        : "bg-gray-300 text-gray-500"
+                        ? "text-accent-foreground bg-accent hover:bg-accent/90  hover:cursor-pointer"
+                        : "bg-muted text-muted-foreground"
                 }`}>
                     Submit Request
                 </button>
@@ -223,57 +259,49 @@ type UserInputProps = {
 
 function UserInput({ type, name, label, edit, save, editingField, getFormVal }: UserInputProps) {
     const [ value, setValue ] = useState(getFormVal(name));
-    const lastValue = useRef(getFormVal(name));
-    const saveClicked = useRef(false);
-
-
-    const handleBlur = () => {
-        if (!saveClicked.current) {
-            setValue(lastValue.current);
-        }
-        saveClicked.current = false
-    }
 
     return (
-        <div className="flex items-center justify-between gap-6 py-5">
+        <div className="px-4 md:px-8 flex items-center justify-between gap-6 py-4">
             {name === editingField ? (
                 <>
                     <div className="flex flex-1 items-center justify-between gap-6">
-                        <label className="font-semibold min-w-52" htmlFor={name}> {label}</label>
-                        <div className='flex-1'>
+                        <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label className="font-semibold min-w-52" htmlFor={name}> {label}</label>
                             <input 
                                 className="w-full bg-background p-2 border border-border rounded-sm"
                                 type={type}
                                 id={name}
                                 value={value}
                                 onChange={e => setValue(e.target.value)}
-                                onFocus={() => lastValue.current = value}
-                                onBlur={handleBlur}
+                                onKeyDown={e => {
+                                    if (e.key === "Enter") {
+                                        save(name, value);
+                                    }
+                                }}
                                 autoFocus
                             />
                         </div>
                     </div>
                     <button
                         type="button"
-                        className="hover:cursor-pointer font-semibold text-primary"
+                        className="flex justify-center items-center sm:gap-2 hover:cursor-pointer bg-primary/10 text-primary sm:w-auto sm:h-auto sm:px-4 sm:py-2 w-10 h-10 rounded-full"
                         onClick={() => save(name, value)}
-                        onMouseDown={() => saveClicked.current = true}
                     >
-                        Save
+                        <Save className="w-5 h-5"/> <span className="hidden sm:inline">Save</span>
                     </button>
                 </>
             ) : (
                 <>
-                    <div className="flex flex-1 items-center justify-between gap-6">
-                        <p className='font-semibold min-w-52'>{label}</p>
+                    <div className="flex flex-col sm:flex-row flex-1 sm:items-center sm:justify-between gap-3 sm:gap-6 overflow-auto">
+                        <p className='font-semibold sm:min-w-52'>{label}</p>
                         <p className="flex-1 text-muted-foreground">{value}</p>
                     </div>
                     <button
                         type="button"
-                        className="hover:cursor-pointer font-semibold text-primary"
+                        className="flex justify-center items-center sm:gap-2 hover:cursor-pointer bg-mute text-primary sm:w-auto sm:h-auto sm:px-4 sm:py-2 w-10 h-10 rounded-full"
                         onClick={() => edit(name)}
                     >
-                        Edit
+                        <SquarePen className="w-5 h-5"/> <span className="hidden sm:inline">Edit</span>
                     </button>
                 </>
             )}

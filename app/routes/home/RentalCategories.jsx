@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { SnapCarousel } from 'components/ui_features'
+import { SnapCarousel } from 'components/ui'
 import { Castle } from 'lucide-react'
 import categories from 'data/rentalCategories'
 

@@ -1,5 +1,7 @@
 import { useLayoutEffect, useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue } from 'motion/react';
+import arrowLeft from '../../assets/arrow-left.svg';
+import arrowRight from '../../assets/arrow-right.svg';
 
 const DRAG_BUFFER = 50;
 const GAP = 4;
@@ -79,13 +81,13 @@ export default function Carousel({ cards=[], Card }) {
                 className='absolute top-1/2 left-16 bg-gray-400 w-14 h-14 rounded-full'
                 onClick={prevCard}
             >
-                <img src='arrow-left.svg' className=''/>
+                <img src={arrowLeft} className=''/>
             </button>
             <button 
                 className='absolute top-1/2 right-16 bg-gray-400 w-14 h-14 rounded-full'
                 onClick={nextCard}
             >
-                <img src='arrow-right.svg' className='w-full h-full' />
+                <img src={arrowRight} className='w-full h-full' />
             </button>
         </div>
         

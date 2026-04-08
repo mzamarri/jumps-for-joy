@@ -1,6 +1,5 @@
 import { useRef, useState } from "react"
 import { Check } from "lucide-react"
-import { CartProvider } from "context/CartContext"
 import { Form, Outlet, useLocation } from "react-router"
 import { initialRequestDraft } from "./types.js";
 
@@ -25,16 +24,14 @@ export default function CartLayout() {
     const [draft, setDraft] = useState(initialRequestDraft);
 
     return (
-        <CartProvider>
-            <Form 
-                ref={formRef} style={{"--h-stepper": "4rem"}}
-                onSubmit={e => e.preventDefault()}
-                className=""
-            >
-                <RentalRequestStepper />
-                <Outlet context={{ draft, setDraft }} />
-            </Form>
-        </CartProvider>
+        <Form 
+            ref={formRef} style={{"--h-stepper": "4rem"}}
+            onSubmit={e => e.preventDefault()}
+            className=""
+        >
+            <RentalRequestStepper />
+            <Outlet context={{ draft, setDraft }} />
+        </Form>
     )
 }
 
@@ -50,12 +47,12 @@ function RentalRequestStepper() {
     }
 
     return (
-        <div className='bg-card border-b border-border'>
-            <div className="">
-                <ol className='min-h-(--h-stepper) flex justify-center items-center '>
-                    {stepperSections.map(s => (
+        <div className='bg-card h-(--h-stepper) border-b border-border flex justify-center items-center'>
+            <ol className='w-full max-w-lg flex justify-center items-center gap-4 px-4'>
+                {stepperSections.map(s => (
+                    <>
                         <li className='flex items-center gap-2'>
-                            <div className={`w-10 h-10 font-bold rounded-full flex justify-center items-center ${
+                            <div className={`w-8 h-8 sm:w-10 sm:h-10 font-bold rounded-full flex justify-center items-center ${
                                 step > s.step 
                                     ? "bg-secondary text-secondary-foreground"
                                     : (step === s.step)
@@ -64,18 +61,18 @@ function RentalRequestStepper() {
                             }`}>
                                 {
                                     s.step < step
-                                        ? <Check className="w-5 h-5" />
+                                        ? <Check className="w-4 h-4 sm:w-5 sm:h-5" />
                                         : s.step
                                 }
                             </div>
                             <span className='hidden sm:inline font-semibold text-foreground' >
                                 {s.name}
                             </span>
-                            {s.step < 3 && <div className='h-px w-24 mx-4 bg-border '/>}
                         </li>
-                    ))}
-                </ol>
-            </div>
+                        {s.step < 3 && <div className='h-px flex-1 bg-border '/>}
+                    </>
+                ))}
+            </ol>
         </div>
     )
 }
