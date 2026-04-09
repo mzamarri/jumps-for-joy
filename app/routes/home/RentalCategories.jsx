@@ -5,15 +5,18 @@ import categories from 'data/rentalCategories'
 
 export default function HomeCategories() {
     return (
-        <div className='relative w-full h-full bg-muted overflow-hidden py-12 px-24'>
-            <div className='flex flex-col space-y-8'>
+        <div className='relative w-full overflow-hidden bg-muted px-4 py-12 sm:px-6 lg:px-24'>
+            <div className='flex flex-col space-y-8 md:space-y-10'>
                 <div className='text-center space-y-4'>
                     <span className='inline-flex items-center gap-2 font-semibold text-sm bg-secondary text-secondary-foreground py-2 px-4 rounded-full'>
                         <Castle className='w-4 h-4'/>
                         Get Started
                     </span>
-                    <h1 className='text-6xl font-bold'>Browse by <span className='text-primary'>Categories</span></h1>
-                    <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
+                    <h1 className='text-4xl font-bold sm:text-5xl lg:text-6xl'>Browse by Categories</h1>
+                    <p className='text-sm font-semibold uppercase tracking-widest text-primary sm:text-base'>
+                        Find the perfect rental for any event
+                    </p>
+                    <p className='mx-auto max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg'>
                         Explore our different rental categories—from classic bounce houses and combo units
                         to water slides, obstacle courses, and party add-ons—so you can build the perfect
                         setup for your next event.
@@ -31,9 +34,9 @@ function Card({ content }) {
     return (
         <Link
             to="/"
-            className='block bg-card rounded-xl border border-border overflow-hidden shadow-md cursor-pointer'
+            className='block overflow-hidden rounded-xl border border-border bg-card shadow-md transition-transform hover:cursor-pointer hover:-translate-y-1'
         >
-            <div className='h-64 bg-muted flex items-center justify-center'>
+            <div className='flex aspect-[4/3] items-center justify-center bg-muted sm:h-64 sm:aspect-auto'>
                 <img
                     src={content.image}
                     alt={`${content.title} category`}
@@ -41,9 +44,9 @@ function Card({ content }) {
                     draggable={false}
                 />
             </div>
-            <div className='h-32 p-4 space-y-3'>
+            <div className='min-h-[8.5rem] p-4 space-y-3 sm:min-h-32'>
                 <h1 className='text-xl font-semibold text-foreground'>{content.title}</h1>
-                <p className='text-muted-foreground'>{content.description}</p>
+                <p className='text-sm text-muted-foreground sm:text-base'>{content.description}</p>
             </div>
         </Link>
     )

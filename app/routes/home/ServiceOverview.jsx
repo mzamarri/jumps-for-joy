@@ -46,41 +46,39 @@ export default function ServiceOverview() {
     const [selectedCard, setSelectedCard] = useState(null);
 
     return (
-        <div className="service-overview px-24 py-12">
+        <div className="service-overview px-4 py-12 sm:px-6 lg:px-24">
             <div className='flex justify-center items-center'>
-                <div className='w-full max-w-6xl text-center space-y-6'>
+                <div className='w-full max-w-6xl text-center space-y-8'>
                     <span className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-semibold text-sm rounded-full">
                         <Balloon className='w-4 h-4'/> What We Do
                     </span>
-                    <div className='flex items-center gap-16'>
-                        <div className='space-y-4 text-center'>
-                            <h1 className='text-6xl font-bold text-foreground rounded-lg'>
-                                More Than Just <span className='text-primary'>Bounce Houses</span>
+                    <div className='flex flex-col-reverse items-center gap-8 lg:flex-row lg:items-start lg:gap-16 text-center lg:text-left'>
+                        <div className='space-y-4 lg:flex-2'>
+                            <h1 className='text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl'>
+                                Party Rentals For Every Occasion
                             </h1>
-                            <p className='max-w-3xl mx-auto text-lg text-muted-foreground'>
-                                Bounce houses are at the heart of our rental services, offering 
-                                a fun and engaging centerpiece for parties and events of all kinds. 
-                                Alongside our inflatable rentals, we provide a selection of event 
-                                essentials such as tables, chairs, and additional equipment to help 
-                                hosts create a complete and well-organized setup. By offering multiple 
-                                rental options in one place, we make planning easier and reduce the 
-                                need to coordinate with multiple vendors. Whether you’re hosting a small 
-                                backyard celebration or a larger gathering, our services are designed to 
-                                adapt to different spaces, guest counts, and event layouts.
+                            <p className="text-sm font-semibold uppercase tracking-widest text-primary sm:text-lg">
+                                Serving Chandler, Arizona and nearby communities
                             </p>
-                        </div>
-                        <div className='relative max-w-sm bg-secondary/90 overflow-hidden rounded-full border-16 border-primary'>
+                            <p className='mx-auto max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg lg:mx-0'>
+                                Jump For Joy Inflatables provides bounce houses, slides, tents, tables,
+                                chairs, and event essentials for birthdays, school functions, church
+                                gatherings, and community events. We help hosts create a fun, organized
+                                setup with reliable rental support from planning through event day.
+                            </p>
+                        </div>  
+                        <div className='relative w-full max-w-40 sm:max-w-48 md:max-w-56 lg:max-w-72 overflow-hidden rounded-full lg:border- border-primary lg:flex-1'>
                             <div
                                 className='absolute inset-0 bg-card'
                             />
                             <img 
                                 src={bounceHouse}
                                 alt="Bounce House Image"
-                                className='relative z-10 object-contain bg-secondary/90'
+                                className='relative z-10 w-full object-contain bg-muted lgbg-secondary/80'
                             />
                         </div>
                     </div>
-                    <div className='grid grid-cols-3 gap-3'>
+                    <div className='grid grid-cols-1 gap-3 md:grid-cols-3'>
                         {cards.map(card => (
                             <div
                                 key={card.id}
@@ -99,7 +97,7 @@ export default function ServiceOverview() {
                         ))}
                     </div>
                     <div className='flex flex-col items-center space-y-4'>
-                        <p className='max-w-3xl text-muted-foreground text-lg'>
+                        <p className='max-w-3xl text-base text-muted-foreground sm:text-lg'>
                             Want inspiration for your next event? Check out our social media to 
                             see real setups, creative ideas, and the fun we help create for our 
                             customers!

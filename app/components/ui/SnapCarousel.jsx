@@ -1,4 +1,4 @@
- import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -13,10 +13,11 @@ export default function SnapCarousel({
     const viewportRef = useRef(null);
     const [cardIndex, setCardIndex] = useState(0);
     const [cardWidth, setCardWidth] = useState(0);
+    const [cardsPerView, setCardsPerView] = useState(visibleCount);
 
     const maxIndex = useMemo(
-        () => Math.max(0, cards.length - visibleCount),
-        [cards.length, visibleCount]
+        () => Math.max(0, cards.length - cardsPerView),
+        [cards.length, cardsPerView]
     );
 
     useEffect(() => {
@@ -27,7 +28,15 @@ export default function SnapCarousel({
         const measure = () => {
             if (!viewportRef.current) return;
             const width = viewportRef.current.clientWidth;
-            const nextCardWidth = (width - gap * (visibleCount - 1)) / visibleCount;
+            const nextVisibleCount = width < 640
+                ? 1
+                : width < 1024
+                    ? Math.min(2, visibleCount)
+                    : visibleCount;
+
+            setCardsPerView(nextVisibleCount);
+
+            const nextCardWidth = (width - gap * (nextVisibleCount - 1)) / nextVisibleCount;
             setCardWidth(Math.max(0, nextCardWidth));
         };
 
@@ -55,7 +64,7 @@ export default function SnapCarousel({
         setCardIndex(prev => prev);
     };
 
-    const canShift = cards.length > visibleCount;
+    const canShift = cards.length > cardsPerView;
     const canScrollLeft = cardIndex > 0;
     const canScrollRight = cardIndex < maxIndex;
     const step = cardWidth + gap;
@@ -94,7 +103,7 @@ export default function SnapCarousel({
                         type="button"
                         aria-label="Previous cards"
                         onClick={prevCard}
-                        className={`absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-card border border-border shadow-md text-foreground flex items-center justify-center disabled:opacity-40 ${
+                        className={`absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md disabled:opacity-40 sm:left-3 sm:h-11 sm:w-11 ${
                             canScrollLeft ? 'cursor-pointer hover:bg-muted' : 'cursor-default'
                         }`}
                         disabled={!canScrollLeft}
@@ -105,7 +114,7 @@ export default function SnapCarousel({
                         type="button"
                         aria-label="Next cards"
                         onClick={nextCard}
-                        className={`absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-card border border-border shadow-md text-foreground flex items-center justify-center disabled:opacity-40 ${
+                        className={`absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md disabled:opacity-40 sm:right-3 sm:h-11 sm:w-11 ${
                             canScrollRight ? 'cursor-pointer hover:bg-muted' : 'cursor-default'
                         }`}
                         disabled={!canScrollRight}

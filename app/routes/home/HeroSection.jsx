@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight, ArrowRight, Phone } from 'lucide-react'
-import slide1 from "/inside-bounce-house.png"
+import slide1 from "../../assets/inside-bounce-house.png"
 import slide2 from "../../assets/party-setup.png"
 import slide3 from "../../assets/event-setup.png"
 import slide4 from "../../assets/event-worker.png"

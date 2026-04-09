@@ -45,21 +45,24 @@ export default function Locations() {
 	const [selectedCard, setSelectedCard] = useState(null);
 
 	return (
-		<div className='w-full h-full flex flex-col px-24 py-12 space-y-8'>
-			<div className='text-center space-y-2'>
+		<div className='flex h-full w-full flex-col space-y-8 px-4 py-12 sm:px-6 lg:px-24'>
+			<div className='space-y-3 text-center'>
 				<span className='inline-flex gap-2 items-center text-sm font-semibold bg-secondary text-secondary-foreground rounded-full py-2 px-4'>
 					<MapPin className='w-4 h-4'/>
 					Service Area
 				</span>
-				<h1 className='text-6xl font-bold'>Where We <span className='text-primary'>Deliver</span></h1>
-				<p className='text-muted-foreground text-lg max-w-2xl mx-auto'>
-					We deliver and set up bounce houses across the greater area, 
+				<h1 className='text-4xl font-bold sm:text-5xl lg:text-6xl'>Where We Deliver</h1>
+				<p className='text-sm font-semibold uppercase tracking-widest text-primary sm:text-lg'>
+					On-time delivery and setup, right to your event location
+				</p>
+				<p className='mx-auto max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg'>
+					We deliver and set up bounce houses throughout Chandler, AZ and surrounding communities, 
 					bringing the fun right to your home, park, school, or event venue.
 				</p>
 
 			</div>
-			<div className='grid grid-cols-5 gap-8'>
-				<div className='col-span-3 bg-card border border-border text-foreground rounded-2xl px-4 py-8 shadow-lg'>
+			<div className='grid gap-6 xl:grid-cols-12 xl:gap-8'>
+				<div className='bg-card border border-border text-foreground rounded-2xl px-4 py-6 shadow-lg sm:px-6 sm:py-8 xl:col-span-7'>
 					<h1 className='text-2xl font-bold text-foreground flex items-center gap-2 mb-2'>
 						<MapPin className='text-accent' />
 						Areas We Service
@@ -68,27 +71,36 @@ export default function Locations() {
 						Our delivery area includes many nearby communities, and we’re often able 
 						to accommodate locations just outside our standard service range.
 					</p>
-					<ul className='grid grid-cols-3 gap-2'>
-						{new Array(30).fill().map((_, idx) => {
-							return (
-									<li 
-										key={idx}
-										className='bg-primary/10 text-foreground py-2 px-4 rounded-xl bg-card'
-									>
-										Item {idx}
-									</li>
-							)
-						})}
+					<ul className='grid grid-cols-2 gap-2 sm:grid-cols-3'>
+						{[
+							"Ahwatukee",       "Gold Canyon",      "Phoenix",
+							"Apache Junction", "Guadalupe",        "Power Ranch",
+							"Arcadia",         "Higley",           "Queen Creek",
+							"Avondale",        "Johnson Ranch",    "Red Mountain Ranch",
+							"Chandler Heights","Laveen",           "San Tan Valley",
+							"Corona del Sol",  "McCormick Ranch",  "Scottsdale",
+							"Dobson Ranch",    "Mesa",             "Seville",
+							"Eastmark",        "Morrison Ranch",   "Sun Lakes",
+							"Fountain Hills",  "Ocotillo",         "Superstition Springs",
+							"Gilbert",         "Paradise Valley",  "Tempe",
+						].map((city) => (
+							<li
+								key={city}
+								className='rounded-xl bg-primary/10 px-3 py-2 text-sm text-foreground sm:px-4'
+							>
+								{city}
+							</li>
+						))}
 					</ul>
 				</div>
-				<div className='col-span-2 space-y-4'>
+				<div className='grid gap-4 md:grid-cols-2 xl:col-span-5 xl:grid-cols-1'>
 					{areaCards.map(card => (
 						<div
 							key={card.id}
-							className='group text-left bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md hover:border-primary/30 cursor-pointer'
+							className='group rounded-xl border border-border bg-card p-5 text-left shadow-sm hover:cursor-pointer hover:border-primary/30 hover:shadow-md'
 							onClick={() => setSelectedCard(card)}
 						>
-							<div className='w-10 h-10 bg-primary/10 group-hover:bg-secondary/30 rounded-lg flex justify-center items-center rouned-lg mb-3'>
+							<div className='mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 group-hover:bg-secondary/30'>
 								<card.icon className='w-5 h-5 text-primary group-hover:text-secondary-foreground'/>
 							</div>
 							<h1 className='font-bold text-foreground mb-1'>{card.title}</h1>
@@ -98,20 +110,20 @@ export default function Locations() {
 					))}
 				</div>
 			</div>
-			<div className='bg-primary text-primary-foreground p-8 rounded-2xl'>
-				<div className='flex items-center justify-between'>
-					<div>
+			<div className='rounded-2xl bg-primary p-6 text-primary-foreground sm:p-8'>
+				<div className='flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between'>
+					<div className='space-y-2'>
 						<h1 className='text-2xl text-primary-foreground font-bold mb-2'>Not sure if we deliver to your location?</h1>
 						<p className='text-primary-foreground/90 max-w-lg'>
 							Give us a call, send a text, or use our contact form to send an email. We're happy
 							to answer questions about delivery, service areas, and availability.
 						</p>
 					</div>
-					<div className='flex gap-3 shrink-0 text-accent-foreground'>
-						<button className='font-bold bg-accent hover:bg-accent/90 py-3 px-6 rounded-2xl cursor-pointer flex items-center gap-2'>
+					<div className='flex w-full flex-col gap-3 text-accent-foreground sm:flex-row lg:w-auto lg:shrink-0'>
+						<button className='flex items-center justify-center gap-2 rounded-2xl bg-accent px-6 py-3 font-bold hover:cursor-pointer hover:bg-accent/90'>
 							<Mail className='w-5 h-5'/>Contact Us
 						</button>
-						<button className='font-bold border-2 border-primary-foreground/30 hover:border-primary-foreground/50 hover:bg-primary-foreground/10 py-3 px-6 rounded-2xl cursor-pointer flex items-center gap-2'>
+						<button className='flex items-center justify-center gap-2 rounded-2xl border-2 border-primary-foreground/30 px-6 py-3 font-bold hover:cursor-pointer hover:border-primary-foreground/50 hover:bg-primary-foreground/10'>
 							<Phone className='w-5 h-5'/> Call/Text
 						</button>
 					</div>

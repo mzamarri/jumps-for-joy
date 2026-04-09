@@ -47,7 +47,7 @@ export default function RentalItemCard({ categoryId, item }: RentalItemCardProps
             onKeyDown={handleKeyDown}
             className="group overflow-hidden rounded-2xl border border-border bg-card shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary"
         >
-            <div className="h-64 bg-muted">
+            <div className="h-56 bg-muted sm:h-64">
                 {item.image ? (
                     <img
                         src={item.image}
@@ -60,8 +60,8 @@ export default function RentalItemCard({ categoryId, item }: RentalItemCardProps
                     </div>
                 )}
             </div>
-            <div className="space-y-3 p-5">
-                <div className="flex items-start justify-between gap-4">
+            <div className="space-y-3 p-4 sm:p-5">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                     <div className="space-y-1">
                         <h2 className="text-lg font-bold text-foreground">{item.name}</h2>
                         <p className="text-sm text-muted-foreground">{item.summary}</p>

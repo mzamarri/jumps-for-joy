@@ -6,7 +6,7 @@ export default function InfoOverlay({ open, onClose, title, summary, details = [
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-6"
+            className="fixed inset-0 z-50 flex items-end justify-center p-3 sm:items-center sm:p-6"
             role="dialog"
             aria-modal="true"
         >
@@ -21,11 +21,11 @@ export default function InfoOverlay({ open, onClose, title, summary, details = [
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.24, ease: "easeOut" }}
-                className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-border bg-card text-foreground shadow-2xl"
+                className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[1.75rem] border border-border bg-card text-foreground shadow-2xl sm:max-h-[85vh] sm:rounded-2xl"
             >
-                <div className="sticky top-0 bg-card/95 backdrop-blur border-b border-border px-6 py-4 flex items-start justify-between gap-4">
+                <div className="sticky top-0 flex items-start justify-between gap-4 border-b border-border bg-card/95 px-4 py-4 backdrop-blur sm:px-6">
                     <div className="space-y-1">
-                        <h2 className="text-2xl font-bold text-primary">{title}</h2>
+                        <h2 className="text-xl font-bold text-primary sm:text-2xl">{title}</h2>
                         <p className="text-sm text-muted-foreground">{summary}</p>
                     </div>
                     <button
@@ -37,7 +37,7 @@ export default function InfoOverlay({ open, onClose, title, summary, details = [
                     </button>
                 </div>
 
-                <ul className="px-10 py-5 space-y-3 list-disc marker:text-primary">
+                <ul className="list-disc space-y-3 px-5 py-5 marker:text-primary sm:px-10">
                     {details.map((detail, idx) => (
                         <li key={idx} className="text-sm leading-relaxed text-muted-foreground pl-1">
                             {detail}
