@@ -1,4 +1,4 @@
-import { Link, NavLink, useLoaderData } from "react-router"
+import { Link, NavLink, useLoaderData, useParams } from "react-router"
 import { useState } from "react"
 import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react"
 import { RentalItemCard } from "components/ui";
@@ -26,27 +26,34 @@ export default function RentalCatalog({ loaderData, params }) {
     }
 
     return (
-            <div className='space-y-8'>
+            <div className='space-y-8 pb-8'>
                 <CategoryTabs/>
-                <div className='space-y-4 px-16'>
+                <div className='space-y-6 px-4 sm:px-8 lg:px-16'>
                     <Link
                         to="/rentals"
                         className='inline-flex items-center gap-2 text-primary font-semibold hover:underline'
                     >
                         <ArrowLeft className="w-4 h-4"/> Back to Rental Categories
                     </Link>
-                    <div className='text-foreground flex flex-col items-center gap-4 pb-8 rounded-2xl'>
-                        <div className="p-4 bg-muted rounded-full">
+                    <div className='flex flex-col-reverse items-center gap-8 lg:flex-row lg:justify-center lg:items-center lg:gap-16'>
+                        <div className='max-w-2xl flex-1 space-y-4 text-center'>
+                            <h1 className='text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl'>{category.name}</h1>
+                            <p className='text-sm font-semibold uppercase tracking-widest text-primary sm:text-base'>
+                                {category.tagline}
+                            </p>
+                            <p className='text-base leading-7 text-muted-foreground sm:text-lg'>
+                                {category.longDescription}
+                            </p>
+                        </div>
+                        <div className='w-full self-center rounded-full bg-muted p-6 max-w-40 sm:max-w-48 md:max-w-64 lg:max-w-80'>
                             <img
                                 src={category.image}
                                 alt={`${category.name} category`}
-                                className='w-32 h-32 object-contain'
+                                className='w-full object-contain'
                             />
                         </div>
-                        <h1 className='text-5xl text-secondar font-bold '>{category.name}</h1>
-                        <p className='text-lg text-muted-foreground'>{category.description}</p>
                     </div>
-                    <ul className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6'>
+                    <ul className='grid grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-6'>
                         {
                             rentals.map(item => {
                                 return (
@@ -65,57 +72,72 @@ export default function RentalCatalog({ loaderData, params }) {
 function CategoryTabs() {
     const categories = useLoaderData();
     const [open, setOpen] = useState(false);
+    const params = useParams();
+    const currentCategory = categories.find(category => category.id === params.categoryId);
+    const panelId = 'catalog-category-list';
 
     return (
-        <div className="sticky top-(--h-nav)">
-            <div 
-                className={`bg-muted text-muted-foreground border-border text-center shadow-md`}
-            >
-                {
-                    open ? (
-                        <>
-                            <span 
-                                className='py-3 inline-flex items-center gap-2 cursor-pointer font-semibold'
-                                onClick={() => setOpen(false)}
-                            >
-                                Choose a Category <ChevronUp className="w-4 h-4" />
-                            </span>
-                            <ul className='px-8 pt-4 pb-8 grid grid-cols-2 gap-4'>
-                                {
-                                    categories.map(category => {
-                                        return (
-                                            <NavLink
-                                                key={category.id}
-                                                to={`/rentals/${category.id}`}
-                                                className={({ isActive }) => `py-2 rounded-full
-                                                    ${isActive 
-                                                        ? 'bg-primary text-primary-foreground'
-                                                        : "bg-card text-foreground border border-border hover:bg-secondary/30 hover:border-secondary"
-                                                    }
-                                                `}
-                                                onClick={() => setOpen(false)}
-                                            >
-                                                {category.name}
-                                            </NavLink>
-                                        )
-                                    })
-                                }
-                            </ul> 
-                        </>
-                    ) : (
-                        <div 
-                            className='flex items-center justify-center gap-2 font-semibold cursor-pointer'
-                            onClick={() => setOpen(true)}
-                        >
-                            <span className='py-3 flex justify-center items-center gap-2'>
-                                Current Category: <span className="text-primary">Category Goes Here</span> 
-                                <ChevronDown 
-                                    className="w-4 h-4"
-                                />
-                            </span>                   
+        <div className="sticky top-(--h-nav) z-10">
+            <div className='backdrop-blur pt-2 px-4 sm:px-8'>
+                <div
+                    className='bg-primary text-primary-foreground mx-auto max-w-6xl px-4 rounded-2xl shadow-sm'
+                >
+                    <div
+                        onClick={() => setOpen(current => !current)}
+                        aria-expanded={open}
+                        aria-controls={panelId} 
+                        className='group flex flex-col justify-between gap-4 py-4 hover:cursor-pointer transition-[border-color,background-color,box-shadow]'
+                    >
+                        <div className="flex justify-between gap-6">
+                            <div className='min-w-0'>
+                                <div className='flex items-center gap-2 overflow-hidden'>
+                                    <span className='text-l font-medium text-primary-foreground sm:text-primary-foreground/60 group-hover:text-primary-foreground '>Category: </span>
+                                    <span className='text-l text-secondary bg-secondary/20 border border-secondary px-3 py-1 font-semibold rounded-full'>
+                                        {currentCategory?.name ? `${currentCategory?.name}` : 'Choose a category'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className='flex items-center gap-2'>
+                                <span className='hidden text-xs font-semibold uppercase tracking-widest text-primary-foreground/60 group-hover:text-primary-foreground sm:inline'>
+                                    {open ? 'Hide list' : 'Open list'}
+                                </span>
+                                <span className='h-8 w-8 flex items-center justify-center rounded-full sm:bg-primary-foreground/10 sm:border border-primary-foreground/30 sm:text-primary-foreground/60 transition-[transform,border-color] group-hover:border-primary-foreground/60 group-hover:bg-primary-foreground/20 group-hover:text-primary-foreground'>
+                                    {open ? (
+                                        <ChevronUp className="sm:w-4 sm:h-4" />
+                                    ) : (
+                                        <ChevronDown className="sm:w-4 sm:h-4" />
+                                    )}
+                                </span>
+                            </div>
                         </div>
-                    )
-                }
+                    </div>
+                    {open && (
+                        <ul
+                            id={panelId}
+                            className='grid grid-cols-1 gap-2 border-t border-primary-foreground/30 py-4 sm:grid-cols-2 lg:grid-cols-3'
+                        >
+                            {
+                                categories.map(category => {
+                                    return (
+                                        <NavLink
+                                            key={category.id}
+                                            to={`/rentals/${category.id}`}
+                                            className={({ isActive }) => `rounded-xl px-4 py-2.5 text-left text-sm sm:text-base font-semibold transition-colors
+                                                ${isActive
+                                                    ? 'bg-secondary text-secondary-foreground'
+                                                    : 'border border-primary-foreground bg-primary-foreground/10 text-primary-foreground hover:border-secondary hover:bg-secondary/20 hover:text-secondary'
+                                                }
+                                            `}
+                                            onClick={() => setOpen(false)}
+                                        >
+                                            {category.name}
+                                        </NavLink>
+                                    )
+                                })
+                            }
+                        </ul>
+                    )}
+                </div>
             </div>
         </div>
     )

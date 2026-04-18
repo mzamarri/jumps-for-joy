@@ -46,13 +46,13 @@ export default function ServiceOverview() {
     const [selectedCard, setSelectedCard] = useState(null);
 
     return (
-        <div className="service-overview px-4 py-12 sm:px-6 lg:px-24">
+        <div className="service-overview px-4 py-8 sm:px-6 lg:px-24">
             <div className='flex justify-center items-center'>
                 <div className='w-full max-w-6xl text-center space-y-8'>
                     <span className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-semibold text-sm rounded-full">
                         <Balloon className='w-4 h-4'/> What We Do
                     </span>
-                    <div className='flex flex-col-reverse items-center gap-8 lg:flex-row lg:items-start lg:gap-16 text-center lg:text-left'>
+                    <div className='flex flex-col-reverse items-center gap-8 lg:flex-row lg:items-start lg:gap-16 text-center lg:text-center'>
                         <div className='space-y-4 lg:flex-2'>
                             <h1 className='text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl'>
                                 Party Rentals For Every Occasion
@@ -67,7 +67,7 @@ export default function ServiceOverview() {
                                 setup with reliable rental support from planning through event day.
                             </p>
                         </div>  
-                        <div className='relative w-full max-w-40 sm:max-w-48 md:max-w-56 lg:max-w-72 overflow-hidden rounded-full lg:border- border-primary lg:flex-1'>
+                        <div className='flex-1 relative w-full max-w-40 sm:max-w-48 md:max-w-56 lg:max-w-sm overflow-hidden rounded-full lg:border- border-primary lg:flex-1'>
                             <div
                                 className='absolute inset-0 bg-card'
                             />

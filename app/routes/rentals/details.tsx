@@ -41,7 +41,7 @@ export default function RentalDetails() {
 
     if (!item) {
         return (
-            <div className='px-24 py-8 space-y-4'>
+            <div className='px-4 py-8 space-y-4 sm:px-6 lg:px-24'>
                 <Link 
                     to=".."
                     relative="path"
@@ -58,7 +58,7 @@ export default function RentalDetails() {
 
     return (
         <>
-            <div className='px-24 py-8 space-y-4'>
+            <div className='px-4 py-8 space-y-4 sm:px-6 lg:px-24'>
                 <Link 
                     to=".."
                     relative="path"
@@ -67,8 +67,8 @@ export default function RentalDetails() {
                     <ArrowLeft className="w-4 h-4"/> Back to {categoryLabel}
                 </Link>
                 <div className='rental-item space-y-8'>
-                    <div className='flex gap-8'>
-                        <div className='image w-150 h-96 bg-muted rounded-xl p-8 flex items-center justify-center'>
+                    <div className='flex flex-col gap-8 lg:flex-row'>
+                        <div className='image w-full h-72 bg-muted rounded-xl p-8 flex items-center justify-center sm:h-96 lg:w-[28rem] lg:shrink-0'>
                             <img src={item.image} alt={item.name} className="h-full w-full object-contain" />
                         </div>
                         <div className='flex-1 space-y-6'>
@@ -81,9 +81,7 @@ export default function RentalDetails() {
                                     {item.summary}
                                 </p>
                             </div>
-                            <div
-                                className="grid grid-cols-2 gap-4"
-                            >
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div className="flex items-center gap-2 text-foreground">
                                     <div className="w-10 h-10 bg-primary/10 rounded-lg flex justify-center items-center">
                                         <Ruler className="w-5 h-5 text-primary"/>
@@ -113,9 +111,7 @@ export default function RentalDetails() {
                             </div>
                             <div>
                                 <h1 className="text-lg font-bold">Features</h1>
-                                <ul
-                                    className="grid grid-cols-2 gap-2"
-                                >
+                                <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                     {item.features.map(feature => (
                                         <li key={feature} className="text-muted-foreground flex items-center gap-2">
                                             <span className="w-2 h-2 rounded-full bg-secondary inline-block" />

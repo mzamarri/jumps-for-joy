@@ -13,7 +13,7 @@ const featuredItems = [
 
 export default function Featured() {
     return (
-        <div className='relative w-full overflow-hidden bg-muted px-4 py-12 sm:px-6 lg:px-24'>
+        <div className='relative w-full overflow-hidden px-4 py-8 sm:px-6 lg:px-24'>
             <div className='flex h-full flex-col justify-center space-y-8 md:space-y-10'>
                 <div className='flex justify-center'>
                     <div className='max-w-3xl space-y-4 rounded-lg text-center'>
@@ -22,9 +22,6 @@ export default function Featured() {
                             Most Popular
                         </span>
                         <h1 className='text-4xl font-bold sm:text-5xl lg:text-6xl'>Featured Rentals</h1>
-                        <p className='text-lg font-semibold uppercase  spacing-4 text-primary sm:text-lg'>
-                            Our most popular picks perfect for any event
-                        </p>
                         <p className='mx-auto max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg'>
                             Explore a few of our most requested rentals to get a quick feel for the inflatable
                             options and event favorites families choose most often.
@@ -32,7 +29,7 @@ export default function Featured() {
                     </div>
                 </div>
                 <div className='carousel-container relative w-full'>
-                    <div className='grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 xl:gap-8'>
+                    <div className='grid grid-cols-2 gap-4 sm:gap-6 xl:grid-cols-3 xl:gap-8'>
                         {featuredItems.map(({ categoryId, item }) => (
                             <RentalItemCard key={`${categoryId}-${item.id}`} categoryId={categoryId} item={item} />
                         ))}

@@ -1,50 +1,88 @@
+import { useEffect, useId } from "react";
 import { X } from "lucide-react";
-import { motion } from "motion/react";
 
 export default function InfoOverlay({ open, onClose, title, summary, details = [] }) {
+    const titleId = useId();
+    const summaryId = useId();
+
+    useEffect(() => {
+        if (!open) return;
+
+        const previousOverflow = document.body.style.overflow;
+        const handleEscape = (event) => {
+            if (event.key === "Escape") {
+                onClose();
+            }
+        };
+
+        document.body.style.overflow = "hidden";
+        window.addEventListener("keydown", handleEscape);
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.removeEventListener("keydown", handleEscape);
+        };
+    }, [open, onClose]);
+
     if (!open) return null;
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-end justify-center p-3 sm:items-center sm:p-6"
-            role="dialog"
-            aria-modal="true"
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
             <button
                 type="button"
                 aria-label="Close details"
-                className="absolute inset-0 bg-black/45 backdrop-blur-[1px]"
+                className="absolute inset-0 bg-slate-950/55"
                 onClick={onClose}
             />
 
-            <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.24, ease: "easeOut" }}
-                className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[1.75rem] border border-border bg-card text-foreground shadow-2xl sm:max-h-[85vh] sm:rounded-2xl"
+            <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                aria-describedby={summary ? summaryId : undefined}
+                className="relative flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-card text-foreground shadow-2xl"
             >
-                <div className="sticky top-0 flex items-start justify-between gap-4 border-b border-border bg-card/95 px-4 py-4 backdrop-blur sm:px-6">
-                    <div className="space-y-1">
-                        <h2 className="text-xl font-bold text-primary sm:text-2xl">{title}</h2>
-                        <p className="text-sm text-muted-foreground">{summary}</p>
+                <div className="flex items-start justify-between gap-4 border-b border-border px-4 py-4 sm:px-6">
+                    <div className="min-w-0 space-y-2">
+                        <h2 id={titleId} className="text-xl font-bold leading-tight sm:text-2xl">
+                            {title}
+                        </h2>
+                        {summary ? (
+                            <p id={summaryId} className="text-sm leading-6 text-muted-foreground sm:text-base">
+                                {summary}
+                            </p>
+                        ) : null}
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="w-9 h-9 shrink-0 aspect-square rounded-full border border-border bg-muted text-muted-foreground hover:bg-secondary/30 hover:text-secondary-foreground cursor-pointer transition-colors flex items-center justify-center"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:cursor-pointer hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     >
-                        <X className="w-4 h-4" />
+                        <X className="h-4 w-4" />
                     </button>
                 </div>
 
-                <ul className="list-disc space-y-3 px-5 py-5 marker:text-primary sm:px-10">
-                    {details.map((detail, idx) => (
-                        <li key={idx} className="text-sm leading-relaxed text-muted-foreground pl-1">
-                            {detail}
-                        </li>
-                    ))}
-                </ul>
-            </motion.div>
+                <div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+                    {details.length > 0 ? (
+                        <ol className="space-y-3">
+                            {details.map((detail, idx) => (
+                                <li key={idx} className="flex items-start gap-3">
+                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                                        {idx + 1}
+                                    </span>
+                                    <p className="pt-0.5 text-sm leading-6 text-muted-foreground sm:text-base">
+                                        {detail}
+                                    </p>
+                                </li>
+                            ))}
+                        </ol>
+                    ) : (
+                        <p className="text-sm leading-6 text-muted-foreground sm:text-base">
+                            No additional details are available for this section right now.
+                        </p>
+                    )}
+                </div>
+            </section>
         </div>
     );
 }

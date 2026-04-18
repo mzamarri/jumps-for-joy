@@ -1,0 +1,174 @@
+<style>
+  /* ── Brand Tokens (source only — resolve before running juice) ── */
+  :root {
+    --primary:            #1166d9;
+    --primary-fg:         #ffffff;
+    --primary-muted:      #eef5ff;
+    --secondary:          hsl(45, 95%, 55%);
+    --secondary-fg:       hsl(30, 60%, 15%);
+    --bg:                 #f5f9fd;
+    --surface:            #ffffff;
+    --surface-subtle:     #fafcfe;
+    --surface-tint:       #eef5fb;
+    --text:               #143253;
+    --text-muted:         #5f728a;
+    --border:             #d9e4ef;
+    --warning-bg:         #fff8e5;
+    --warning-border:     #f1df9b;
+    --warning-text:       #6d4b00;
+  }
+
+  .email-shell {
+    margin: 0;
+    padding: 24px 12px;
+    background: var(--bg);
+    font-family: "Nunito", "Segoe UI", Arial, sans-serif;
+    color: var(--text);
+  }
+
+  .email-card {
+    max-width: 700px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .email-header {
+    padding: 24px;
+    background: var(--primary);
+    color: var(--primary-fg);
+  }
+
+  .email-title {
+    margin: 0 0 8px;
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 700;
+    color: var(--primary-fg);
+  }
+
+  .email-header-text {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--primary-muted);
+  }
+
+  .email-body {
+    padding: 24px;
+  }
+
+  .panel {
+    margin: 0 0 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .field {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .field:first-of-type {
+    border-top: 0;
+  }
+
+  .field-label {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .field-value {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text);
+    white-space: pre-line;
+  }
+
+  .note {
+    margin: 0 0 16px;
+    padding: 14px 16px;
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--warning-text);
+  }
+
+  .note strong {
+    color: var(--text);
+  }
+
+  .button {
+    display: inline-block;
+    margin: 0 10px 10px 0;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .button-primary {
+    background: var(--primary);
+    color: var(--primary-fg);
+  }
+
+  .button-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+</style>
+<div class="email-shell">
+  <div class="email-card">
+    <div class="email-header">
+      <h1 class="email-title">Contact Form Submission</h1>
+      <p class="email-header-text">
+        A visitor submitted the contact form and is waiting for follow-up.
+      </p>
+    </div>
+
+    <div class="email-body">
+      <div class="panel">
+        <div class="field">
+          <div class="field-label">Name</div>
+          <div class="field-value">{{name}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Submitted</div>
+          <div class="field-value">{{submittedAt}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Email</div>
+          <div class="field-value">{{email}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Phone</div>
+          <div class="field-value">{{phone}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Message</div>
+          <div class="field-value">{{message}}</div>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>Recommended follow-up:</strong> respond within one business hour when possible. If the inquiry is about date availability, confirm the event date first and then recommend the best options.
+      </div>
+
+      <div>
+        <a class="button button-primary" href="mailto:{{email}}">Reply by Email</a>
+        <a class="button button-secondary" href="tel:{{phone}}">Call Contact</a>
+      </div>
+    </div>
+  </div>
+</div>

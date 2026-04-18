@@ -1,0 +1,239 @@
+<style>
+  /* ── Brand Tokens (source only — resolve before running juice) ── */
+  :root {
+    --primary:            #1166d9;
+    --primary-fg:         #ffffff;
+    --primary-muted:      #eef5ff;
+    --secondary:          hsl(45, 95%, 55%);
+    --secondary-fg:       hsl(30, 60%, 15%);
+    --bg:                 #f5f9fd;
+    --surface:            #ffffff;
+    --surface-subtle:     #fafcfe;
+    --surface-tint:       #eef5fb;
+    --text:               #143253;
+    --text-muted:         #5f728a;
+    --border:             #d9e4ef;
+    --warning-bg:         #fff8e5;
+    --warning-border:     #f1df9b;
+    --warning-text:       #6d4b00;
+  }
+
+  .email-shell {
+    margin: 0;
+    padding: 24px 12px;
+    background: var(--bg);
+    font-family: "Nunito", "Segoe UI", Arial, sans-serif;
+    color: var(--text);
+  }
+
+  .email-card {
+    max-width: 760px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .email-header {
+    padding: 24px;
+    background: var(--primary);
+    color: var(--primary-fg);
+  }
+
+  .email-title {
+    margin: 0 0 8px;
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 700;
+    color: var(--primary-fg);
+  }
+
+  .email-header-text {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--primary-muted);
+  }
+
+  .email-body {
+    padding: 24px;
+  }
+
+  .panel {
+    margin: 0 0 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .panel-heading {
+    padding: 12px 16px;
+    background: var(--surface-tint);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .field {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .field:first-of-type {
+    border-top: 0;
+  }
+
+  .field-label {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .field-value {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text);
+    white-space: pre-line;
+  }
+
+  .field-value-strong {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .totals {
+    margin: 0 0 16px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-subtle);
+  }
+
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 6px 0;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .total-row-grand {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .note {
+    padding: 14px 16px;
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--warning-text);
+  }
+
+  .note strong {
+    color: var(--text);
+  }
+</style>
+<div class="email-shell">
+  <div class="email-card">
+    <div class="email-header">
+      <h1 class="email-title">Cart Submission Received</h1>
+      <p class="email-header-text">
+        A customer submitted a rental request through the website cart and needs follow-up.
+      </p>
+    </div>
+
+    <div class="email-body">
+      <div class="panel">
+        <div class="panel-heading">Quick Summary</div>
+        <div class="field">
+          <div class="field-label">Customer</div>
+          <div class="field-value">{{fullName}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Event Date</div>
+          <div class="field-value">{{date}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Estimated Total</div>
+          <div class="field-value field-value-strong">{{total}}</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-heading">Contact and Event Details</div>
+        <div class="field">
+          <div class="field-label">Email</div>
+          <div class="field-value">{{email}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Phone</div>
+          <div class="field-value">{{phoneNumber}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Setup Time</div>
+          <div class="field-value">{{time}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Duration</div>
+          <div class="field-value">{{duration}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Event Type</div>
+          <div class="field-value">{{eventType}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Surface Type</div>
+          <div class="field-value">{{surfaceType}}</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-heading">Request Details</div>
+        <div class="field">
+          <div class="field-label">Delivery Address</div>
+          <div class="field-value">{{fullAddress}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Requested Items</div>
+          <div class="field-value">{{itemsSummary}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Special Instructions</div>
+          <div class="field-value">{{notes}}</div>
+        </div>
+      </div>
+
+      <div class="totals">
+        <div class="total-row">
+          <span>Subtotal</span>
+          <strong>{{subtotal}}</strong>
+        </div>
+        <div class="total-row">
+          <span>Delivery Fee</span>
+          <strong>{{deliveryFee}}</strong>
+        </div>
+        <div class="total-row total-row-grand">
+          <span>Total</span>
+          <strong>{{total}}</strong>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>Recommended review:</strong> confirm item availability, validate the service address, review surface and access notes, and reply with any quote adjustments before marking the request as ready to book.
+      </div>
+    </div>
+  </div>
+</div>

@@ -18,6 +18,7 @@ type DropdownProps = {
     itemClassName?: string
     align?: 'left' | 'right'
     showChevron?: boolean
+    fullWidth?: boolean
 }
 
 export default function Dropdown({
@@ -29,6 +30,7 @@ export default function Dropdown({
     itemClassName = '',
     align = 'left',
     showChevron = true,
+    fullWidth = false,
 }: DropdownProps) {
     const [open, setOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -38,7 +40,6 @@ export default function Dropdown({
         if (item.path === '/') {
             return location.pathname === '/'
         }
-
         return location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
     })
 
@@ -65,7 +66,7 @@ export default function Dropdown({
     }, [])
 
     return (
-        <div ref={containerRef} className="sm:relative">
+        <div ref={containerRef} className={fullWidth ? '' : 'relative'}>
             <button
                 type="button"
                 aria-expanded={open}
@@ -79,35 +80,49 @@ export default function Dropdown({
             >
                 <span>{label}</span>
                 {showChevron && (
-                    <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`.trim()} />
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${open ? 'rotate-180' : ''}`.trim()} />
                 )}
             </button>
 
             {open && (
                 <div
                     id={menuId}
+                    role="menu"
                     className={[
-                        'absolute top-full w-screen z-20 min-w-56 overflow-hidden border border-border',
-                        align === 'right' ? 'right-0' : 'left-0',
+                        'absolute top-full z-50 overflow-hidden shadow-2xl',
+                        fullWidth
+                            ? 'left-0 right-0 w-full'
+                            : `mt-1 w-56 sm:w-64 ${align === 'right' ? 'right-0' : 'left-0'}`,
                         menuClassName,
                     ].join(' ')}
                 >
-                    <ul className="sm:p-1">
+                    <ul className={fullWidth ? '' : 'p-1'}>
                         {items.map(item => (
-                            <li 
+                            <li
                                 key={item.id}
-                                className='border-b border-primary-foreground/20 last:border-none'
+                                className={fullWidth ? 'border-b border-primary-foreground/15 last:border-none' : ''}
                             >
                                 <NavLink
                                     to={item.path}
+                                    role="menuitem"
                                     className={({ isActive }) => [
-                                        'flex justify-center py-2 transition-colors font-semibold',
-                                        isActive ? 'text-secondary' : 'text-primary-foreground/80 hover:text-primary-foreground',
+                                        'flex flex-col transition-colors font-semibold',
+                                        fullWidth
+                                            ? 'px-6 py-4 text-base'
+                                            : 'rounded-lg px-4 py-3 text-sm sm:text-base',
+                                        isActive
+                                            ? 'text-secondary'
+                                            : 'text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10',
                                         itemClassName,
                                     ].join(' ')}
                                     onClick={() => setOpen(false)}
                                 >
-                                    {item.label}
+                                    <span>{item.label}</span>
+                                    {item.description && (
+                                        <span className="mt-0.5 text-xs font-normal text-primary-foreground/50">
+                                            {item.description}
+                                        </span>
+                                    )}
                                 </NavLink>
                             </li>
                         ))}

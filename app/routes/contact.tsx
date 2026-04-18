@@ -1,47 +1,131 @@
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, Clock } from "lucide-react";
+import Icon from 'components/ui/Icon';
+
+const businessHours = [
+    { day: "Mon - Thu", hours: "9:00 AM - 8:00 PM" },
+    { day: "Friday", hours: "9:00 AM - 9:00 PM" },
+    { day: "Saturday", hours: "8:00 AM - 9:00 PM" },
+    { day: "Sunday", hours: "9:00 AM - 6:00 PM" },
+];
 
 export default function ContactPage() {
+
     return (
-        <div className="px-24 py-12 space-y-10">
-            <div className="text-center space-y-3">
-                <h1 className="text-6xl font-bold text-foreground">Contact <span className="text-primary">Us</span></h1>
-                <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+        <div className="">
+            <div className="bg-primary px-4 py-16 text-center text-primary-foreground space-y-3 md:px-8 md:py-24">
+                <h1 className="text-4xl font-bold md:text-5xl lg:text-6xl">Get in <span className="text-secondary">Touch</span></h1>
+                <p className="mx-auto max-w-3xl text-base text-primary-foreground/80 md:text-lg">
                     Have questions about availability, delivery, or package options? Send us a message and we’ll get back to you promptly.
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-6 space-y-4">
-                    <h2 className="text-xl font-semibold text-primary">Business Contact</h2>
-                    <ul className="space-y-3 text-sm text-muted-foreground">
-                        <li className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-primary" />
-                            <span>(555) 555-0199</span>
+            <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8 md:px-8 md:py-12 lg:flex-row">
+                <div className="w-full space-y-4 rounded-2xl p-6 lg:max-w-md">
+                    <h2 className="text-2xl font-semibold md:text-3xl">Contact Information</h2>
+                    <p className="flex items-center gap-1 text-muted-foreground">
+                        Reach out anytime. we typically reach out within the hour during business hours
+                    </p>
+                    <ul className="space-y-6">
+                        <li className="flex items-center gap-4">
+                            <Icon 
+                                icon={Phone} 
+                                containerClassName="bg-secondary/30 w-12 h-12 flex justify-center items-center rounded-lg" 
+                                iconClassName="w-6 h-6 text-primary" 
+                            />
+                            <div className="">
+                                <h1 className="text-lg font-semibold text-foreground">Phone</h1>
+                                <span className="text-muted-foreground">(555) 555-0199</span>
+                            </div>
                         </li>
-                        <li className="flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-primary" />
-                            <span>bookings@jumpforjoy.com</span>
+                        <li className="flex items-start gap-4">
+                            <Icon 
+                                icon={Mail} 
+                                containerClassName="w-12 h-12 bg-secondary/20 flex justify-center items-center rounded-lg" 
+                                iconClassName="w-6 h-6 text-secondary" 
+                            />
+                            <div className="">
+                                <h1 className="text-lg font-semibold text-foreground">Email</h1>
+                                <span className="break-words text-muted-foreground">bookings@jumpforjoy.com</span>
+                            </div>
                         </li>
-                        <li className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-primary" />
-                            <span>Serving the greater local area</span>
+                        <li className="flex items-start gap-4">
+                            <Icon 
+                                icon={Clock}
+                                containerClassName="w-12 h-12 bg-secondary/30 flex justify-center items-center rounded-lg" 
+                                iconClassName="w-6 h-6 text-accent" 
+                            />
+                            <div className="flex-1">
+                                <h1 className="text-lg font-semibold text-foreground">Business Hours</h1>
+                                <ol className="text-muted-foreground w-full">
+                                    {businessHours.map(item => (
+                                        <li className="flex items-start justify-between gap-4">
+                                            <span>
+                                                {item.day}
+                                            </span>
+                                            <span>
+                                                {item.hours}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ol>
+                            </div>
                         </li>
                     </ul>
                 </div>
 
-                <div className="lg:col-span-3 bg-card border border-border rounded-2xl p-6 space-y-4">
-                    <h2 className="text-xl font-semibold text-primary">Send a Message</h2>
-                    <form className="space-y-4">
+                <div id="contact-form" className="max-w-2xl flex-1 rounded-2xl border border-border bg-card p-6 space-y-4">
+                    <h2 className="text-2xl font-semibold md:text-3xl">Send Us a Message</h2>
+                    <form className="space-y-4 text-sm">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input className="bg-background border border-border rounded-lg p-3" type="text" placeholder="First Name" />
-                            <input className="bg-background border border-border rounded-lg p-3" type="text" placeholder="Last Name" />
+                            <div className="flex flex-col gap-1 text-sm">
+                                <label htmlFor="name" className="font-semibold">
+                                    Full Name *
+                                </label>
+                                <input 
+                                    id="name"
+                                    className="bg-background border border-border rounded-lg p-3" 
+                                    type="text" 
+                                    placeholder="Arthur Morgan" 
+                                    required
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label htmlFor="phone" className="font-semibold">
+                                    Phone
+                                </label>
+                                <input 
+                                    id="phone"
+                                    className="bg-background border border-border rounded-lg p-3" 
+                                    type="text" 
+                                    placeholder="(555) 123-4567" 
+                                />
+                            </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input className="bg-background border border-border rounded-lg p-3" type="email" placeholder="Email" />
-                            <input className="bg-background border border-border rounded-lg p-3" type="tel" placeholder="Phone Number" />
+                        <div className="flex flex-col gap-1">
+                            <label htmlFor="email" className="font-semibold text-sm">
+                                Email *
+                            </label>
+                            <input 
+                                id="email"
+                                className="bg-background border border-border rounded-lg p-3" 
+                                type="email" 
+                                placeholder="arthur@example.com" 
+                                required
+                            />
                         </div>
-                        <textarea className="bg-background border border-border rounded-lg p-3 w-full" rows={6} placeholder="Tell us about your event..." />
-                        <button type="button" className="bg-accent text-accent-foreground px-6 py-3 rounded-lg font-semibold hover:bg-accent/90">
+                        <div>
+                            <label htmlFor="message" className="">
+                                Message *
+                            </label>
+                            <textarea
+                                id="message"
+                                className="bg-background border border-border rounded-lg p-3 w-full" 
+                                rows={10}
+                                placeholder="Tell us about your event or ask any questions..." 
+                                required
+                            />
+                        </div>
+                        <button type="button" className="w-full bg-accent text-accent-foreground px-6 py-3 rounded-lg font-semibold cursor-pointer hover:bg-accent/90">
                             Submit Inquiry
                         </button>
                     </form>

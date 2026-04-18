@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 
 const fallbackSections = [
     { id: "q1", title: "Question", content: "This text goes under" },
@@ -20,17 +21,22 @@ function Item({ section }) {
     const [isOpen, setisOpen] = useState(false);
 
     const handleClick = () => {
-        console.log("Clicked")
         setisOpen(!isOpen);
     }
 
     return (
-        <div className='cursor-pointer border-b border-border last:border-none bg-card'>
-            <div onClick={handleClick} className='p-4 font-semibold text-foreground'>
-                {section.title}
-            </div>
+        <div className='border-b border-border last:border-none bg-card'>
+            <button
+                type="button"
+                onClick={handleClick}
+                aria-expanded={isOpen}
+                className='flex w-full items-center justify-between gap-4 p-4 text-left font-semibold text-foreground hover:cursor-pointer sm:p-5'
+            >
+                <span>{section.title}</span>
+                <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`.trim()} />
+            </button>
             <div className={`point overflow-hidden ${isOpen ? 'h-auto' : 'h-0'}`}>
-                <div className='border-t border-border p-4 text-sm text-muted-foreground'>
+                <div className='border-t border-border p-4 text-sm leading-6 text-muted-foreground sm:p-5'>
                     {section.content}
                 </div>
             </div>

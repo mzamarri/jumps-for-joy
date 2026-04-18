@@ -58,6 +58,11 @@ const navTabs = [
                 label: "About Us",
             },
             {
+                id: "location",
+                path: "/location",
+                label: "Location & Delivery",
+            },
+            {
                 id: "faq",
                 path: "/faq",
                 label: "FAQ",
@@ -101,7 +106,7 @@ export default function Root() {
 function NavBar() {
     const { totalItems } = useCart();
     return (
-        <header className='h-(--h-nav) sticky z-1 top-0 bg-primary text-primary-foreground flex justify-between shadow-lg sm:px-3 md:px-0'>
+        <header className='sticky *:h-(--h-nav) top-0 z-40 flex justify-between bg-primary text-primary-foreground shadow-lg sm:px-3 md:px-0'>
             <Link
                 to="/"
                 className='flex items-center cursor-pointer min-w-0'
@@ -125,7 +130,7 @@ function NavBar() {
                                                 align="right" 
                                                 items={tab.tabs}
                                                 buttonClassName="h-auto"
-                                                menuClassName="bg-primary"  
+                                                menuClassName="rounded-xl border border-primary-foreground/10 bg-primary"
                                             /> 
                                         ) : (
                                             <NavLink 
@@ -178,8 +183,8 @@ function NavBar() {
                     align="right"
                     showChevron={false}
                     buttonClassName="h-10 w-10 justify-center hover:bg-primary-foreground/15"
-                    menuClassName="min-w-52 sm:rounded-2xl border border-primary-foreground/12 bg-primary px- py-1 shadow-2xl"
-                    itemClassName="justify-start rounded-x px-4 py-3"
+                    fullWidth
+                    menuClassName="bg-primary border-t border-primary-foreground/15 shadow-2xl"
                 />
             </nav>
         </header>
@@ -198,6 +203,7 @@ function Footer() {
         { id: "footer-home", to: "/", label: "Home" },
         { id: "footer-rentals", to: "/rentals", label: "Rentals" },
         { id: "footer-about", to: "/about", label: "About Us" },
+        { id: "footer-location", to: "/location", label: "Location" },
         { id: "footer-faq", to: "/faq", label: "FAQ" },
         { id: "footer-contact", to: "/contact", label: "Contact" },
         { id: "footer-cart", to: "/cart", label: "Cart" },

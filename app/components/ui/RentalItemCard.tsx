@@ -45,14 +45,14 @@ export default function RentalItemCard({ categoryId, item }: RentalItemCardProps
             tabIndex={0}
             onClick={handleNavigate}
             onKeyDown={handleKeyDown}
-            className="group overflow-hidden rounded-2xl border border-border bg-card shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary"
+            className="group flex h-full flex-col overflow-hidden rounded-xl cursor-pointer border border-border bg-card shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary md:rounded-2xl"
         >
-            <div className="h-56 bg-muted sm:h-64">
+            <div className="h-32 bg-muted md:h-56 lg:h-64">
                 {item.image ? (
                     <img
                         src={item.image}
                         alt={item.name}
-                        className="h-full w-full object-contain p-5 transition-transform duration-300 group-hover:scale-[1.03]"
+                        className="h-full w-full object-contain p-3 transition-transform duration-300 group-hover:scale-[1.03] md:p-5"
                     />
                 ) : (
                     <div className="flex h-full items-center justify-center text-muted-foreground">
@@ -60,24 +60,22 @@ export default function RentalItemCard({ categoryId, item }: RentalItemCardProps
                     </div>
                 )}
             </div>
-            <div className="space-y-3 p-4 sm:p-5">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                    <div className="space-y-1">
-                        <h2 className="text-lg font-bold text-foreground">{item.name}</h2>
-                        <p className="text-sm text-muted-foreground">{item.summary}</p>
+            <div className="flex flex-1 flex-col space-y-2 p-3 md:space-y-3 md:p-5">
+                <div className="flex flex-1 flex-col gap-2 justify-between md:flex-row md:items-start md:justify-between md:gap-4">
+                    <div className="space-y-2">
+                        <div className="flex justify-between gap-4">
+                            <h2 className="flex-1 text-sm font-bold leading-5 text-foreground md:text-lg md:leading-6">{item.name}</h2>
+                            <span className="shrink-0 text-sm font-bold text-primary md:text-lg">${item.cost}</span>
+                        </div>
+                        <p className="text-xs leading-5 text-muted-foreground md:text-sm">{item.summary}</p>
                     </div>
-                    <span className="shrink-0 text-lg font-bold text-primary">${item.cost}</span>
-                </div>
-                <div className="flex flex-wrap gap-2 text-xs font-semibold text-foreground/70">
-                    <span className="rounded-full bg-muted px-3 py-1">{item.dimensions}</span>
-                    <span className="rounded-full bg-muted px-3 py-1">{item.maxCapacity}</span>
                 </div>
                 <button
                     type="button"
                     onClick={handleAddToCart}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-2.5 font-semibold text-accent-foreground transition-colors hover:cursor-pointer hover:bg-accent/90"
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-accent py-2 text-sm font-semibold text-accent-foreground transition-colors hover:cursor-pointer hover:bg-accent/90 md:gap-2 md:py-2.5 md:text-base"
                 >
-                    <ShoppingCart className="h-4 w-4" />
+                    <ShoppingCart className="h-3.5 w-3.5 md:h-4 md:w-4" />
                     Add to Cart
                 </button>
             </div>

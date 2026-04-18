@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Previewer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Top Bar ──────────────────────────────── */
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 10px 20px;
+      background: #1a1d27;
+      border-bottom: 1px solid #2d3148;
+      flex-shrink: 0;
+      gap: 16px;
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      justify-self: start;
+    }
+
+    .toolbar-center {
+      display: flex;
+      align-items: center;
+      justify-self: center;
+    }
+
+    .toolbar-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .source-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .source-btn {
+      width: 100%;
+      display: block;
+      text-align: left;
+      padding: 7px 10px;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      background: #0f1117;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+
+    .source-btn:hover {
+      border-color: #374160;
+      background: #151925;
+      color: #e2e8f0;
+    }
+
+    .source-btn.active {
+      background: #1e40af;
+      border-color: #1e40af;
+      color: #ffffff;
+    }
+
+    .source-status {
+      font-size: 12px;
+      color: #475569;
+      min-height: 18px;
+    }
+
+    .toggle-group {
+      display: flex;
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .toggle-btn.active {
+      background: #1e40af;
+      color: #ffffff;
+    }
+
+    .toggle-btn svg {
+      flex-shrink: 0;
+    }
+
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      justify-self: end;
+    }
+
+    .viewport-label {
+      font-size: 12px;
+      color: #475569;
+      text-align: right;
+    }
+
+    /* ── Main Layout ──────────────────────────── */
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Preview Area ─────────────────────────── */
+    .preview-area {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      overflow: auto;
+      padding: 32px 20px;
+      background: #161923;
+      transition: background 0.2s;
+    }
+
+    .preview-workbench {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      width: max-content;
+      margin: 0 auto;
+    }
+
+    .source-sidebar {
+      width: 220px;
+      padding: 16px;
+      background: #1a1d27;
+      border: 1px solid #2d3148;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .preview-area.mobile-bg {
+      background: #1a1d27;
+    }
+
+    .source-sidebar-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .email-frame-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    /* Desktop shell */
+    .desktop-shell {
+      background: #1e2433;
+      border-radius: 10px 10px 0 0;
+      padding: 10px 14px 0;
+      width: 660px;
+      border: 1px solid #2d3148;
+      border-bottom: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .shell-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .shell-dot.red   { background: #ef4444; }
+    .shell-dot.yellow{ background: #f59e0b; }
+    .shell-dot.green { background: #22c55e; }
+
+    .shell-bar {
+      flex: 1;
+      height: 20px;
+      background: #0f1117;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+
+    /* Mobile shell */
+    .mobile-shell-top {
+      background: #1e2433;
+      border-radius: 28px 28px 0 0;
+      padding: 14px 14px 0;
+      width: 393px;
+      border: 1px solid #2d3148;
+      border-bottom: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notch {
+      width: 100px;
+      height: 24px;
+      background: #0f1117;
+      border-radius: 12px;
+    }
+
+    .mobile-shell-bottom {
+      background: #1e2433;
+      border-radius: 0 0 28px 28px;
+      padding: 0 14px 16px;
+      width: 393px;
+      border: 1px solid #2d3148;
+      border-top: none;
+      display: flex;
+      justify-content: center;
+      padding-top: 10px;
+    }
+
+    .home-indicator {
+      width: 100px;
+      height: 4px;
+      background: #475569;
+      border-radius: 2px;
+    }
+
+    /* iframe */
+    .preview-iframe {
+      display: block;
+      border: none;
+      border-left: 1px solid #2d3148;
+      border-right: 1px solid #2d3148;
+      background: #ffffff;
+      transition: width 0.25s ease;
+    }
+
+    .preview-iframe.desktop { width: 660px; height: 640px; }
+    .preview-iframe.mobile  { width: 393px; height: 640px; }
+
+    /* ── Input Panel ──────────────────────────── */
+    .input-panel {
+      width: 360px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      background: #1a1d27;
+      border-left: 1px solid #2d3148;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid #2d3148;
+      flex-shrink: 0;
+    }
+
+    .panel-header span {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .clear-btn {
+      font-size: 11px;
+      color: #475569;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 3px 8px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .clear-btn:hover { color: #e2e8f0; background: #2d3148; }
+
+    .html-textarea {
+      flex: 1;
+      padding: 14px 16px;
+      background: transparent;
+      color: #a5b4cc;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      border: none;
+      resize: none;
+      outline: none;
+    }
+
+    .html-textarea::placeholder { color: #334155; }
+
+    .panel-footer {
+      padding: 12px 16px;
+      border-top: 1px solid #2d3148;
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .render-btn {
+      flex: 1;
+      padding: 9px;
+      background: #1e40af;
+      color: #ffffff;
+      border: none;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .render-btn:hover { background: #1d4ed8; }
+
+    .file-label {
+      padding: 9px 12px;
+      background: #2d3148;
+      color: #94a3b8;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .file-label:hover { background: #374160; color: #e2e8f0; }
+    #file-input { display: none; }
+
+    @media (max-width: 900px) {
+      .toolbar {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .toolbar-left,
+      .toolbar-center,
+      .toolbar-right {
+        justify-self: center;
+      }
+
+      .viewport-label {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Toolbar ── -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="toolbar-title">Email Previewer</span>
+    </div>
+    <div class="toolbar-center">
+      <div class="toggle-group">
+        <button class="toggle-btn active" id="btn-desktop" onclick="setMode('desktop')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+          </svg>
+          Desktop
+        </button>
+        <button class="toggle-btn" id="btn-mobile" onclick="setMode('mobile')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="18" r="1"/>
+          </svg>
+          Mobile
+        </button>
+      </div>
+    </div>
+    <div class="toolbar-right">
+      <span class="viewport-label" id="viewport-label">600px — Desktop Email</span>
+    </div>
+  </div>
+
+  <!-- ── Main ── -->
+  <div class="main">
+
+    <!-- Preview -->
+    <div class="preview-area" id="preview-area">
+      <div class="preview-workbench">
+        <aside class="source-sidebar">
+          <span class="source-sidebar-title">Source Files</span>
+          <div class="source-group" id="source-group">
+            <button class="source-btn" data-source-file="contact-form/auto-reply.html">Contact Auto Reply</button>
+            <button class="source-btn" data-source-file="contact-form/collecting-info.html">Contact Internal</button>
+            <button class="source-btn active" data-source-file="cart-submission/auto-reply.html">Cart Auto Reply</button>
+            <button class="source-btn" data-source-file="cart-submission/collecting-info.html">Cart Internal</button>
+            <button class="source-btn" data-source-file="cart-submission/emailjs-cart-test.html">EmailJS Cart Test</button>
+          </div>
+          <span class="source-status" id="source-status">Live source: cart-submission/auto-reply.html</span>
+        </aside>
+
+        <div class="email-frame-wrapper" id="frame-wrapper">
+
+          <!-- Desktop chrome -->
+          <div class="desktop-shell" id="desktop-shell">
+            <div class="shell-dot red"></div>
+            <div class="shell-dot yellow"></div>
+            <div class="shell-dot green"></div>
+            <div class="shell-bar"></div>
+          </div>
+
+          <!-- Mobile chrome top (hidden by default) -->
+          <div class="mobile-shell-top" id="mobile-shell-top" style="display:none;">
+            <div class="notch"></div>
+          </div>
+
+          <iframe
+            id="preview-frame"
+            class="preview-iframe desktop"
+            title="Email Preview"
+            sandbox="allow-same-origin allow-scripts allow-forms"
+          ></iframe>
+
+          <!-- Mobile chrome bottom (hidden by default) -->
+          <div class="mobile-shell-bottom" id="mobile-shell-bottom" style="display:none;">
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Panel -->
+    <div class="input-panel">
+      <div class="panel-header">
+        <span>HTML Input</span>
+        <button class="clear-btn" onclick="clearInput()">Clear</button>
+      </div>
+      <textarea
+        id="html-input"
+        class="html-textarea"
+        placeholder="Paste your email HTML here…&#10;&#10;Supports full documents or fragments.&#10;&#10;Click Render or press Ctrl+Enter."
+        spellcheck="false"
+      ></textarea>
+      <div class="panel-footer">
+        <label class="file-label" for="file-input">Open File</label>
+        <input type="file" id="file-input" accept=".html,.htm" />
+        <button class="render-btn" onclick="render()">Render</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const frame       = document.getElementById('preview-frame');
+    const input       = document.getElementById('html-input');
+    const previewArea = document.getElementById('preview-area');
+    const label       = document.getElementById('viewport-label');
+    const desktopShell     = document.getElementById('desktop-shell');
+    const mobileShellTop   = document.getElementById('mobile-shell-top');
+    const mobileShellBottom= document.getElementById('mobile-shell-bottom');
+    const btnDesktop  = document.getElementById('btn-desktop');
+    const btnMobile   = document.getElementById('btn-mobile');
+    const sourceGroup = document.getElementById('source-group');
+    const sourceStatus = document.getElementById('source-status');
+
+    const sourceButtons = Array.from(document.querySelectorAll('[data-source-file]'));
+    let selectedSource = 'cart-submission/auto-reply.html';
+    let lastSourceHtml = '';
+    let sourcePollTimer;
+    let liveSourceEnabled = true;
+    let sourceFallbackMode = false;
+    let lastFallbackSource = '';
+
+    let currentMode = 'desktop';
+
+    function wrapHtml(html) {
+      const isFullDoc = /^\s*<!doctype|^\s*<html/i.test(html);
+      return isFullDoc
+        ? html
+        : `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0">${html}</body></html>`;
+    }
+
+    function updateSourceButtons() {
+      sourceButtons.forEach((button) => {
+        button.classList.toggle('active', button.dataset.sourceFile === selectedSource);
+      });
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      const isDesktop = mode === 'desktop';
+
+      frame.className = 'preview-iframe ' + mode;
+      previewArea.classList.toggle('mobile-bg', !isDesktop);
+
+      desktopShell.style.display      = isDesktop ? 'flex'  : 'none';
+      mobileShellTop.style.display    = isDesktop ? 'none'  : 'flex';
+      mobileShellBottom.style.display = isDesktop ? 'none'  : 'flex';
+
+      btnDesktop.classList.toggle('active', isDesktop);
+      btnMobile.classList.toggle('active', !isDesktop);
+
+      label.textContent = isDesktop ? '600px — Desktop Email' : '375px — Mobile Email';
+    }
+
+    async function loadSource(force = false) {
+      if (!selectedSource || !liveSourceEnabled) return;
+
+      try {
+        const response = await fetch(`${selectedSource}?v=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`Failed to load ${selectedSource}`);
+        }
+
+        const html = await response.text();
+        if (force || html !== lastSourceHtml) {
+          lastSourceHtml = html;
+          frame.srcdoc = wrapHtml(html);
+        }
+
+        sourceFallbackMode = false;
+        lastFallbackSource = '';
+        sourceStatus.textContent = `Live source: ${selectedSource}`;
+      } catch (error) {
+        if (force || !sourceFallbackMode || lastFallbackSource !== selectedSource) {
+          frame.src = `${selectedSource}?v=${Date.now()}`;
+          lastFallbackSource = selectedSource;
+        }
+
+        sourceFallbackMode = true;
+        sourceStatus.textContent = `Fallback preview: ${selectedSource}`;
+      }
+    }
+
+    function startSourcePolling() {
+      clearInterval(sourcePollTimer);
+      sourcePollTimer = setInterval(() => {
+        loadSource();
+      }, 1200);
+    }
+
+    function selectSource(file) {
+      liveSourceEnabled = true;
+      selectedSource = file;
+      lastSourceHtml = '';
+      sourceFallbackMode = false;
+      lastFallbackSource = '';
+      updateSourceButtons();
+      loadSource(true);
+      startSourcePolling();
+    }
+
+    function render() {
+      const html = input.value.trim();
+      if (!html) return;
+
+      liveSourceEnabled = false;
+      sourceFallbackMode = false;
+      lastFallbackSource = '';
+      frame.srcdoc = wrapHtml(html);
+      sourceStatus.textContent = `Manual input preview active. Click a source file to resume live preview.`;
+    }
+
+    function clearInput() {
+      input.value = '';
+      frame.srcdoc = '';
+    }
+
+    // Ctrl+Enter or Cmd+Enter to render
+    input.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') render();
+    });
+
+    // Auto-render as you type (debounced)
+    let debounceTimer;
+    input.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(render, 600);
+    });
+
+    // File open
+    document.getElementById('file-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        input.value = ev.target.result;
+        render();
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+
+    sourceGroup.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-source-file]');
+      if (!button) return;
+
+      selectSource(button.dataset.sourceFile);
+    });
+
+    setMode('desktop');
+    updateSourceButtons();
+    loadSource(true);
+    startSourcePolling();
+  </script>
+
+</body>
+</html>

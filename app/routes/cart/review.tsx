@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useOutletContext } from "react-router";
-import { ArrowLeft, Save, SquarePen, User, MapPin, CalendarDays } from 'lucide-react';
+import { ArrowLeft, Save, SquarePen, User, MapPin, CalendarDays, ShoppingBag } from 'lucide-react';
 import emailjs from '@emailjs/browser'
+import Icon from 'components/ui/Icon';
 import { useCart } from "context/CartContext";
 import type { CartOutletContext, FieldName, ReviewSection } from "./types.js";
 
@@ -157,9 +158,11 @@ export default function ReviewSection() {
                 {fieldSections.map(section => (        
                     <div className='text-foreground bg-card border border-border rounded-xl overflow-hidden' key={section.id}>
                         <h1 className='text-xl md:text-2xl border-b border-border bg-muted py-6 px-4 md:px-8 font-bold flex gap-4 items-center'>
-                            <div className="bg-primary/10 w-10 h-10 flex justify-center items-center rounded-xl">
-                                <section.icon className="h-5 w-5 text-primary" />
-                            </div>
+                            <Icon
+                                icon={section.icon}
+                                containerClassName="bg-primary/10 w-10 h-10 rounded-xl"
+                                iconClassName="h-5 w-5 text-primary"
+                            />
                             {section.title}
                         </h1>
                         <div className='divide-y divide-border'>
@@ -179,9 +182,18 @@ export default function ReviewSection() {
                     </div>
                 ))}
             </div>
+
+            {/* Order Summary */}
             <div className='text-foreground bg-card border border-border rounded-xl overflow-hidden'>
                 <div className='px-4 md:px-8 py-6 border-b border-border bg-primary text-primary-foreground'>
-                    <h1 className='text-2xl font-semibold'>Order Summary</h1>
+                    <h1 className='text-2xl font-semibold flex items-center gap-2'>
+                        <Icon
+                            icon={ShoppingBag}
+                            containerClassName='w-10 h-10 bg-secondary/20 rounded-xl'
+                            iconClassName='w-5 h-5 text-secondary'
+                        />
+                        Order Summary
+                    </h1>
                 </div>
                 <div className="px-4 md:px-8 py-4 space-y-4">
                     <div className='space-y-4 py-4'>

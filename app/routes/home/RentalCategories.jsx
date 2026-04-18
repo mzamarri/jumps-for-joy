@@ -5,7 +5,7 @@ import categories from 'data/rentalCategories'
 
 export default function HomeCategories() {
     return (
-        <div className='relative w-full overflow-hidden bg-muted px-4 py-12 sm:px-6 lg:px-24'>
+        <div className='relative w-full overflow-hidden px-4 py-8 sm:px-6 lg:px-24'>
             <div className='flex flex-col space-y-8 md:space-y-10'>
                 <div className='text-center space-y-4'>
                     <span className='inline-flex items-center gap-2 font-semibold text-sm bg-secondary text-secondary-foreground py-2 px-4 rounded-full'>
@@ -13,9 +13,6 @@ export default function HomeCategories() {
                         Get Started
                     </span>
                     <h1 className='text-4xl font-bold sm:text-5xl lg:text-6xl'>Browse by Categories</h1>
-                    <p className='text-sm font-semibold uppercase tracking-widest text-primary sm:text-base'>
-                        Find the perfect rental for any event
-                    </p>
                     <p className='mx-auto max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg'>
                         Explore our different rental categories—from classic bounce houses and combo units
                         to water slides, obstacle courses, and party add-ons—so you can build the perfect
@@ -33,20 +30,20 @@ export default function HomeCategories() {
 function Card({ content }) {
     return (
         <Link
-            to="/"
+            to={`/rentals/${content.id}`}
             className='block overflow-hidden rounded-xl border border-border bg-card shadow-md transition-transform hover:cursor-pointer hover:-translate-y-1'
         >
-            <div className='flex aspect-[4/3] items-center justify-center bg-muted sm:h-64 sm:aspect-auto'>
+            <div className='flex aspect-square items-center justify-center bg-muted md:h-64 md:aspect-auto'>
                 <img
                     src={content.image}
                     alt={`${content.title} category`}
-                    className='w-full h-full object-contain p-4 select-none pointer-events-none'
+                    className='w-full h-full object-contain p-3 select-none pointer-events-none md:p-4'
                     draggable={false}
                 />
             </div>
-            <div className='min-h-[8.5rem] p-4 space-y-3 sm:min-h-32'>
-                <h1 className='text-xl font-semibold text-foreground'>{content.title}</h1>
-                <p className='text-sm text-muted-foreground sm:text-base'>{content.description}</p>
+            <div className='min-h-28 space-y-2 p-3 md:min-h-32 md:space-y-3 md:p-4'>
+                <h1 className='text-lg font-semibold text-foreground md:text-xl'>{content.title}</h1>
+                <p className='text-xs leading-5 text-muted-foreground md:text-base'>{content.description}</p>
             </div>
         </Link>
     )
