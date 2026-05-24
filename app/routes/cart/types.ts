@@ -3,8 +3,11 @@ import type { LucideIcon } from "lucide-react";
 
 export type CartItem = {
     id: number | string;
+    name: string,
     cost: number;
+    description: string,
     quantity: number;
+    
     [key: string]: unknown;
 };
 

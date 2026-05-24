@@ -1,5 +1,5 @@
 import { Mail, Phone, Clock } from "lucide-react";
-import Icon from 'components/ui/Icon';
+import Icon from 'components/ui/icon';
 
 const businessHours = [
     { day: "Mon - Thu", hours: "9:00 AM - 8:00 PM" },

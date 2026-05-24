@@ -1,39 +1,54 @@
-import HeroSection from './HeroSection'
-import ServiceOverview from './ServiceOverview'
-import Featured from './Featured'
-import Locations from './Locations'
-import RentalCategories from './RentalCategories'
+import HeroSection from './hero-section'
+import ServiceOverview from './service-overview'
+import Featured from './featured'
+import Locations from './locations'
+import RentalCategories from './rental-categories'
+import { useOutletContext } from 'react-router'
+import { useReadQuery } from '@apollo/client/react'
+import type { HeroSlidesQuery } from '../../lib/gql/client/graphql';
+import type { RootOutletContext } from '../../root';
 
 const sections = [
     {
         id: "hero-section",
-        component: <HeroSection/>
+        component: HeroSection
     },
     {
         id: "service-overview",
-        component: <ServiceOverview/>
+        component: ServiceOverview
     },{
         id: "featured",
-        component: <Featured/>
+        component: Featured
     },
     {
         id: "location",
-        component: <Locations/>
+        component: Locations
     },
     {
         id: "rental-categories",
-        component: <RentalCategories/>
+        component: RentalCategories
     }
 ]
 
 export default function Home() {
+    const { heroSlidesRef } = useOutletContext<RootOutletContext>();
+    const heroSlidesData = useReadQuery(heroSlidesRef);
+
     return (
         <div className='home relative z-0 overflow-hidden'>
             {sections.map(section => (
                 <section key={section.id}>
-                    {section.component}
+                    {
+                        section.id === "hero-section"
+                            ? (
+                                <section.component
+                                    queryData={heroSlidesData.data as HeroSlidesQuery | undefined}
+                                />
+                            )
+                            : <section.component />
+                    }
                 </section>
             ))}
         </div>
-    )
+    );
 }

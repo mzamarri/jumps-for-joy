@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cart Submission — Send Test</title>
+  <style>
+    :root {
+      --primary:        #1166d9;
+      --primary-fg:     #ffffff;
+      --primary-muted:  #eef5ff;
+      --bg:             #f5f9fd;
+      --surface:        #ffffff;
+      --text:           #143253;
+      --text-muted:     #5f728a;
+      --border:         #d9e4ef;
+    }
+
+    * { box-sizing: border-box; margin: 0; }
+
+    body {
+      padding: 24px 12px;
+      background: var(--bg);
+      font-family: "Segoe UI", Verdana, Arial, sans-serif;
+      color: var(--text);
+    }
+
+    .card {
+      max-width: 720px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 24px;
+      background: var(--primary);
+      color: var(--primary-fg);
+      text-align: center;
+    }
+
+    .card-header h1 {
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+
+    .card-header p {
+      font-size: 13px;
+      opacity: 0.85;
+    }
+
+    .card-body { padding: 24px; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 20px 0 10px;
+    }
+
+    .section-label:first-child { margin-top: 0; }
+
+    .field { margin-bottom: 14px; }
+
+    .field-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .field-row .field { flex: 1; }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .field label code {
+      font-weight: 400;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+
+    .submit-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      margin-top: 20px;
+      background: var(--primary);
+      color: var(--primary-fg);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .submit-btn:hover { opacity: 0.9; }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .status {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      display: none;
+      text-align: center;
+    }
+
+    .status.success { display: block; background: #e6f9ee; color: #0f5132; border: 1px solid #b7e4c7; }
+    .status.error   { display: block; background: #fdecea; color: #842029; border: 1px solid #f5c2c7; }
+    .status.sending { display: block; background: var(--primary-muted); color: var(--primary); border: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="card-header">
+      <h1>Cart Submission — Send Test</h1>
+      <p>Sends internal notification and auto-reply emails with verified or parallel delivery</p>
+    </div>
+
+    <div class="card-body">
+      <form id="test-form" autocomplete="off">
+
+        <p class="section-label">EmailJS Config</p>
+        <div class="field">
+          <label>Service ID</label>
+          <input id="serviceId" type="text" placeholder="service_xxxxxxx" required />
+        </div>
+        <div class="field">
+          <label>Auto-Reply Template ID</label>
+          <input id="templateIdAutoReply" type="text" placeholder="template_xxxxxxx (auto-reply)" required />
+        </div>
+        <div class="field">
+          <label>Internal Notification Template ID</label>
+          <input id="templateIdInternal" type="text" placeholder="template_xxxxxxx (collecting-info)" required />
+        </div>
+        <div class="field">
+          <label>Public Key</label>
+          <input id="publicKey" type="text" placeholder="your_public_key" required />
+        </div>
+        <div class="field">
+          <label>Send Mode</label>
+          <select id="sendMode">
+            <option value="verified" selected>Verified: internal first, then auto-reply</option>
+            <option value="parallel">Parallel: send both at once</option>
+          </select>
+        </div>
+
+        <hr />
+
+        <p class="section-label">Contact Info</p>
+        <div class="field-row">
+          <div class="field">
+            <label>Full Name <code>{{fullName}}</code></label>
+            <input id="fullName" type="text" value="Jane Doe" />
+          </div>
+          <div class="field">
+            <label>First Name <code>{{firstName}}</code></label>
+            <input id="firstName" type="text" value="Jane" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Email <code>{{email}}</code></label>
+            <input id="email" type="email" value="jane@example.com" />
+          </div>
+          <div class="field">
+            <label>Phone <code>{{phoneNumber}}</code></label>
+            <input id="phoneNumber" type="tel" value="(555) 123-4567" />
+          </div>
+        </div>
+
+        <hr />
+
+        <p class="section-label">Event Details</p>
+        <div class="field-row">
+          <div class="field">
+            <label>Date <code>{{date}}</code></label>
+            <input id="date" type="text" value="June 15, 2025" />
+          </div>
+          <div class="field">
+            <label>Time <code>{{time}}</code></label>
+            <input id="time" type="text" value="2:00 PM" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Duration <code>{{duration}}</code></label>
+            <input id="duration" type="text" value="4 hours" />
+          </div>
+          <div class="field">
+            <label>Event Type <code>{{eventType}}</code></label>
+            <input id="eventType" type="text" value="Birthday Party" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Surface Type <code>{{surfaceType}}</code></label>
+          <input id="surfaceType" type="text" value="Grass" />
+        </div>
+        <div class="field">
+          <label>Full Address <code>{{fullAddress}}</code></label>
+          <input id="fullAddress" type="text" value="123 Elm Street, Austin, TX 78701" />
+        </div>
+
+        <hr />
+
+        <p class="section-label">Order Details</p>
+        <div class="field">
+          <label>Items Summary <code>{{itemsSummary}}</code></label>
+          <textarea id="itemsSummary">1× Rainbow Bounce House — $150.00
+1× Slip-N-Slide Combo — $200.00</textarea>
+        </div>
+        <div class="field">
+          <label>Notes <code>{{notes}}</code></label>
+          <textarea id="notes">Please set up in the backyard. Gate code is #1234.</textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Subtotal <code>{{subtotal}}</code></label>
+            <input id="subtotal" type="text" value="$350.00" />
+          </div>
+          <div class="field">
+            <label>Delivery Fee <code>{{deliveryFee}}</code></label>
+            <input id="deliveryFee" type="text" value="$25.00" />
+          </div>
+          <div class="field">
+            <label>Total <code>{{total}}</code></label>
+            <input id="total" type="text" value="$375.00" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Submitted At <code>{{submittedAt}}</code></label>
+          <input id="submittedAt" type="text" />
+        </div>
+
+        <button type="submit" class="submit-btn" id="send-btn">Submit Request</button>
+      </form>
+
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+
+  <script>
+    const EMAILJS_API = 'https://api.emailjs.com/api/v1.0/email/send';
+
+    function stampTime() {
+      document.getElementById('submittedAt').value =
+        new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+    }
+    stampTime();
+
+    function val(id) { return document.getElementById(id).value; }
+
+    function sendEmail(serviceId, templateId, publicKey, params) {
+      return fetch(EMAILJS_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id:  serviceId,
+          template_id: templateId,
+          user_id:     publicKey,
+          template_params: params,
+        }),
+      }).then(res => {
+        if (!res.ok) return res.text().then(t => { throw new Error(t); });
+        return res.text();
+      });
+    }
+
+    function formatError(error) {
+      return error?.message || String(error || 'Unknown EmailJS error');
+    }
+
+    function settleEmail(label, promise) {
+      return promise
+        .then(() => ({ label, ok: true }))
+        .catch(error => ({ label, ok: false, error }));
+    }
+
+    async function sendVerifiedEmails(serviceId, templateIdAutoReply, templateIdInternal, publicKey, params) {
+      await sendEmail(serviceId, templateIdInternal, publicKey, params);
+      await sendEmail(serviceId, templateIdAutoReply, publicKey, params);
+      return 'Internal notification sent. Auto-reply sent after the business request was confirmed.';
+    }
+
+    async function sendParallelEmails(serviceId, templateIdAutoReply, templateIdInternal, publicKey, params) {
+      const [internalResult, autoReplyResult] = await Promise.all([
+        settleEmail('internal notification', sendEmail(serviceId, templateIdInternal, publicKey, params)),
+        settleEmail('auto-reply', sendEmail(serviceId, templateIdAutoReply, publicKey, params)),
+      ]);
+
+      if (internalResult.ok && autoReplyResult.ok) {
+        return 'Both emails sent successfully.';
+      }
+
+      if (internalResult.ok && !autoReplyResult.ok) {
+        try {
+          await sendEmail(serviceId, templateIdAutoReply, publicKey, params);
+          return 'Internal notification sent. Auto-reply failed once, then sent on retry.';
+        } catch (retryError) {
+          throw new Error('Internal notification sent, but auto-reply failed: ' + formatError(retryError));
+        }
+      }
+
+      if (!internalResult.ok && autoReplyResult.ok) {
+        throw new Error('Auto-reply sent, but internal notification failed: ' + formatError(internalResult.error));
+      }
+
+      throw new Error(
+        'Both emails failed. Internal: ' +
+        formatError(internalResult.error) +
+        ' Auto-reply: ' +
+        formatError(autoReplyResult.error)
+      );
+    }
+
+    function sendRequestEmails(serviceId, templateIdAutoReply, templateIdInternal, publicKey, params, sendMode) {
+      return sendMode === 'parallel'
+        ? sendParallelEmails(serviceId, templateIdAutoReply, templateIdInternal, publicKey, params)
+        : sendVerifiedEmails(serviceId, templateIdAutoReply, templateIdInternal, publicKey, params);
+    }
+
+    const form     = document.getElementById('test-form');
+    const statusEl = document.getElementById('status');
+    const sendBtn  = document.getElementById('send-btn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const serviceId           = val('serviceId').trim();
+      const templateIdAutoReply = val('templateIdAutoReply').trim();
+      const templateIdInternal  = val('templateIdInternal').trim();
+      const publicKey           = val('publicKey').trim();
+      const sendMode            = val('sendMode');
+
+      if (!serviceId || !templateIdAutoReply || !templateIdInternal || !publicKey) {
+        showStatus('error', 'Please fill in all EmailJS config fields.');
+        return;
+      }
+
+      stampTime();
+
+      const params = {
+        fullName:     val('fullName'),
+        firstName:    val('firstName'),
+        email:        val('email'),
+        phoneNumber:  val('phoneNumber'),
+        date:         val('date'),
+        time:         val('time'),
+        duration:     val('duration'),
+        eventType:    val('eventType'),
+        surfaceType:  val('surfaceType'),
+        fullAddress:  val('fullAddress'),
+        itemsSummary: val('itemsSummary'),
+        notes:        val('notes'),
+        subtotal:     val('subtotal'),
+        deliveryFee:  val('deliveryFee'),
+        total:        val('total'),
+        submittedAt:  val('submittedAt'),
+      };
+
+      sendBtn.disabled = true;
+      showStatus(
+        'sending',
+        sendMode === 'parallel'
+          ? 'Sending both emails…'
+          : 'Sending internal notification, then auto-reply…'
+      );
+
+      try {
+        const message = await sendRequestEmails(
+          serviceId,
+          templateIdAutoReply,
+          templateIdInternal,
+          publicKey,
+          params,
+          sendMode
+        );
+        showStatus('success', message);
+      } catch (err) {
+        showStatus('error', 'Failed: ' + (err?.message || err));
+      } finally {
+        sendBtn.disabled = false;
+      }
+    });
+
+    function showStatus(type, msg) {
+      statusEl.className = 'status ' + type;
+      statusEl.textContent = msg;
+    }
+  </script>
+
+</body>
+</html>

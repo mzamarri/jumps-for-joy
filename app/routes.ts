@@ -8,8 +8,10 @@ export default [
     route("faq", "./routes/faq.tsx"),
     ...prefix("rentals", [
         index("./routes/rentals/index.tsx"),
-        route(":categoryId", "./routes/rentals/catalog.tsx"),
-        route(":categoryId/:itemId", "./routes/rentals/details.tsx")
+        route(":categoryId", "./routes/rentals/catalog-provider.tsx", [
+            index("./routes/rentals/catalog.tsx"),
+            route(":itemId", "./routes/rentals/details.tsx")
+        ])
     ]),
     layout("./routes/cart/layout.tsx", [
         route("cart", "./routes/cart/cart.tsx"),

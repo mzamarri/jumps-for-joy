@@ -11,7 +11,7 @@ import {
     ShieldCheck,
     Truck,
 } from 'lucide-react';
-import Icon from 'components/ui/Icon';
+import Icon from 'components/ui/icon';
 
 type FAQItem = {
     id: string;

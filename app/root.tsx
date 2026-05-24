@@ -1,6 +1,5 @@
-import { CartProvider, useCart } from 'context/CartContext'
-import { ToastProvider } from 'context/ToastContext'
-import bhLogo from './assets/logo.png'
+import { CartProvider, useCart } from 'context/cart-context'
+import { ToastProvider } from 'context/toast-context'
 import {
     NavLink,
     Link,
@@ -8,10 +7,19 @@ import {
     Meta,
     Outlet,
     Scripts,
-    ScrollRestoration
+    ScrollRestoration,
+    useLoaderData
 } from "react-router"
 import { ShoppingCart, Mail, Phone, MapPin, Clock3, Menu } from 'lucide-react'
-import Dropdown from 'components/ui/Dropdown'
+import Dropdown from 'components/ui/dropdown'
+import { apolloLoader } from './apollo';
+import { useReadQuery, type QueryRef } from '@apollo/client/react';
+import { graphql } from './lib/gql/client';
+import type {
+    HeroSlidesQuery,
+    RentalCategoriesQuery,
+    FeaturedRentalsQuery
+} from './lib/gql/client/graphql';
 
 export function Layout({
     children
@@ -36,7 +44,79 @@ export function Layout({
     )
 }
 
-// Need to change NavBar functionality with react-router to route properly
+
+
+export type RootOutletContext = {
+    heroSlidesRef: QueryRef<HeroSlidesQuery>;
+    rentalCategoriesRef: QueryRef<RentalCategoriesQuery>;
+    featuredRentalsRef: QueryRef<FeaturedRentalsQuery>
+};
+
+const HeroSlidesQueryDocument = graphql(`
+    query HeroSlides {
+        heroSlideCollection {
+            items {
+                ...HeroSlideFields
+            }
+        }
+    }
+`)
+
+const RentalCategoriesQueryDocument = graphql(`
+    query RentalCategories {
+        rentalCategoryCollection(order: displayOrder_ASC, limit: 15) {
+            items {
+                ...RentalCategoryCardFields
+                ...CategoryCatalog
+            }
+        }
+    }
+`)
+
+const FeaturedRentalsQueryDocument = graphql(`
+    query featuredRentals {
+        rentalCategoryCollection(
+            limit: 15, 
+            where: {
+                rentalItems: { 
+                    featuredItem_exists: true 
+                }
+            }
+        ) {
+            items {
+                ...FeaturedCards
+            }
+        }
+    }
+`)
+
+export const clientLoader = apolloLoader()(({ preloadQuery }) => {
+    const heroSlidesRef = preloadQuery(HeroSlidesQueryDocument);
+    const rentalCategoriesRef = preloadQuery(RentalCategoriesQueryDocument);
+    const featuredRentalsRef = preloadQuery(FeaturedRentalsQueryDocument);
+    
+
+    return { heroSlidesRef, rentalCategoriesRef, featuredRentalsRef } satisfies RootOutletContext;
+});
+
+export default function Root() {
+    const loaderData = useLoaderData<typeof clientLoader>();
+    
+    return (
+        <div className='bg-background'>
+            <ToastProvider>
+                <CartProvider>
+                    <div className="" style={{"--h-nav": "4rem"}}>
+                        <NavBar/>
+                        <Outlet context={loaderData}/>
+                    </div>
+                </CartProvider>
+            </ToastProvider>
+            <Footer/>
+        </div>
+    );
+}
+
 const navTabs = [
     {
         id: "home",
@@ -87,31 +167,15 @@ const mobileNavItems = navTabs.flatMap(tab => {
     return [{ id: tab.id, path: tab.path, label: tab.label }];
 });
 
-export default function Root() {
-    return (
-        <div className='bg-background'>
-            <ToastProvider>
-                <CartProvider>
-                    <div className="" style={{"--h-nav": "4rem"}}>
-                        <NavBar/>
-                        <Outlet/>
-                    </div>
-                </CartProvider>
-            </ToastProvider>
-            <Footer/>
-        </div>
-    );
-}
-
 function NavBar() {
     const { totalItems } = useCart();
     return (
         <header className='sticky *:h-(--h-nav) top-0 z-40 flex justify-between bg-primary text-primary-foreground shadow-lg sm:px-3 md:px-0'>
             <Link
                 to="/"
-                className='flex items-center cursor-pointer min-w-0'
+                className='flex items-center gap-2 cursor-pointer min-w-0 px-2'
             >
-                <img src={bhLogo} alt="Logo Image" className="h-14 w-14 md:h-16 md:w-16"/>
+                <img src="/logo.png" alt="Logo Image" className="h-8 w-8 md:h-10 md:w-10"/>
                 <h1 className='text-sm font-bold leading-tight sm:text-base md:text-xl'>Jump For Joy <span className="text-secondary font-semibold">Inflatables</span></h1>
             </Link>
             <nav className='hidden md:block'>
@@ -214,13 +278,10 @@ function Footer() {
             <div className='p-4 sm:p-8'>
                 <div className='grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-12 gap-8'>
                     <div className='sm:col-span-2 lg:col-span-5 lg:row-span-2 space-y-4'>
-                        <div className=''>
-                            <img src={bhLogo} alt="Jump For Joy Logo" className="h-20 w-auto" />
-                            <div className='space-y-1'>
-                                <h2 className='text-2xl font-bold'>Jump For Joy <span className="text-secondary">Inflatables</span></h2>
-                                <p className='text-sm italic text-primary-foreground/75'>1 Peter 1:8</p>
-                            </div>
-                        </div>
+                        <img src="/logo.png" alt="Jump For Joy Logo" className="h-16 w-16" />
+                        <h2 className='text-2xl font-bold'>Jump For Joy <span className="text-secondary">Inflatables</span>
+                        </h2>
+                        <p className='text-sm italic text-primary-foreground/75'>1 Peter 1:8</p>
                         <p className='max-w-md text-primary-foreground/80 text-sm'>
                             Safe, clean, and reliable inflatable rentals for birthdays, schools,
                             churches, and community events. We deliver, set up, and pick up so you can focus on the fun.
@@ -246,15 +307,15 @@ function Footer() {
                         <ul className='space-y-2 text-sm text-primary-foreground/85'>
                             <li className='flex items-center gap-2'>
                                 <Phone className='w-4 h-4 text-secondary' />
-                                <span>(555) 555-0199</span>
+                                <a href=''>(555) 555-0199</a>
                             </li>
                             <li className='flex items-center gap-2'>
                                 <Mail className='w-4 h-4 text-secondary' />
-                                <span>bookings@jumpforjoy.com</span>
+                                <a href=''>bookings@jumpforjoy.com</a>
                             </li>
                             <li className='flex items-center gap-2'>
                                 <MapPin className='w-4 h-4 text-secondary' />
-                                <span>Serving the greater local area</span>
+                                <span>Chandler, AZ</span>
                             </li>
                         </ul>
                     </div>

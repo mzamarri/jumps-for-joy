@@ -11,9 +11,9 @@ import {
     ShieldCheck,
     Truck,
 } from 'lucide-react';
-import Icon from 'components/ui/Icon';
+import Icon from 'components/ui/icon';
 import { InfoOverlay } from 'components/ui';
-import { locationInfoCards, serviceAreas } from 'data/locationDetails';
+import { locationInfoCards, serviceAreas } from 'data/location-details';
 
 const deliverySteps = [
     {

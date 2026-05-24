@@ -14,7 +14,8 @@ export default defineConfig({
       components: fileURLToPath(new URL('./app/components', import.meta.url)),
       views: fileURLToPath(new URL('./app/components/views', import.meta.url)),
       context: fileURLToPath(new URL('./app/context', import.meta.url)),
-      data: fileURLToPath(new URL('./app/data', import.meta.url))
+      data: fileURLToPath(new URL('./app/data', import.meta.url)),
+      app: fileURLToPath(new URL('./app/', import.meta.url))
     }
   }
 })

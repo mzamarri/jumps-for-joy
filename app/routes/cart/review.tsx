@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Link, useOutletContext } from "react-router";
 import { ArrowLeft, Save, SquarePen, User, MapPin, CalendarDays, ShoppingBag } from 'lucide-react';
 import emailjs from '@emailjs/browser'
-import Icon from 'components/ui/Icon';
-import { useCart } from "context/CartContext";
+import Icon from 'components/ui/icon';
+import { useCart } from "context/cart-context";
 import type { CartOutletContext, FieldName, ReviewSection } from "./types.js";
 
 const deliveryFee = 25;

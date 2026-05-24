@@ -1,6 +1,6 @@
 import { Users, BadgeCheck, HeartHandshake, Truck, ShieldCheck, Star, CalendarCheck, LayoutGrid, Mail, PartyPopper, GraduationCap, Building2 } from 'lucide-react';
 import { Link } from 'react-router';
-import Icon from 'components/ui/Icon';
+import Icon from 'components/ui/icon';
 
 const values = [
     {

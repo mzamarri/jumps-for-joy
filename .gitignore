@@ -25,3 +25,5 @@ dist-ssr
 .react-router
 .vercel
 build
+.env
+.graphqlrc.yml

@@ -1,6 +1,6 @@
 import { Link } from "react-router"
 import { useState, useRef } from "react"
-import { useCart } from 'context/CartContext'
+import { useCart } from 'context/cart-context'
 import { ArrowRight, Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
 import type { CartItem } from "./types.js";
 // import Item from './Item'
@@ -120,14 +120,14 @@ function Item({
         <li className='w-full bg-card border border-border rounded-xl shadow-md overflow-hidden'>
             <div className="flex flex-col sm:flex-row sm:items-start gap-4 p-4">
                 <div className='h-40 w-full sm:w-32 sm:h-32 bg-muted rounded-lg overflow-hidden flex items-center justify-center shrink-0'>
-                    <img src={item.image} alt={String(item.name ?? "Rental item")} className="h-full w-full object-contain p-3" />
+                    <img src={item?.image} alt={String(item.name ?? "Rental item")} className="h-full w-full object-contain p-3" />
                 </div>
                 <div className="max-h-32 flex-1 flex items-start justify-between gap-4">
                     <div className="flex flex-col">
                         <h2 className='sm:text-xl text-foreground font-semibold'>{String(item.name ?? "Rental Item")}</h2>
                         <p className="text-primary sm:text-lg font-bold">${item.cost}/day</p>
                         <p className="max-w-3xs text-xs sm:text-sm text-muted-foreground">
-                            Standard bounce house perfect for any occasion
+                            {item.description}
                         </p>
                     </div>
                     <button 

@@ -82,6 +82,33 @@
       color: #ffffff;
     }
 
+    .reload-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      background: #0f1117;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+
+    .reload-btn:hover {
+      border-color: #374160;
+      background: #151925;
+      color: #e2e8f0;
+    }
+
+    .reload-btn:active {
+      background: #1e293b;
+    }
+
     .source-status {
       font-size: 12px;
       color: #475569;
@@ -429,8 +456,16 @@
             <button class="source-btn" data-source-file="contact-form/collecting-info.html">Contact Internal</button>
             <button class="source-btn active" data-source-file="cart-submission/auto-reply.html">Cart Auto Reply</button>
             <button class="source-btn" data-source-file="cart-submission/collecting-info.html">Cart Internal</button>
-            <button class="source-btn" data-source-file="cart-submission/emailjs-cart-test.html">EmailJS Cart Test</button>
+            <button class="source-btn" data-source-file="util/contact-form-test.html">Contact Send Test</button>
+            <button class="source-btn" data-source-file="util/cart-submission-test.html">Cart Send Test</button>
           </div>
+          <button class="reload-btn" onclick="reloadSource()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+              <path d="M21 3v5h-5"/>
+            </svg>
+            Reload
+          </button>
           <span class="source-status" id="source-status">Live source: cart-submission/auto-reply.html</span>
         </aside>
 
@@ -516,6 +551,17 @@
         : `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0">${html}</body></html>`;
     }
 
+    function injectHtml(html) {
+      const wrapped = wrapHtml(html);
+      frame.removeAttribute('src');
+      frame.srcdoc = wrapped;
+    }
+
+    function loadFrameUrl(url) {
+      frame.removeAttribute('srcdoc');
+      frame.src = url;
+    }
+
     function updateSourceButtons() {
       sourceButtons.forEach((button) => {
         button.classList.toggle('active', button.dataset.sourceFile === selectedSource);
@@ -551,7 +597,7 @@
         const html = await response.text();
         if (force || html !== lastSourceHtml) {
           lastSourceHtml = html;
-          frame.srcdoc = wrapHtml(html);
+          injectHtml(html);
         }
 
         sourceFallbackMode = false;
@@ -559,7 +605,7 @@
         sourceStatus.textContent = `Live source: ${selectedSource}`;
       } catch (error) {
         if (force || !sourceFallbackMode || lastFallbackSource !== selectedSource) {
-          frame.src = `${selectedSource}?v=${Date.now()}`;
+          loadFrameUrl(`${selectedSource}?v=${Date.now()}`);
           lastFallbackSource = selectedSource;
         }
 
@@ -576,14 +622,23 @@
     }
 
     function selectSource(file) {
-      liveSourceEnabled = true;
       selectedSource = file;
       lastSourceHtml = '';
       sourceFallbackMode = false;
       lastFallbackSource = '';
       updateSourceButtons();
-      loadSource(true);
-      startSourcePolling();
+
+      if (file.startsWith('util/')) {
+        // Interactive forms load by URL so they also work when preview.html is opened from disk.
+        liveSourceEnabled = false;
+        clearInterval(sourcePollTimer);
+        loadFrameUrl(`${file}?v=${Date.now()}`);
+        sourceStatus.textContent = 'Interactive: ' + file;
+      } else {
+        liveSourceEnabled = true;
+        loadSource(true);
+        startSourcePolling();
+      }
     }
 
     function render() {
@@ -593,13 +648,25 @@
       liveSourceEnabled = false;
       sourceFallbackMode = false;
       lastFallbackSource = '';
-      frame.srcdoc = wrapHtml(html);
+      injectHtml(html);
       sourceStatus.textContent = `Manual input preview active. Click a source file to resume live preview.`;
     }
 
     function clearInput() {
       input.value = '';
+      frame.removeAttribute('src');
       frame.srcdoc = '';
+    }
+
+    function reloadSource() {
+      lastSourceHtml = '';
+      if (selectedSource && selectedSource.startsWith('util/')) {
+        loadFrameUrl(`${selectedSource}?v=${Date.now()}`);
+        sourceStatus.textContent = 'Interactive: ' + selectedSource;
+        return;
+      }
+
+      loadSource(true);
     }
 
     // Ctrl+Enter or Cmd+Enter to render

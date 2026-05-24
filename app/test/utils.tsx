@@ -14,8 +14,8 @@ import {
     type RenderHookOptions,
 } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { CartProvider } from 'context/CartContext'
-import { ToastProvider } from 'context/ToastContext'
+import { CartProvider } from 'context/cart-context'
+import { ToastProvider } from 'context/toast-context'
 import type { ReactNode } from 'react'
 
 type WrapperOptions = {
