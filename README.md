@@ -50,6 +50,7 @@ app/
 ├── context/          # Cart, Booking, Request, Toast contexts
 ├── data/             # Rental items, categories, location info
 └── assets/           # Local images and icons
+docs/                 # Testing and QA documentation
 emailTemplates/       # HTML email templates (contact form + cart submission)
 ```
 
@@ -86,23 +87,51 @@ The app will be available at `http://localhost:5173`.
 
 ---
 
+## Testing and QA
+
+The app includes Vitest and React Testing Library coverage for rental data, cart persistence, shared UI behavior, the event-details validation flow, contact submission, and cart request submission.
+
+```bash
+npm test
+npm run test:coverage
+```
+
+See [`docs/TESTING.md`](docs/TESTING.md) for the current coverage map, manual QA checklist, EmailJS testing notes, and regression cases to run before deployment.
+
+Key flows covered by automated tests:
+
+- Cart add/remove/update behavior and localStorage recovery
+- Rental item cards, dropdown interactions, and route navigation behavior
+- Details-page live validation, phone masking, ZIP/state normalization, and review-button state
+- Contact form validation, successful EmailJS payloads, and EmailJS failure handling
+- Review-page acknowledgement gating, empty-cart prevention, editable customer details, and cart request EmailJS payloads
+
+---
+
 ## Environment Variables
 
 Create a `.env` file at the root for EmailJS integration:
 
 ```env
 VITE_EMAILJS_SERVICE_ID=your_service_id
-VITE_EMAILJS_TEMPLATE_ID=your_template_id
 VITE_EMAILJS_PUBLIC_KEY=your_public_key
+VITE_EMAILJS_CONTACT_INTERNAL_TEMPLATE_ID=your_contact_internal_template_id
+VITE_EMAILJS_CONTACT_AUTO_REPLY_TEMPLATE_ID=your_contact_auto_reply_template_id
+VITE_EMAILJS_CART_INTERNAL_TEMPLATE_ID=your_cart_internal_template_id
+VITE_EMAILJS_CART_AUTO_REPLY_TEMPLATE_ID=your_cart_auto_reply_template_id
 ```
 
+`VITE_EMAILJS_TEMPLATE_ID` is also supported as a fallback if you only want to configure one template while testing.
+
 > Never commit `.env` files. Add them to Vercel's environment variables for production.
+
+The shared EmailJS client lives in `app/lib/emailjs-client.ts` and is used by both the contact form and cart review request flow.
 
 ---
 
 ## Deployment
 
-This project is configured for Vercel via `@vercel/react-router`. Push to your connected branch and Vercel handles the rest.
+This project is configured for Vercel via `@vercel/react-router`. Add the EmailJS values above to Vercel Environment Variables, then push to your connected branch and Vercel handles the rest.
 
 ```bash
 # Or deploy manually via Vercel CLI

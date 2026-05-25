@@ -5,6 +5,7 @@ export default [
     route("about", "./routes/about.tsx"),
     route("location", "./routes/location.tsx"),
     route("contact", "./routes/contact.tsx"),
+    route("success", "./routes/success.tsx"),
     route("faq", "./routes/faq.tsx"),
     ...prefix("rentals", [
         index("./routes/rentals/index.tsx"),

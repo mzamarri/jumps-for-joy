@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Link, useOutletContext } from "react-router";
+import { Link, useNavigate, useOutletContext } from "react-router";
 import { ArrowLeft, Save, SquarePen, User, MapPin, CalendarDays, ShoppingBag } from 'lucide-react';
-import emailjs from '@emailjs/browser'
 import Icon from 'components/ui/icon';
 import { useCart } from "context/cart-context";
+import { sendCartRequestEmails } from "../../lib/emailjs-client";
+import { delay } from "../../lib/time";
 import type { CartOutletContext, FieldName, ReviewSection } from "./types.js";
 
 const deliveryFee = 25;
@@ -107,7 +108,10 @@ export default function ReviewSection() {
     const [ editingField, setEditingField ] = useState<FieldName | "">("");
     const { draft, setDraft } = useOutletContext<CartOutletContext>();
     const [ canProceed, setCanProceed ] = useState(false);
+    const [ isSubmitting, setIsSubmitting ] = useState(false);
+    const [ statusMessage, setStatusMessage ] = useState("");
     const { cart } = useCart();
+    const navigate = useNavigate();
     const subtotal = cart.reduce((sum, item) => sum + item.cost * item.quantity, 0);
     const total = subtotal + deliveryFee;
 
@@ -121,24 +125,67 @@ export default function ReviewSection() {
         setEditingField("");
     }
 
-    const submitRequest = () => {
-        if (canProceed) {
-            console.log("Request Sent!");
-        }
-    }
-
-    const getFormVal = (field: FieldName): string => draft[field] ?? "";
-
-    const logFormData = () => {
-        console.log("Form Data:");
-        console.log(draft);
-    }
-
     const formatCurrency = (value: number) =>
         new Intl.NumberFormat("en-US", {
             style: "currency",
             currency: "USD",
         }).format(value);
+
+    const submitRequest = async () => {
+        if (!canProceed || isSubmitting) {
+            return;
+        }
+
+        if (cart.length === 0) {
+            setStatusMessage("Add at least one rental item before submitting your request.");
+            return;
+        }
+
+        setIsSubmitting(true);
+        setStatusMessage("");
+
+        try {
+            const fullName = `${draft.firstName} ${draft.lastName}`.trim();
+            const cityAndState = [draft.city.trim(), draft.state.trim()].filter(Boolean).join(", ");
+            const cityStateZip = [cityAndState, draft.zip.trim()].filter(Boolean).join(" ");
+            const fullAddress = [draft.street.trim(), draft.unit.trim(), cityStateZip].filter(Boolean).join("\n");
+            const itemsSummary = cart
+                .map(item => `${item.quantity} x ${String(item.name ?? "Rental Item")} - ${formatCurrency(item.cost * item.quantity)}`)
+                .join("\n");
+
+            await sendCartRequestEmails({
+                fullName,
+                firstName: draft.firstName.trim(),
+                email: draft.email.trim(),
+                phoneNumber: draft.phoneNumber.trim(),
+                date: draft.date.trim(),
+                time: draft.time.trim(),
+                duration: draft.duration.trim(),
+                eventType: draft.eventType.trim() || "Not provided",
+                surfaceType: draft.surfaceType.trim(),
+                fullAddress,
+                itemsSummary,
+                notes: draft.notes.trim() || "None",
+                subtotal: formatCurrency(subtotal),
+                deliveryFee: formatCurrency(deliveryFee),
+                total: formatCurrency(total),
+                submittedAt: new Intl.DateTimeFormat("en-US", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                }).format(new Date()),
+            });
+
+            await delay(2000);
+            console.log("Successfully sent");
+            navigate("/success?source=booking");
+        } catch {
+            setStatusMessage("There was an error sending your request. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    const getFormVal = (field: FieldName): string => draft[field] ?? "";
 
     return (
         <div
@@ -157,11 +204,11 @@ export default function ReviewSection() {
             <div className="space-y-8">
                 {fieldSections.map(section => (        
                     <div className='text-foreground bg-card border border-border rounded-xl overflow-hidden' key={section.id}>
-                        <h1 className='text-xl md:text-2xl border-b border-border bg-muted py-6 px-4 md:px-8 font-bold flex gap-4 items-center'>
+                        <h1 className='text-xl md:text-2xl text-primary-foreground bg-primary py-6 px-4 md:px-8 font-bold flex gap-4 items-center'>
                             <Icon
                                 icon={section.icon}
-                                containerClassName="bg-primary/10 w-10 h-10 rounded-xl"
-                                iconClassName="h-5 w-5 text-primary"
+                                containerClassName="bg-secondary w-10 h-10 rounded-xl"
+                                iconClassName="h-5 w-5 text-secondary-foreground"
                             />
                             {section.title}
                         </h1>
@@ -184,53 +231,53 @@ export default function ReviewSection() {
             </div>
 
             {/* Order Summary */}
-            <div className='text-foreground bg-card border border-border rounded-xl overflow-hidden'>
-                <div className='px-4 md:px-8 py-6 border-b border-border bg-primary text-primary-foreground'>
-                    <h1 className='text-2xl font-semibold flex items-center gap-2'>
+            <div className='text-primary-foreground bg-card border border-border rounded-xl overflow-hidden'>
+                <div className='px-4 md:px-8 py-6 bg-secondary text-secondary-foreground'>
+                    <h1 className='text-2xl bg-secondary text-secondary-foreground font-semibold flex items-center gap-2'>
                         <Icon
                             icon={ShoppingBag}
-                            containerClassName='w-10 h-10 bg-secondary/20 rounded-xl'
+                            containerClassName='w-10 h-10 bg-secondary-foreground rounded-xl'
                             iconClassName='w-5 h-5 text-secondary'
                         />
                         Order Summary
                     </h1>
                 </div>
-                <div className="px-4 md:px-8 py-4 space-y-4">
+                <div className="text-foreground px-4 md:px-8 py-4 space-y-4">
                     <div className='space-y-4 py-4'>
                         {cart.length > 0 ? (
                             cart.map(item => (
                                 <div key={item.id} className='flex items-end justify-between gap-4'>
                                     <div>
-                                        <h2 className='text-lg font-semibold text-foreground'>
+                                        <h2 className='text-lg font-semibold'>
                                             {String(item.name ?? "Rental Item")}
                                         </h2>
                                         <p className='text-sm text-muted-foreground'>
                                             qty: {item.quantity} x {formatCurrency(item.cost)}
                                         </p>
                                     </div>
-                                    <p className='rounded-full bg-secondary/20 px-4 py-2 font-semibold text-secondary-foreground'>
+                                    <p className='rounded-full bg-secondary px-4 py-2 font-semibold text-secondary-foreground'>
                                         {formatCurrency(item.cost * item.quantity)}
                                     </p>
                                 </div>
                             ))
                         ) : (
-                            <p className='text-muted-foreground'>
+                            <p className=''>
                                 No items have been added to your cart yet.
                             </p>
                         )}
                     </div>
-                    <div className='border-y border-border space-y-2 py-4 text-muted-foreground'>
+                    <div className='border-y border-border space-y-2 py-4'>
                         <p className='flex justify-between gap-4'>
-                            <span>Subtotal:</span>
-                            <span>{formatCurrency(subtotal)}</span>
+                            <span className='text-muted-foreground'>Subtotal:</span>
+                            <span className=''>{formatCurrency(subtotal)}</span>
                         </p>
                         <p className='flex justify-between gap-4'>
-                            <span>Delivery Fee:</span>
-                            <span>{formatCurrency(deliveryFee)}</span>
+                            <span className='text-muted-foreground'>Delivery Fee:</span>
+                            <span className=''>{formatCurrency(deliveryFee)}</span>
                         </p>
                     </div>
                     <div className='flex items-center justify-between gap-4 py-4'>
-                        <h1 className='text-2xl font-semibold text-foreground'>Total:</h1>
+                        <h1 className='text-2xl font-semibold'>Total:</h1>
                         <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
                     </div>
                 </div>
@@ -247,12 +294,17 @@ export default function ReviewSection() {
                             I understand this is a request, not a booking
                         </label>
                 </div>
-                <button onClick={submitRequest} className={`py-3 w-full rounded-lg ${
-                    canProceed 
+                {statusMessage ? (
+                    <p className="w-full rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-center text-sm font-semibold text-destructive" role="alert">
+                        {statusMessage}
+                    </p>
+                ) : null}
+                <button type="button" disabled={!canProceed || isSubmitting} onClick={submitRequest} className={`py-3 w-full rounded-lg ${
+                    canProceed && !isSubmitting
                         ? "text-accent-foreground bg-accent hover:bg-accent/90  hover:cursor-pointer"
                         : "bg-muted text-muted-foreground"
                 }`}>
-                    Submit Request
+                    {isSubmitting ? "Sending Request..." : "Submit Request"}
                 </button>
             </div>
         </div>

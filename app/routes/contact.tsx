@@ -1,5 +1,9 @@
+import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router";
 import { Mail, Phone, Clock } from "lucide-react";
 import Icon from 'components/ui/icon';
+import { sendContactEmails } from "../lib/emailjs-client";
+import { delay } from "../lib/time";
 
 const businessHours = [
     { day: "Mon - Thu", hours: "9:00 AM - 8:00 PM" },
@@ -8,7 +12,65 @@ const businessHours = [
     { day: "Sunday", hours: "9:00 AM - 6:00 PM" },
 ];
 
+const initialContactForm = {
+    name: "",
+    phone: "",
+    email: "",
+    message: "",
+};
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function ContactPage() {
+    const [form, setForm] = useState(initialContactForm);
+    const [statusMessage, setStatusMessage] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const navigate = useNavigate();
+
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+            setStatusMessage("Please enter your name, email, and message before submitting.");
+            return;
+        }
+
+        if (!emailPattern.test(form.email.trim())) {
+            setStatusMessage("Please enter a valid email address, like name@example.com.");
+            return;
+        }
+
+        setIsSubmitting(true);
+        setStatusMessage("");
+
+        try {
+            await sendContactEmails({
+                name: form.name.trim(),
+                email: form.email.trim(),
+                phone: form.phone.trim() || "Not provided",
+                message: form.message.trim(),
+                submittedAt: new Intl.DateTimeFormat("en-US", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                }).format(new Date()),
+            });
+
+            await delay(2000);
+            console.log("Successfully sent");
+            navigate("/success?source=contact");
+        } catch {
+            setStatusMessage("There was an error sending your message. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleFieldChange = (field: keyof typeof form, value: string) => {
+        setForm(prev => ({
+            ...prev,
+            [field]: value,
+        }));
+    };
 
     return (
         <div className="">
@@ -75,7 +137,7 @@ export default function ContactPage() {
 
                 <div id="contact-form" className="max-w-2xl flex-1 rounded-2xl border border-border bg-card p-6 space-y-4">
                     <h2 className="text-2xl font-semibold md:text-3xl">Send Us a Message</h2>
-                    <form className="space-y-4 text-sm">
+                    <form className="space-y-4 text-sm" onSubmit={handleSubmit}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="flex flex-col gap-1 text-sm">
                                 <label htmlFor="name" className="font-semibold">
@@ -86,6 +148,8 @@ export default function ContactPage() {
                                     className="bg-background border border-border rounded-lg p-3" 
                                     type="text" 
                                     placeholder="Arthur Morgan" 
+                                    value={form.name}
+                                    onChange={event => handleFieldChange("name", event.target.value)}
                                     required
                                 />
                             </div>
@@ -96,8 +160,10 @@ export default function ContactPage() {
                                 <input 
                                     id="phone"
                                     className="bg-background border border-border rounded-lg p-3" 
-                                    type="text" 
+                                    type="tel" 
                                     placeholder="(555) 123-4567" 
+                                    value={form.phone}
+                                    onChange={event => handleFieldChange("phone", event.target.value)}
                                 />
                             </div>
                         </div>
@@ -110,6 +176,8 @@ export default function ContactPage() {
                                 className="bg-background border border-border rounded-lg p-3" 
                                 type="email" 
                                 placeholder="arthur@example.com" 
+                                value={form.email}
+                                onChange={event => handleFieldChange("email", event.target.value)}
                                 required
                             />
                         </div>
@@ -122,11 +190,22 @@ export default function ContactPage() {
                                 className="bg-background border border-border rounded-lg p-3 w-full" 
                                 rows={10}
                                 placeholder="Tell us about your event or ask any questions..." 
+                                value={form.message}
+                                onChange={event => handleFieldChange("message", event.target.value)}
                                 required
                             />
                         </div>
-                        <button type="button" className="w-full bg-accent text-accent-foreground px-6 py-3 rounded-lg font-semibold cursor-pointer hover:bg-accent/90">
-                            Submit Inquiry
+                        {statusMessage ? (
+                            <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive" role="alert">
+                                {statusMessage}
+                            </p>
+                        ) : null}
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="w-full bg-accent text-accent-foreground px-6 py-3 rounded-lg font-semibold cursor-pointer hover:bg-accent/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
+                        >
+                            {isSubmitting ? "Sending..." : "Submit Inquiry"}
                         </button>
                     </form>
                 </div>

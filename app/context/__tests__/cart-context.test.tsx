@@ -7,6 +7,7 @@ const mockItem = {
     id: 'rainbow-castle',
     name: 'Rainbow Castle Bounce House',
     cost: 165,
+    description: 'A bright, classic bounce house.',
     quantity: 1,
     categoryId: 'bounce-house',
 }
@@ -15,6 +16,7 @@ const anotherItem = {
     id: 'party-palace',
     name: 'Party Palace Bounce House',
     cost: 185,
+    description: 'A larger bounce house for parties.',
     quantity: 1,
     categoryId: 'bounce-house',
 }
@@ -156,6 +158,44 @@ describe('CartContext', () => {
             await act(async () => {})
             expect(result.current.cart).toHaveLength(1)
             expect(result.current.cart[0].id).toBe('rainbow-castle')
+        })
+
+        it('ignores stored carts with an unsupported version', async () => {
+            localStorage.setItem('jump-for-joy-cart', JSON.stringify({
+                version: 999,
+                items: [{ ...mockItem }],
+            }))
+
+            const { result } = rtlRenderHook(() => useCart(), { wrapper })
+            await act(async () => {})
+
+            expect(result.current.cart).toEqual([])
+        })
+
+        it('filters invalid stored cart items during hydration', async () => {
+            localStorage.setItem('jump-for-joy-cart', JSON.stringify({
+                version: 1,
+                items: [
+                    { ...mockItem },
+                    { id: 'bad-item', cost: 'free', quantity: 1 },
+                    { id: 'zero-quantity', cost: 100, quantity: 0 },
+                ],
+            }))
+
+            const { result } = rtlRenderHook(() => useCart(), { wrapper })
+            await act(async () => {})
+
+            expect(result.current.cart).toHaveLength(1)
+            expect(result.current.cart[0].id).toBe('rainbow-castle')
+        })
+
+        it('recovers to an empty cart when localStorage contains invalid JSON', async () => {
+            localStorage.setItem('jump-for-joy-cart', '{not json')
+
+            const { result } = rtlRenderHook(() => useCart(), { wrapper })
+            await act(async () => {})
+
+            expect(result.current.cart).toEqual([])
         })
     })
 })
