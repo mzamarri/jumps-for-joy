@@ -108,30 +108,47 @@ Key flows covered by automated tests:
 
 ---
 
-## Environment Variables
+## App Configuration
 
-Create a `.env` file at the root for EmailJS integration:
+Public app configuration is centralized in [`app/config.js`](app/config.js). Use that file for app-level defaults such as business contact info, booking fees, success delays, EmailJS IDs, and Contentful IDs.
 
-```env
-VITE_EMAILJS_SERVICE_ID=your_service_id
-VITE_EMAILJS_PUBLIC_KEY=your_public_key
-VITE_EMAILJS_CONTACT_INTERNAL_TEMPLATE_ID=your_contact_internal_template_id
-VITE_EMAILJS_CONTACT_AUTO_REPLY_TEMPLATE_ID=your_contact_auto_reply_template_id
-VITE_EMAILJS_CART_INTERNAL_TEMPLATE_ID=your_cart_internal_template_id
-VITE_EMAILJS_CART_AUTO_REPLY_TEMPLATE_ID=your_cart_auto_reply_template_id
+At runtime, the root route loads the `GeneralBusinessInformation` entry from Contentful and merges available CMS values, such as phone number, email, Facebook link, and Instagram link, into the app config. If a CMS value is missing, the local default remains in place.
+
+Because this is client-side configuration, do not treat these values as secrets. EmailJS public keys and Contentful delivery tokens are intended to be client-exposed. Replace the placeholder strings in `app/config.js` before deploying:
+
+```js
+emailjs: {
+    serviceId: "your_emailjs_service_id",
+    publicKey: "your_emailjs_public_key",
+    contactInternalTemplateId: "your_emailjs_contact_internal_template_id",
+    contactAutoReplyTemplateId: "your_emailjs_contact_auto_reply_template_id",
+    cartInternalTemplateId: "your_emailjs_cart_internal_template_id",
+    cartAutoReplyTemplateId: "your_emailjs_cart_auto_reply_template_id",
+},
+contentful: {
+    spaceId: "your_contentful_space_id",
+    accessToken: "your_contentful_delivery_access_token",
+}
 ```
 
-`VITE_EMAILJS_TEMPLATE_ID` is also supported as a fallback if you only want to configure one template while testing.
-
-> Never commit `.env` files. Add them to Vercel's environment variables for production.
-
 The shared EmailJS client lives in `app/lib/emailjs-client.ts` and is used by both the contact form and cart review request flow.
+
+## Environment Variables
+
+Runtime app configuration does not require Vite env variables.
+
+The code generation script still uses `.env` values when regenerating Contentful GraphQL types:
+
+```env
+CONTENTFUL_SPACE_ID=your_space_id
+CONTENTFUL_ACCESS_TOKEN=your_delivery_access_token
+```
 
 ---
 
 ## Deployment
 
-This project is configured for Vercel via `@vercel/react-router`. Add the EmailJS values above to Vercel Environment Variables, then push to your connected branch and Vercel handles the rest.
+This project is configured for Vercel via `@vercel/react-router`. Update `app/config.js` with the public client-side values, then push to your connected branch and Vercel handles the rest.
 
 ```bash
 # Or deploy manually via Vercel CLI

@@ -69,6 +69,7 @@ export type ReviewField = {
     id: FieldName;
     type: InputConfig["type"];
     label: string;
+    options?: SelectOption[];
 };
 
 export type ReviewSection = {

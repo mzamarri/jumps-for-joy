@@ -1,37 +1,28 @@
 import emailjs from "@emailjs/browser";
+import { appConfig } from "../config";
 
 type TemplateParams = Record<string, unknown>;
 
-type TemplateConfig = {
-    internalTemplateId?: string;
-    autoReplyTemplateId?: string;
+type FormEmailConfig = {
+    serviceId: string;
+    publicKey: string;
+    internalTemplateId: string;
+    autoReplyTemplateId: string;
 };
 
-const config = {
-    serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID,
-    publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
-    fallbackTemplateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-    contactInternalTemplateId:
-        import.meta.env.VITE_EMAILJS_CONTACT_INTERNAL_TEMPLATE_ID
-        ?? import.meta.env.VITE_EMAILJS_CONTACT_TEMPLATE_ID,
-    contactAutoReplyTemplateId: import.meta.env.VITE_EMAILJS_CONTACT_AUTO_REPLY_TEMPLATE_ID,
-    cartInternalTemplateId:
-        import.meta.env.VITE_EMAILJS_CART_INTERNAL_TEMPLATE_ID
-        ?? import.meta.env.VITE_EMAILJS_CART_TEMPLATE_ID,
-    cartAutoReplyTemplateId: import.meta.env.VITE_EMAILJS_CART_AUTO_REPLY_TEMPLATE_ID,
-};
+const config = appConfig.emailjs;
 
-const getTemplateIds = ({ internalTemplateId, autoReplyTemplateId }: TemplateConfig) => {
+const getTemplateIds = ({ internalTemplateId, autoReplyTemplateId }: FormEmailConfig) => {
     const templateIds = [
-        internalTemplateId || config.fallbackTemplateId,
+        internalTemplateId,
         autoReplyTemplateId,
     ].filter((templateId): templateId is string => Boolean(templateId));
 
     return [...new Set(templateIds)];
 };
 
-const sendConfiguredEmails = async (templateConfig: TemplateConfig, params: TemplateParams) => {
-    if (!config.serviceId || !config.publicKey) {
+const sendConfiguredEmails = async (templateConfig: FormEmailConfig, params: TemplateParams) => {
+    if (!templateConfig.serviceId || !templateConfig.publicKey) {
         throw new Error("EmailJS service ID and public key are required.");
     }
 
@@ -43,27 +34,15 @@ const sendConfiguredEmails = async (templateConfig: TemplateConfig, params: Temp
 
     await Promise.all(
         templateIds.map(templateId =>
-            emailjs.send(config.serviceId, templateId, params, {
-                publicKey: config.publicKey,
+            emailjs.send(templateConfig.serviceId, templateId, params, {
+                publicKey: templateConfig.publicKey,
             })
         )
     );
 };
 
 export const sendContactEmails = (params: TemplateParams) =>
-    sendConfiguredEmails(
-        {
-            internalTemplateId: config.contactInternalTemplateId,
-            autoReplyTemplateId: config.contactAutoReplyTemplateId,
-        },
-        params
-    );
+    sendConfiguredEmails(config.contactForm, params);
 
-export const sendCartRequestEmails = (params: TemplateParams) =>
-    sendConfiguredEmails(
-        {
-            internalTemplateId: config.cartInternalTemplateId,
-            autoReplyTemplateId: config.cartAutoReplyTemplateId,
-        },
-        params
-    );
+export const sendBookingRequestEmails = (params: TemplateParams) =>
+    sendConfiguredEmails(config.bookingForm, params);

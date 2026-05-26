@@ -74,6 +74,20 @@ describe('ContactPage', () => {
         expect(screen.getByText(/please enter a valid email address/i)).toBeInTheDocument()
     })
 
+    it('shows a validation message for malformed phone numbers', async () => {
+        const user = userEvent.setup()
+        renderContactRoute()
+
+        await user.type(screen.getByLabelText(/full name/i), 'Jane Doe')
+        await user.type(screen.getByLabelText(/^email/i), 'jane@example.com')
+        await user.type(screen.getByLabelText(/phone/i), '555123')
+        await user.type(screen.getByLabelText(/message/i), 'Do you have rentals available?')
+        fireEvent.submit(getContactForm())
+
+        expect(mockedSendContactEmails).not.toHaveBeenCalled()
+        expect(screen.getByText(/enter a 10-digit phone number in the format/i)).toBeInTheDocument()
+    })
+
     it('sends trimmed form values to EmailJS, logs success after a delay, and opens the success page', async () => {
         const user = userEvent.setup()
         mockedSendContactEmails.mockResolvedValue(undefined)

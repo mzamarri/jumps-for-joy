@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState, type KeyboardEvent } from 'react'
 import { Link, useNavigate, useOutletContext } from "react-router";
 import { ArrowLeft, Save, SquarePen, User, MapPin, CalendarDays, ShoppingBag } from 'lucide-react';
 import Icon from 'components/ui/icon';
 import { useCart } from "context/cart-context";
-import { sendCartRequestEmails } from "../../lib/emailjs-client";
+import { useAppConfig } from "context/app-config-context";
+import { sendBookingRequestEmails } from "../../lib/emailjs-client";
 import { delay } from "../../lib/time";
-import type { CartOutletContext, FieldName, ReviewSection } from "./types.js";
-
-const deliveryFee = 25;
+import type { CartOutletContext, FieldName, RequestDraft, ReviewSection } from "./types.js";
+import { sanitizeFieldValue, validateDraft, validateField } from "./validation.js";
+import { removePreviousPhoneDigit } from "../../lib/validation/form";
 
 const fieldSections: ReviewSection[] = [
     {
@@ -76,18 +77,29 @@ const fieldSections: ReviewSection[] = [
         fields: [
             {
                 id: "date",
-                type: "text",
+                type: "date",
                 label: "Date"
             },
             {
                 id: "time",
-                type: "text",
+                type: "time",
                 label: "Time"
             },
             {
                 id: "duration",
-                type: "text",
-                label: "Duration"
+                type: "select",
+                label: "Duration",
+                options: [
+                    {
+                        value: "",
+                        disabled: true,
+                        displayText: "Select "
+                    },
+                    {
+                        value: "same day",
+                        displayText: "Same Day"
+                    }
+                ]
             },
             {
                 id: "eventType",
@@ -104,6 +116,9 @@ const fieldSections: ReviewSection[] = [
     
 ]
 
+const formatValidationMessage = (errors: Record<string, string>) =>
+    `Please fix the following before submitting: ${Object.values(errors).join(" ")}`;
+
 export default function ReviewSection() {
     const [ editingField, setEditingField ] = useState<FieldName | "">("");
     const { draft, setDraft } = useOutletContext<CartOutletContext>();
@@ -111,18 +126,30 @@ export default function ReviewSection() {
     const [ isSubmitting, setIsSubmitting ] = useState(false);
     const [ statusMessage, setStatusMessage ] = useState("");
     const { cart } = useCart();
+    const { booking } = useAppConfig();
     const navigate = useNavigate();
+    const deliveryFee = booking.deliveryFee;
     const subtotal = cart.reduce((sum, item) => sum + item.cost * item.quantity, 0);
     const total = subtotal + deliveryFee;
 
     const handleEdit = (field: FieldName) => setEditingField(field)
 
     const handleSave = (field: FieldName, nextVal: string) => {
+        const sanitizedValue = sanitizeFieldValue(field, nextVal);
+        const error = validateField(field, sanitizedValue, draft);
+
+        if (error) {
+            setStatusMessage(error);
+            return false;
+        }
+
         setDraft(prev => ({
             ...prev,
-            [field]: nextVal
+            [field]: sanitizedValue
         }));
+        setStatusMessage("");
         setEditingField("");
+        return true;
     }
 
     const formatCurrency = (value: number) =>
@@ -133,6 +160,13 @@ export default function ReviewSection() {
 
     const submitRequest = async () => {
         if (!canProceed || isSubmitting) {
+            return;
+        }
+
+        const validationErrors = validateDraft(draft);
+
+        if (Object.keys(validationErrors).length > 0) {
+            setStatusMessage(formatValidationMessage(validationErrors));
             return;
         }
 
@@ -153,7 +187,7 @@ export default function ReviewSection() {
                 .map(item => `${item.quantity} x ${String(item.name ?? "Rental Item")} - ${formatCurrency(item.cost * item.quantity)}`)
                 .join("\n");
 
-            await sendCartRequestEmails({
+            await sendBookingRequestEmails({
                 fullName,
                 firstName: draft.firstName.trim(),
                 email: draft.email.trim(),
@@ -175,17 +209,16 @@ export default function ReviewSection() {
                 }).format(new Date()),
             });
 
-            await delay(2000);
+            await delay(booking.successRedirectDelayMs);
             console.log("Successfully sent");
             navigate("/success?source=booking");
-        } catch {
+        } catch (error) {
+            console.error("Booking request email failed", error);
             setStatusMessage("There was an error sending your request. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
     }
-
-    const getFormVal = (field: FieldName): string => draft[field] ?? "";
 
     return (
         <div
@@ -207,8 +240,8 @@ export default function ReviewSection() {
                         <h1 className='text-xl md:text-2xl text-primary-foreground bg-primary py-6 px-4 md:px-8 font-bold flex gap-4 items-center'>
                             <Icon
                                 icon={section.icon}
-                                containerClassName="bg-secondary w-10 h-10 rounded-xl"
-                                iconClassName="h-5 w-5 text-secondary-foreground"
+                                containerClassName="bg-secondary/30 border-2 border-secondary w-10 h-10 rounded-xl"
+                                iconClassName="h-5 w-5 text-secondary"
                             />
                             {section.title}
                         </h1>
@@ -222,7 +255,10 @@ export default function ReviewSection() {
                                     edit={handleEdit}
                                     save={handleSave}
                                     editingField={editingField}
-                                    getFormVal={getFormVal}
+                                    value={draft[field.id]}
+                                    draft={draft}
+                                    options={field.options}
+                                    onValidationMessage={setStatusMessage}
                                 />
                             )) }
                         </div>
@@ -232,12 +268,12 @@ export default function ReviewSection() {
 
             {/* Order Summary */}
             <div className='text-primary-foreground bg-card border border-border rounded-xl overflow-hidden'>
-                <div className='px-4 md:px-8 py-6 bg-secondary text-secondary-foreground'>
-                    <h1 className='text-2xl bg-secondary text-secondary-foreground font-semibold flex items-center gap-2'>
+                <div className='px-4 md:px-8 py-6 bg-primary text-secondary-foreground'>
+                    <h1 className='text-3xl text-secondary font-semibold flex items-center gap-2'>
                         <Icon
                             icon={ShoppingBag}
-                            containerClassName='w-10 h-10 bg-secondary-foreground rounded-xl'
-                            iconClassName='w-5 h-5 text-secondary'
+                            containerClassName='w-10 h-10 bg-secondary rounded-xl'
+                            iconClassName='w-5 h-5 text-secondary-foreground'
                         />
                         Order Summary
                     </h1>
@@ -316,40 +352,140 @@ type UserInputProps = {
     name: FieldName;
     label: string;
     edit: (field: FieldName) => void;
-    save: (field: FieldName, value: string) => void;
+    save: (field: FieldName, value: string) => boolean;
     editingField: FieldName | "";
-    getFormVal: (field: FieldName) => string;
+    value: string;
+    draft: RequestDraft;
+    options?: ReviewSection["fields"][number]["options"];
+    onValidationMessage: (message: string) => void;
 };
 
-function UserInput({ type, name, label, edit, save, editingField, getFormVal }: UserInputProps) {
-    const [ value, setValue ] = useState(getFormVal(name));
+function UserInput({ type, name, label, edit, save, editingField, value, draft, options, onValidationMessage }: UserInputProps) {
+    const [ nextValue, setNextValue ] = useState(value);
+    const [ hasInteracted, setHasInteracted ] = useState(false);
+    const isEditing = name === editingField;
+    const saveError = isEditing ? validateField(name, nextValue, draft) : undefined;
+    const visibleError = isEditing && hasInteracted ? saveError : undefined;
+
+    useEffect(() => {
+        if (!isEditing) {
+            setNextValue(value);
+            setHasInteracted(false);
+        }
+    }, [isEditing, value]);
+
+    const handleEdit = () => {
+        setNextValue(value);
+        setHasInteracted(false);
+        edit(name);
+    };
+
+    const handleFieldChange = (value: string) => {
+        const sanitizedValue = sanitizeFieldValue(name, value);
+        const error = validateField(name, sanitizedValue, draft);
+
+        setNextValue(sanitizedValue);
+        setHasInteracted(true);
+        onValidationMessage(error ?? "");
+    };
+
+    const handleSave = () => {
+        setHasInteracted(true);
+
+        if (saveError) {
+            return;
+        }
+
+        save(name, nextValue);
+    };
+
+    const handlePhoneKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key !== "Backspace") {
+            return;
+        }
+
+        const { selectionStart, selectionEnd } = event.currentTarget;
+
+        if (selectionStart === null || selectionEnd === null) {
+            return;
+        }
+
+        event.preventDefault();
+        handleFieldChange(removePreviousPhoneDigit(nextValue, selectionStart, selectionEnd));
+    };
 
     return (
         <div className="px-4 md:px-8 flex items-center justify-between gap-6 py-4">
-            {name === editingField ? (
+            {isEditing ? (
                 <>
                     <div className="flex flex-1 items-center justify-between gap-6">
-                        <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2">
-                            <label className="font-semibold min-w-52" htmlFor={name}> {label}</label>
-                            <input 
-                                className="w-full bg-background p-2 border border-border rounded-sm"
-                                type={type}
-                                id={name}
-                                value={value}
-                                onChange={e => setValue(e.target.value)}
-                                onKeyDown={e => {
-                                    if (e.key === "Enter") {
-                                        save(name, value);
-                                    }
-                                }}
-                                autoFocus
-                            />
+                        <div className="flex-1">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                <label className="font-semibold min-w-52" htmlFor={name}>{label}</label>
+                                {type === "select" ? (
+                                    <select
+                                        className={`w-full bg-background p-2 border rounded-sm ${visibleError ? "border-destructive" : "border-border"}`}
+                                        id={name}
+                                        value={nextValue}
+                                        onChange={e => handleFieldChange(e.target.value)}
+                                        onBlur={() => handleFieldChange(nextValue)}
+                                        aria-invalid={Boolean(visibleError)}
+                                        aria-describedby={`${name}-review-error`}
+                                        autoFocus
+                                    >
+                                        {options?.map((option, idx) => (
+                                            <option
+                                                key={idx}
+                                                value={option.value}
+                                                disabled={option.disabled}
+                                            >
+                                                {option.displayText}
+                                            </option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <input
+                                        className={`w-full bg-background p-2 border rounded-sm ${visibleError ? "border-destructive" : "border-border"}`}
+                                        type={type}
+                                        id={name}
+                                        value={nextValue}
+                                        onChange={e => handleFieldChange(e.target.value)}
+                                        onKeyDown={e => {
+                                            if (name === "phoneNumber") {
+                                                handlePhoneKeyDown(e);
+                                                return;
+                                            }
+
+                                            if (e.key === "Enter") {
+                                                handleSave();
+                                            }
+                                        }}
+                                        onBlur={() => handleFieldChange(nextValue)}
+                                        autoFocus
+                                        aria-invalid={Boolean(visibleError)}
+                                        aria-describedby={`${name}-review-error`}
+                                        inputMode={name === "phoneNumber" || name === "zip" ? "numeric" : undefined}
+                                        maxLength={name === "phoneNumber" ? 14 : name === "state" ? 2 : name === "zip" ? 10 : undefined}
+                                    />
+                                )}
+                            </div>
+                            <p
+                                id={`${name}-review-error`}
+                                className={`mt-1 min-h-5 text-sm font-medium leading-5 text-destructive sm:ml-52 ${visibleError ? "visible" : "invisible"}`}
+                            >
+                                {visibleError ?? "No validation error"}
+                            </p>
                         </div>
                     </div>
                     <button
                         type="button"
-                        className="flex justify-center items-center sm:gap-2 hover:cursor-pointer bg-primary/10 text-primary sm:w-auto sm:h-auto sm:px-4 sm:py-2 w-10 h-10 rounded-full"
-                        onClick={() => save(name, value)}
+                        disabled={Boolean(saveError)}
+                        className={`flex justify-center items-center sm:gap-2 sm:w-auto sm:h-auto sm:px-4 sm:py-2 w-10 h-10 rounded-full ${
+                            saveError
+                                ? "bg-muted text-muted-foreground cursor-not-allowed"
+                                : "hover:cursor-pointer bg-primary/10 text-primary"
+                        }`}
+                        onClick={handleSave}
                     >
                         <Save className="w-5 h-5"/> <span className="hidden sm:inline">Save</span>
                     </button>
@@ -363,7 +499,7 @@ function UserInput({ type, name, label, edit, save, editingField, getFormVal }: 
                     <button
                         type="button"
                         className="flex justify-center items-center sm:gap-2 hover:cursor-pointer bg-mute text-primary sm:w-auto sm:h-auto sm:px-4 sm:py-2 w-10 h-10 rounded-full"
-                        onClick={() => edit(name)}
+                        onClick={handleEdit}
                     >
                         <SquarePen className="w-5 h-5"/> <span className="hidden sm:inline">Edit</span>
                     </button>

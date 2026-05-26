@@ -18,7 +18,7 @@ describe('SuccessPage', () => {
         renderSuccessPage('/success')
 
         expect(screen.getByRole('heading', { name: /we received your rental request/i })).toBeInTheDocument()
-        expect(screen.getByText(/connect with you soon to confirm availability/i)).toBeInTheDocument()
+        expect(screen.getByText(/we will review your request details and follow up to confirm what we can fulfill/i)).toBeInTheDocument()
         expect(screen.getByRole('link', { name: /browse rentals/i })).toHaveAttribute('href', '/rentals')
         expect(screen.getByRole('link', { name: /back home/i })).toHaveAttribute('href', '/')
     })

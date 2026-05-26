@@ -90,7 +90,7 @@ export default function RentalItemCard({ categorySlug, content }: RentalItemCard
             </div>
             <div className="flex flex-1 flex-col space-y-2 p-3 md:space-y-3 md:p-5">
                 <div className="flex flex-1 flex-col gap-2 justify-between md:flex-row md:items-start md:justify-between md:gap-4">
-                    <div className="space-y-2">
+                    <div className="w-full space-y-2">
                         <div className="flex justify-between gap-4">
                             <h2 className="flex-1 text-sm font-bold leading-5 text-foreground md:text-lg md:leading-6">{name}</h2>
                             <span className="shrink-0 text-sm font-bold text-primary md:text-lg">${cost}</span>

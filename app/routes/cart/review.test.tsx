@@ -7,18 +7,18 @@ import { CartProvider } from 'context/cart-context'
 import { ToastProvider } from 'context/toast-context'
 import ReviewSection from './review'
 import { initialRequestDraft, type CartItem, type CartOutletContext, type RequestDraft } from './types'
-import { sendCartRequestEmails } from '../../lib/emailjs-client'
+import { sendBookingRequestEmails } from '../../lib/emailjs-client'
 import { delay } from '../../lib/time'
 
 vi.mock('../../lib/emailjs-client', () => ({
-    sendCartRequestEmails: vi.fn(),
+    sendBookingRequestEmails: vi.fn(),
 }))
 
 vi.mock('../../lib/time', () => ({
     delay: vi.fn(() => Promise.resolve()),
 }))
 
-const mockedSendCartRequestEmails = vi.mocked(sendCartRequestEmails)
+const mockedSendBookingRequestEmails = vi.mocked(sendBookingRequestEmails)
 const mockedDelay = vi.mocked(delay)
 
 const validDraft: RequestDraft = {
@@ -83,9 +83,10 @@ function renderReview({ draft = validDraft, cartItems = [] }: { draft?: RequestD
 
 describe('ReviewSection', () => {
     beforeEach(() => {
-        mockedSendCartRequestEmails.mockReset()
+        mockedSendBookingRequestEmails.mockReset()
         mockedDelay.mockClear()
         vi.spyOn(console, 'log').mockImplementation(() => undefined)
+        vi.spyOn(console, 'error').mockImplementation(() => undefined)
     })
 
     afterEach(() => {
@@ -107,7 +108,7 @@ describe('ReviewSection', () => {
         await waitFor(() => expect(screen.getByText('Rainbow Castle Bounce House')).toBeInTheDocument())
         await user.click(screen.getByRole('button', { name: /submit request/i }))
 
-        expect(mockedSendCartRequestEmails).not.toHaveBeenCalled()
+        expect(mockedSendBookingRequestEmails).not.toHaveBeenCalled()
     })
 
     it('shows a clear message when trying to submit with an empty cart', async () => {
@@ -117,21 +118,21 @@ describe('ReviewSection', () => {
         await user.click(screen.getByLabelText(/i understand this is a request/i))
         await user.click(screen.getByRole('button', { name: /submit request/i }))
 
-        expect(mockedSendCartRequestEmails).not.toHaveBeenCalled()
+        expect(mockedSendBookingRequestEmails).not.toHaveBeenCalled()
         expect(screen.getByText(/add at least one rental item/i)).toBeInTheDocument()
     })
 
     it('sends a complete cart request payload to EmailJS, logs success after a delay, and opens the success page', async () => {
         const user = userEvent.setup()
-        mockedSendCartRequestEmails.mockResolvedValue(undefined)
+        mockedSendBookingRequestEmails.mockResolvedValue(undefined)
         renderReview({ cartItems: [cartItem] })
 
         await waitFor(() => expect(screen.getByText('Rainbow Castle Bounce House')).toBeInTheDocument())
         await user.click(screen.getByLabelText(/i understand this is a request/i))
         await user.click(screen.getByRole('button', { name: /submit request/i }))
 
-        await waitFor(() => expect(mockedSendCartRequestEmails).toHaveBeenCalledTimes(1))
-        expect(mockedSendCartRequestEmails).toHaveBeenCalledWith(expect.objectContaining({
+        await waitFor(() => expect(mockedSendBookingRequestEmails).toHaveBeenCalledTimes(1))
+        expect(mockedSendBookingRequestEmails).toHaveBeenCalledWith(expect.objectContaining({
             fullName: 'Jane Doe',
             firstName: 'Jane',
             email: 'jane@example.com',
@@ -168,9 +169,83 @@ describe('ReviewSection', () => {
         expect(screen.queryByText('Jane')).not.toBeInTheDocument()
     })
 
+    it('applies details-page phone masking and blocks invalid phone saves while editing', async () => {
+        const user = userEvent.setup()
+        renderReview()
+
+        await user.click(screen.getAllByRole('button', { name: /edit/i })[2])
+        const phoneInput = screen.getByLabelText(/phone number/i)
+
+        await user.clear(phoneInput)
+        await user.type(phoneInput, 'abc555123456789')
+
+        expect(phoneInput).toHaveValue('(555) 123-4567')
+
+        await user.clear(phoneInput)
+        await user.type(phoneInput, '555')
+
+        expect(phoneInput).toHaveValue('(555)')
+        expect(screen.getAllByText(/enter a 10-digit phone number/i)).toHaveLength(2)
+        expect(screen.getByRole('button', { name: /save/i })).toBeDisabled()
+    })
+
+    it('formats ZIP values and blocks invalid ZIP saves while editing', async () => {
+        const user = userEvent.setup()
+        renderReview()
+
+        await user.click(screen.getAllByRole('button', { name: /edit/i })[8])
+        const zipInput = screen.getByLabelText(/zip/i)
+
+        await user.clear(zipInput)
+        await user.type(zipInput, '902101234extra')
+
+        expect(zipInput).toHaveValue('90210-1234')
+
+        await user.clear(zipInput)
+        await user.type(zipInput, '12')
+
+        expect(zipInput).toHaveValue('12')
+        expect(screen.getAllByText(/enter a valid zip code/i)).toHaveLength(2)
+        expect(screen.getByRole('button', { name: /save/i })).toBeDisabled()
+    })
+
+    it('shows form validation errors in the submit alert without logging them as code errors', async () => {
+        const user = userEvent.setup()
+        renderReview({
+            draft: {
+                ...validDraft,
+                email: 'not-an-email',
+            },
+            cartItems: [cartItem],
+        })
+
+        await waitFor(() => expect(screen.getByText('Rainbow Castle Bounce House')).toBeInTheDocument())
+        await user.click(screen.getByLabelText(/i understand this is a request/i))
+        await user.click(screen.getByRole('button', { name: /submit request/i }))
+
+        expect(await screen.findByRole('alert')).toHaveTextContent(/enter a valid email address/i)
+        expect(mockedSendBookingRequestEmails).not.toHaveBeenCalled()
+        expect(console.error).not.toHaveBeenCalled()
+    })
+
+    it('mirrors edit validation errors in the submit alert area', async () => {
+        const user = userEvent.setup()
+        renderReview()
+
+        await user.click(screen.getAllByRole('button', { name: /edit/i })[3])
+        const emailInput = screen.getByLabelText(/email address/i)
+
+        await user.clear(emailInput)
+        await user.type(emailInput, 'bad-email')
+
+        expect(await screen.findByRole('alert')).toHaveTextContent(/enter a valid email address/i)
+        expect(screen.getByRole('button', { name: /save/i })).toBeDisabled()
+    })
+
     it('surfaces EmailJS errors and re-enables the submit button', async () => {
         const user = userEvent.setup()
-        mockedSendCartRequestEmails.mockRejectedValue(new Error('EmailJS failed'))
+        const emailError = new Error('EmailJS failed')
+        mockedSendBookingRequestEmails.mockRejectedValue(emailError)
         renderReview({ cartItems: [cartItem] })
 
         await waitFor(() => expect(screen.getByText('Rainbow Castle Bounce House')).toBeInTheDocument())
@@ -178,6 +253,7 @@ describe('ReviewSection', () => {
         await user.click(screen.getByRole('button', { name: /submit request/i }))
 
         expect(await screen.findByRole('alert')).toHaveTextContent(/there was an error sending your request/i)
+        expect(console.error).toHaveBeenCalledWith('Booking request email failed', emailError)
         expect(screen.getByRole('button', { name: /submit request/i })).toBeEnabled()
         expect(mockedDelay).not.toHaveBeenCalled()
     })

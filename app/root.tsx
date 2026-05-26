@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { CartProvider, useCart } from 'context/cart-context'
 import { ToastProvider } from 'context/toast-context'
 import {
@@ -13,6 +14,8 @@ import {
 import { ShoppingCart, Mail, Phone, MapPin, Clock3, Menu } from 'lucide-react'
 import Dropdown from 'components/ui/dropdown'
 import { apolloLoader } from './apollo';
+import { appConfig, createAppConfig, type CmsBusinessInfo } from './config';
+import { AppConfigProvider, useAppConfig } from './context/app-config-context';
 import { useReadQuery, type QueryRef } from '@apollo/client/react';
 import { graphql } from './lib/gql/client';
 import type {
@@ -31,7 +34,7 @@ export function Layout({
             <head>
                 <meta charSet="UTF-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                <title>Jump For Joy Inflatables</title>
+                <title>{appConfig.business.name}</title>
                 <Meta />
                 <Links />
             </head>
@@ -50,6 +53,13 @@ export type RootOutletContext = {
     heroSlidesRef: QueryRef<HeroSlidesQuery>;
     rentalCategoriesRef: QueryRef<RentalCategoriesQuery>;
     featuredRentalsRef: QueryRef<FeaturedRentalsQuery>
+    businessInformationRef: QueryRef<BusinessInformationQuery>;
+};
+
+type BusinessInformationQuery = {
+    generalBusinessInformationCollection: {
+        items: Array<CmsBusinessInfo | null>;
+    } | null;
 };
 
 const HeroSlidesQueryDocument = graphql(`
@@ -90,30 +100,54 @@ const FeaturedRentalsQueryDocument = graphql(`
     }
 `)
 
+const BusinessInformationQueryDocument = graphql(`
+    query BusinessInformation {
+        generalBusinessInformationCollection(limit: 1) {
+            items {
+                phoneNumber
+                email
+                location
+                facebookLink
+                instagramLink
+            }
+        }
+    }
+`);
+
 export const clientLoader = apolloLoader()(({ preloadQuery }) => {
     const heroSlidesRef = preloadQuery(HeroSlidesQueryDocument);
     const rentalCategoriesRef = preloadQuery(RentalCategoriesQueryDocument);
     const featuredRentalsRef = preloadQuery(FeaturedRentalsQueryDocument);
+    const businessInformationRef = preloadQuery(BusinessInformationQueryDocument);
     
 
-    return { heroSlidesRef, rentalCategoriesRef, featuredRentalsRef } satisfies RootOutletContext;
+    return { heroSlidesRef, rentalCategoriesRef, featuredRentalsRef, businessInformationRef } satisfies RootOutletContext;
 });
 
 export default function Root() {
     const loaderData = useLoaderData<typeof clientLoader>();
+    const { data } = useReadQuery(loaderData.businessInformationRef);
+    const resolvedAppConfig = useMemo(() => {
+        const cmsBusinessInfo = data.generalBusinessInformationCollection?.items.find(Boolean);
+        return createAppConfig(cmsBusinessInfo);
+    }, [data]);
+
+    console.log(resolvedAppConfig);
     
     return (
-        <div className='bg-background'>
-            <ToastProvider>
-                <CartProvider>
-                    <div className="" style={{"--h-nav": "4rem"}}>
-                        <NavBar/>
-                        <Outlet context={loaderData}/>
-                    </div>
-                </CartProvider>
-            </ToastProvider>
-            <Footer/>
-        </div>
+        <AppConfigProvider config={resolvedAppConfig}>
+            <div className='bg-background'>
+                <ToastProvider>
+                    <CartProvider>
+                        <div className="" style={{"--h-nav": "4rem"}}>
+                            <NavBar/>
+                            <Outlet context={loaderData}/>
+                        </div>
+                    </CartProvider>
+                </ToastProvider>
+                <Footer/>
+            </div>
+        </AppConfigProvider>
     );
 }
 
@@ -169,6 +203,8 @@ const mobileNavItems = navTabs.flatMap(tab => {
 
 function NavBar() {
     const { totalItems } = useCart();
+    const config = useAppConfig();
+
     return (
         <header className='sticky *:h-(--h-nav) top-0 z-40 flex justify-between bg-primary text-primary-foreground shadow-lg sm:px-3 md:px-0'>
             <Link
@@ -176,7 +212,7 @@ function NavBar() {
                 className='flex items-center gap-2 cursor-pointer min-w-0 px-2'
             >
                 <img src="/logo.png" alt="Logo Image" className="h-8 w-8 md:h-10 md:w-10"/>
-                <h1 className='text-sm font-bold leading-tight sm:text-base md:text-xl'>Jump For Joy <span className="text-secondary font-semibold">Inflatables</span></h1>
+                <h1 className='text-sm font-bold leading-tight sm:text-base md:text-xl'>{config.business.shortName} <span className="text-secondary font-semibold">Inflatables</span></h1>
             </Link>
             <nav className='hidden md:block'>
                 <ul className='h-full flex justify-end px-4 gap-8'>
@@ -256,13 +292,7 @@ function NavBar() {
 }
 
 function Footer() {
-    const businessHours = [
-        { day: "Mon - Thu", hours: "9:00 AM - 8:00 PM" },
-        { day: "Friday", hours: "9:00 AM - 9:00 PM" },
-        { day: "Saturday", hours: "8:00 AM - 9:00 PM" },
-        { day: "Sunday", hours: "9:00 AM - 6:00 PM" },
-    ];
-
+    const config = useAppConfig();
     const quickLinks = [
         { id: "footer-home", to: "/", label: "Home" },
         { id: "footer-rentals", to: "/rentals", label: "Rentals" },
@@ -279,9 +309,9 @@ function Footer() {
                 <div className='grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-12 gap-8'>
                     <div className='sm:col-span-2 lg:col-span-5 lg:row-span-2 space-y-4'>
                         <img src="/logo.png" alt="Jump For Joy Logo" className="h-16 w-16" />
-                        <h2 className='text-2xl font-bold'>Jump For Joy <span className="text-secondary">Inflatables</span>
+                        <h2 className='text-2xl font-bold'>{config.business.shortName} <span className="text-secondary">Inflatables</span>
                         </h2>
-                        <p className='text-sm italic text-primary-foreground/75'>1 Peter 1:8</p>
+                        <p className='text-sm italic text-primary-foreground/75'>{config.business.verse}</p>
                         <p className='max-w-md text-primary-foreground/80 text-sm'>
                             Safe, clean, and reliable inflatable rentals for birthdays, schools,
                             churches, and community events. We deliver, set up, and pick up so you can focus on the fun.
@@ -307,15 +337,15 @@ function Footer() {
                         <ul className='space-y-2 text-sm text-primary-foreground/85'>
                             <li className='flex items-center gap-2'>
                                 <Phone className='w-4 h-4 text-secondary' />
-                                <a href=''>(555) 555-0199</a>
+                                <a href={config.business.phone.href}>{config.business.phone.display}</a>
                             </li>
                             <li className='flex items-center gap-2'>
                                 <Mail className='w-4 h-4 text-secondary' />
-                                <a href=''>bookings@jumpforjoy.com</a>
+                                <a href={config.business.email.href}>{config.business.email.display}</a>
                             </li>
                             <li className='flex items-center gap-2'>
                                 <MapPin className='w-4 h-4 text-secondary' />
-                                <span>Chandler, AZ</span>
+                                <span>{config.business.location}</span>
                             </li>
                         </ul>
                     </div>
@@ -326,7 +356,7 @@ function Footer() {
                                 Business Hours
                             </h3>
                             <ul className='space-y-1 text-sm text-primary-foreground/85'>
-                                {businessHours.map(item => (
+                                {config.business.hours.map(item => (
                                     <li key={item.day} className='flex justify-between gap-4'>
                                         <span>{item.day}</span>
                                         <span>{item.hours}</span>
@@ -338,7 +368,7 @@ function Footer() {
                 </div>
 
                 <div className='border-t border-primary-foreground/25 mt-10 pt-4 text-xs text-primary-foreground/70'>
-                    <p className="flex justify-center">&copy; {new Date().getFullYear()} Jump For Joy Inflatables. All rights reserved.</p>
+                    <p className="flex justify-center">&copy; {new Date().getFullYear()} {config.business.name}. All rights reserved.</p>
                 </div>
             </div>
         </footer>

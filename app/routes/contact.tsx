@@ -1,16 +1,17 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router";
 import { Mail, Phone, Clock } from "lucide-react";
 import Icon from 'components/ui/icon';
+import { useAppConfig } from "context/app-config-context";
 import { sendContactEmails } from "../lib/emailjs-client";
+import {
+    formatPhoneNumber,
+    isValidEmail,
+    isValidPhoneNumber,
+    removePreviousPhoneDigit,
+    PHONE_NUMBER_ERROR_MESSAGE,
+} from "../lib/validation/form";
 import { delay } from "../lib/time";
-
-const businessHours = [
-    { day: "Mon - Thu", hours: "9:00 AM - 8:00 PM" },
-    { day: "Friday", hours: "9:00 AM - 9:00 PM" },
-    { day: "Saturday", hours: "8:00 AM - 9:00 PM" },
-    { day: "Sunday", hours: "9:00 AM - 6:00 PM" },
-];
 
 const initialContactForm = {
     name: "",
@@ -19,13 +20,12 @@ const initialContactForm = {
     message: "",
 };
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 export default function ContactPage() {
     const [form, setForm] = useState(initialContactForm);
     const [statusMessage, setStatusMessage] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
+    const config = useAppConfig();
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -35,8 +35,13 @@ export default function ContactPage() {
             return;
         }
 
-        if (!emailPattern.test(form.email.trim())) {
+        if (!isValidEmail(form.email)) {
             setStatusMessage("Please enter a valid email address, like name@example.com.");
+            return;
+        }
+
+        if (form.phone.trim() && !isValidPhoneNumber(form.phone)) {
+            setStatusMessage(PHONE_NUMBER_ERROR_MESSAGE);
             return;
         }
 
@@ -55,7 +60,7 @@ export default function ContactPage() {
                 }).format(new Date()),
             });
 
-            await delay(2000);
+            await delay(config.booking.successRedirectDelayMs);
             console.log("Successfully sent");
             navigate("/success?source=contact");
         } catch {
@@ -66,10 +71,27 @@ export default function ContactPage() {
     };
 
     const handleFieldChange = (field: keyof typeof form, value: string) => {
+        const nextValue = field === "phone" ? formatPhoneNumber(value) : value;
+
         setForm(prev => ({
             ...prev,
-            [field]: value,
+            [field]: nextValue,
         }));
+    };
+
+    const handlePhoneKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key !== "Backspace") {
+            return;
+        }
+
+        const { selectionStart, selectionEnd } = event.currentTarget;
+
+        if (selectionStart === null || selectionEnd === null) {
+            return;
+        }
+
+        event.preventDefault();
+        handleFieldChange("phone", removePreviousPhoneDigit(form.phone, selectionStart, selectionEnd));
     };
 
     return (
@@ -96,7 +118,9 @@ export default function ContactPage() {
                             />
                             <div className="">
                                 <h1 className="text-lg font-semibold text-foreground">Phone</h1>
-                                <span className="text-muted-foreground">(555) 555-0199</span>
+                                <a href={config.business.phone.href} className="text-muted-foreground">
+                                    {config.business.phone.display}
+                                </a>
                             </div>
                         </li>
                         <li className="flex items-start gap-4">
@@ -107,7 +131,9 @@ export default function ContactPage() {
                             />
                             <div className="">
                                 <h1 className="text-lg font-semibold text-foreground">Email</h1>
-                                <span className="break-words text-muted-foreground">bookings@jumpforjoy.com</span>
+                                <a href={config.business.email.href} className="wrap-break-word text-muted-foreground">
+                                    {config.business.email.display}
+                                </a>
                             </div>
                         </li>
                         <li className="flex items-start gap-4">
@@ -119,8 +145,8 @@ export default function ContactPage() {
                             <div className="flex-1">
                                 <h1 className="text-lg font-semibold text-foreground">Business Hours</h1>
                                 <ol className="text-muted-foreground w-full">
-                                    {businessHours.map(item => (
-                                        <li className="flex items-start justify-between gap-4">
+                                    {config.business.hours.map(item => (
+                                        <li key={item.day} className="flex items-start justify-between gap-4">
                                             <span>
                                                 {item.day}
                                             </span>
@@ -164,6 +190,7 @@ export default function ContactPage() {
                                     placeholder="(555) 123-4567" 
                                     value={form.phone}
                                     onChange={event => handleFieldChange("phone", event.target.value)}
+                                    onKeyDown={handlePhoneKeyDown}
                                 />
                             </div>
                         </div>

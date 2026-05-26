@@ -7,11 +7,11 @@ const successContent = {
         eyebrow: "Request submitted",
         title: "We received your rental request",
         description:
-            "Your request was sent successfully. Our team will review the event details and connect with you soon to confirm availability, timing, delivery, and the final booking details.",
+            "Your request was sent successfully. We will review your request details and follow up to confirm what we can fulfill. Booking is official only after we complete that follow-up together.",
         nextSteps: [
-            "Watch for a confirmation message from our team.",
-            "Keep your event date, setup location, and access details handy.",
-            "You can keep browsing rentals if you want to compare options before we follow up.",
+            "We review availability, logistics, and request details to confirm what we can fulfill.",
+            "Expect a phone call from us after review, or an email follow-up if we cannot reach you by phone.",
+            "During follow-up, we confirm what can be met and finalize a clear agreement; then booking becomes official.",
         ],
         primaryLink: {
             to: "/rentals",
@@ -23,11 +23,11 @@ const successContent = {
         eyebrow: "Message sent",
         title: "Thanks for reaching out",
         description:
-            "Your message was sent successfully. Our team will review it and connect with you soon about your question, event details, or booking request.",
+            "Your message was sent successfully. We will review it and get back to you shortly.",
         nextSteps: [
-            "Watch for a reply from our team during business hours.",
-            "Include any extra event details when we follow up.",
-            "You can browse rental categories while we review your message.",
+            "We review your question or concern about our services.",
+            "Watch for an email reply from our team shortly.",
+            "If needed, we will follow up with simple next steps or clarifying questions.",
         ],
         primaryLink: {
             to: "/rentals",

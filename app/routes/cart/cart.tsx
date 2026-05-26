@@ -2,13 +2,14 @@ import { Link } from "react-router"
 import { useState, useRef } from "react"
 import { useCart } from 'context/cart-context'
 import { ArrowRight, Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
+import { useAppConfig } from "context/app-config-context";
 import type { CartItem } from "./types.js";
 // import Item from './Item'
 
-const deliveryFee = 25;
-
 export default function CartSection() {
     const { cart, removeItem, updateQuantity } = useCart();
+    const { booking } = useAppConfig();
+    const deliveryFee = booking.deliveryFee;
     const subtotal = cart.reduce((subTotal, item) => subTotal + (item.cost * item.quantity), 0);
 
     return (

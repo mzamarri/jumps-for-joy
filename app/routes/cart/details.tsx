@@ -1,12 +1,9 @@
 import { useState, type KeyboardEvent } from "react";
 import { Link, useNavigate, useOutletContext } from "react-router"
 import { ArrowLeft, ArrowRight, CalendarDays, MapPin, User } from "lucide-react";
-import type { CartOutletContext, FieldName, InputConfig, RequestDraft, SectionConfig } from "./types.js";
-
-type ValidationErrors = Partial<Record<FieldName, string>>;
-type TouchedFields = Partial<Record<FieldName, boolean>>;
-
-const fieldLabels: Partial<Record<FieldName, string>> = {};
+import type { CartOutletContext, FieldName, InputConfig, SectionConfig } from "./types.js";
+import { sanitizeFieldValue, type TouchedFields, validateDraft } from "./validation.js";
+import { removePreviousPhoneDigit } from "../../lib/validation/form";
 
 const formSections: SectionConfig[] = [
     {
@@ -181,164 +178,12 @@ const formSections: SectionConfig[] = [
     }
 ]
 
-for (const section of formSections) {
-    for (const row of section.fields) {
-        const fields = Array.isArray(row) ? row : [row];
-
-        for (const field of fields) {
-            fieldLabels[field.input.name] = field.label;
-        }
-    }
-}
-
-const requiredFieldNames = formSections.flatMap(section =>
-    section.fields.flatMap(row => {
-        const fields = Array.isArray(row) ? row : [row];
-        return fields.filter(field => field.input.required).map(field => field.input.name);
-    })
-);
-
 const allFieldNames = formSections.flatMap(section =>
     section.fields.flatMap(row => {
         const fields = Array.isArray(row) ? row : [row];
         return fields.map(field => field.input.name);
     })
 );
-
-const namePattern = /^[a-zA-Z][a-zA-Z '-]*$/;
-const cityPattern = /^[a-zA-Z][a-zA-Z .'-]*$/;
-const statePattern = /^[a-zA-Z]{2}$/;
-const zipPattern = /^\d{5}(?:-\d{4})?$/;
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phonePattern = /^\(\d{3}\) \d{3}-\d{4}$/;
-
-function formatPhoneNumber(value: string) {
-    const digits = value.replace(/\D/g, "").slice(0, 10);
-
-    if (digits.length === 0) {
-        return "";
-    }
-
-    if (digits.length <= 2) {
-        return `(${digits}`;
-    }
-
-    if (digits.length === 3) {
-        return `(${digits})`;
-    }
-
-    if (digits.length <= 6) {
-        return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-    }
-
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-}
-
-function removePreviousPhoneDigit(value: string, selectionStart: number, selectionEnd: number) {
-    const digits = value.replace(/\D/g, "");
-    const digitsBeforeCursor = value.slice(0, selectionStart).replace(/\D/g, "").length;
-
-    if (selectionStart !== selectionEnd) {
-        const selectedDigits = value.slice(selectionStart, selectionEnd).replace(/\D/g, "").length;
-        return formatPhoneNumber(`${digits.slice(0, digitsBeforeCursor)}${digits.slice(digitsBeforeCursor + selectedDigits)}`);
-    }
-
-    if (digitsBeforeCursor === 0) {
-        return value;
-    }
-
-    return formatPhoneNumber(`${digits.slice(0, digitsBeforeCursor - 1)}${digits.slice(digitsBeforeCursor)}`);
-}
-
-function formatZipCode(value: string) {
-    const digits = value.replace(/\D/g, "").slice(0, 9);
-
-    if (digits.length <= 5) {
-        return digits;
-    }
-
-    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
-}
-
-function sanitizeFieldValue(name: FieldName, value: string) {
-    switch (name) {
-        case "firstName":
-        case "lastName":
-            return value.replace(/[^a-zA-Z '-]/g, "");
-        case "phoneNumber":
-            return formatPhoneNumber(value);
-        case "email":
-            return value.replace(/\s/g, "");
-        case "city":
-            return value.replace(/[^a-zA-Z .'-]/g, "");
-        case "state":
-            return value.replace(/[^a-zA-Z]/g, "").slice(0, 2).toUpperCase();
-        case "zip":
-            return formatZipCode(value);
-        default:
-            return value;
-    }
-}
-
-function validateDraft(draft: RequestDraft): ValidationErrors {
-    const errors: ValidationErrors = {};
-
-    for (const fieldName of requiredFieldNames) {
-        if (!draft[fieldName].trim()) {
-            errors[fieldName] = `${fieldLabels[fieldName] ?? "This field"} is required.`;
-        }
-    }
-
-    if (draft.firstName.trim() && !namePattern.test(draft.firstName.trim())) {
-        errors.firstName = "Enter a valid first name using letters, spaces, apostrophes, or hyphens.";
-    }
-
-    if (draft.lastName.trim() && !namePattern.test(draft.lastName.trim())) {
-        errors.lastName = "Enter a valid last name using letters, spaces, apostrophes, or hyphens.";
-    }
-
-    if (draft.phoneNumber.trim() && !phonePattern.test(draft.phoneNumber.trim())) {
-        errors.phoneNumber = "Enter a 10-digit phone number in the format (555) 123-4567.";
-    }
-
-    if (draft.email.trim() && !emailPattern.test(draft.email.trim())) {
-        errors.email = "Enter a valid email address, like name@example.com.";
-    }
-
-    if (draft.street.trim() && draft.street.trim().length < 5) {
-        errors.street = "Enter a valid street address.";
-    }
-
-    if (draft.city.trim() && !cityPattern.test(draft.city.trim())) {
-        errors.city = "Enter a valid city using letters, spaces, periods, apostrophes, or hyphens.";
-    }
-
-    if (draft.state.trim() && !statePattern.test(draft.state.trim())) {
-        errors.state = "Enter a valid 2-letter state abbreviation, like CA.";
-    }
-
-    if (draft.zip.trim() && !zipPattern.test(draft.zip.trim())) {
-        errors.zip = "Enter a valid ZIP code, like 90210 or 90210-1234.";
-    }
-
-    if (draft.date.trim() && Number.isNaN(Date.parse(`${draft.date}T00:00:00`))) {
-        errors.date = "Select a valid rental date.";
-    }
-
-    if (draft.time.trim() && !/^([01]\d|2[0-3]):[0-5]\d$/.test(draft.time.trim())) {
-        errors.time = "Select a valid setup time.";
-    }
-
-    if (draft.duration.trim() && draft.duration !== "same day") {
-        errors.duration = "Select a valid rental duration.";
-    }
-
-    if (draft.surfaceType.trim() && draft.surfaceType.trim().length < 3) {
-        errors.surfaceType = "Enter a valid setup surface, like grass, concrete, or turf.";
-    }
-
-    return errors;
-}
 
 export default function DetailsSection() {
     const { draft, setDraft } = useOutletContext<CartOutletContext>();
@@ -393,8 +238,8 @@ export default function DetailsSection() {
                         className="space-y-6 sm:space-y-8"
                     >
                         <h1 className="text-xl md:text-2xl font-semibold bg-primary p-4 rounded-lg text-primary-foreground flex items-center gap-3">
-                            <div className="bg-secondary w-10 h-10 flex justify-center items-center rounded-xl">
-                                <section.icon className="h-5 w-5 text-secondary-foreground" />
+                            <div className="border-2 border-secondary bg-secondary/30 w-10 h-10 flex justify-center items-center rounded-xl">
+                                <section.icon className="h-5 w-5 text-secondary" />
                             </div>
                             {section.name}
                         </h1>
