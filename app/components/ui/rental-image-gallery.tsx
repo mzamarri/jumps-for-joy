@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
 import type { PointerEvent } from "react";
-import ChevronLeft from "lucide-react/dist/esm/icons/chevron-left.js";
-import ChevronRight from "lucide-react/dist/esm/icons/chevron-right.js";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import InfoOverlay from "./info-overlay";
+import { useContentfulInspectorMode } from "@contentful/live-preview/react";
 
 export type RentalGalleryImage = {
     id: string;
@@ -10,9 +10,14 @@ export type RentalGalleryImage = {
     alt: string;
 };
 
+type InspectorProps = ReturnType<typeof useContentfulInspectorMode>
+
 type RentalImageGalleryProps = {
     images: RentalGalleryImage[];
     title: string;
+    thumbnailImageId: string,
+    galleryImageIds: string[],
+    inspectorProps: InspectorProps
 };
 
 function GalleryPagination({
@@ -51,14 +56,20 @@ function GalleryPagination({
 
 function MobileImageCarousel({
     images,
+    thumbnailImageId,
+    galleryImageIds,
     selectedIndex,
     onSelect,
-    onOpen
+    onOpen,
+    inspectorProps
 }: {
     images: RentalGalleryImage[];
     selectedIndex: number;
+    thumbnailImageId: string,
+    galleryImageIds: string[],
     onSelect: (index: number) => void;
     onOpen: (index: number) => void;
+    inspectorProps: InspectorProps
 }) {
     const startXRef = useRef<number | null>(null);
     const didDragRef = useRef(false);
@@ -110,8 +121,15 @@ function MobileImageCarousel({
                         transform: `translateX(calc(${-selectedIndex * 100}% + ${dragOffset}px))`
                     }}
                 >
-                    {images.map((image, index) => (
-                        <button
+                    {images.map((image, index) => {
+                        let props;
+                        if (thumbnailImageId === image?.id ) {
+                            props = inspectorProps({ fieldId: "thumbnailImage" })
+                        } else if ( galleryImageIds?.includes(image?.id || "") ) {
+                            props = inspectorProps({ fieldId: "galleryImages" })
+                        }
+
+                        return <button
                             key={image.id}
                             type="button"
                             onClick={() => {
@@ -124,6 +142,7 @@ function MobileImageCarousel({
                             }}
                             aria-label={`Open ${image.alt}`}
                             className="flex h-72 w-full shrink-0 items-center justify-center bg-muted p-8 pb-10 sm:h-96"
+                            {...props ?? []}
                         >
                             <img
                                 src={image.url}
@@ -132,7 +151,7 @@ function MobileImageCarousel({
                                 draggable={false}
                             />
                         </button>
-                    ))}
+                    })}
                 </div>
             </div>
             <GalleryPagination
@@ -147,11 +166,13 @@ function MobileImageCarousel({
 function OverlayThumbnailRail({
     images,
     selectedIndex,
-    onSelect
+    onSelect,
+    getInspectorProps
 }: {
     images: RentalGalleryImage[];
     selectedIndex: number;
     onSelect: (index: number) => void;
+    getInspectorProps: (id: string) => ReturnType<InspectorProps>;
 }) {
     if (images.length <= 1) return null;
 
@@ -169,6 +190,7 @@ function OverlayThumbnailRail({
                             ? "border-primary border-2"
                             : "border-border hover:border-primary/60"
                     }`}
+                    {...getInspectorProps(image.id)}
                 >
                     <img
                         src={image.url}
@@ -182,7 +204,7 @@ function OverlayThumbnailRail({
     );
 }
 
-export default function RentalImageGallery({ images, title }: RentalImageGalleryProps) {
+export default function RentalImageGallery({ images, title, galleryImageIds, thumbnailImageId, inspectorProps }: RentalImageGalleryProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [overlayOpen, setOverlayOpen] = useState(false);
     const selectedImage = images[selectedIndex] ?? images[0];
@@ -201,6 +223,12 @@ export default function RentalImageGallery({ images, title }: RentalImageGallery
         setSelectedIndex(current => (current + 1) % images.length);
     };
 
+    const getInspectorProps = (id: string) => {
+        if (id === thumbnailImageId) return inspectorProps({ fieldId: "thumbnailImage" })
+
+        if (galleryImageIds.includes(id)) return inspectorProps({ fieldId: "galleryImages" })
+    }
+
     if (!hasImages) {
         return (
             <div className="flex h-72 w-full items-center justify-center rounded-xl bg-muted text-muted-foreground sm:h-96 lg:w-140 lg:shrink-0">
@@ -217,6 +245,9 @@ export default function RentalImageGallery({ images, title }: RentalImageGallery
                     selectedIndex={selectedIndex}
                     onSelect={setSelectedIndex}
                     onOpen={openImage}
+                    thumbnailImageId={thumbnailImageId}
+                    galleryImageIds={galleryImageIds}
+                    inspectorProps={inspectorProps}
                 />
 
                 <div className="hidden gap-3 lg:grid lg:grid-cols-[5.5rem_1fr]">
@@ -234,6 +265,7 @@ export default function RentalImageGallery({ images, title }: RentalImageGallery
                                         ? "border-primary border-2"
                                         : "border-border hover:border-primary/60"
                                 }`}
+                                {...getInspectorProps(image?.id)}
                             >
                                 <img
                                     src={image.url}
@@ -251,6 +283,7 @@ export default function RentalImageGallery({ images, title }: RentalImageGallery
                             onClick={() => openImage(selectedIndex)}
                             className="flex h-72 w-full items-center justify-center rounded-xl bg-muted p-8 pb-10 hover:cursor-pointer sm:h-96 lg:pb-8"
                             aria-label={`Open ${selectedImage.alt}`}
+                            {...getInspectorProps(selectedImage?.id)}
                         >
                             <img
                                 src={selectedImage.url}
@@ -284,6 +317,7 @@ export default function RentalImageGallery({ images, title }: RentalImageGallery
                         src={selectedImage.url}
                         alt={selectedImage.alt}
                         className="max-h-[50vh] w-full object-contain"
+                        {...getInspectorProps(selectedImage.id)}
                     />
                     {images.length > 1 ? (
                         <button
@@ -301,6 +335,7 @@ export default function RentalImageGallery({ images, title }: RentalImageGallery
                     images={images}
                     selectedIndex={selectedIndex}
                     onSelect={setSelectedIndex}
+                    getInspectorProps={getInspectorProps}
                 />
             </InfoOverlay>
         </>

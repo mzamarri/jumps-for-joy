@@ -2,47 +2,16 @@ import { Link, useOutletContext } from 'react-router'
 import { SnapCarousel } from 'components/ui'
 import { Castle } from 'lucide-react'
 import { useReadQuery } from '@apollo/client/react'
-import { graphql, useFragment } from 'app/lib/gql/client'
+import { useContentfulLiveUpdates } from '@contentful/live-preview/react'
 import type { RootOutletContext } from 'app/root'
-
-type RentalCategory = {
-    id: string;
-    slug: string;
-    categoryName: string;
-    shortDescription: string;
-    imageUrl: string;
-};
-
-const RentalCategoryCardFieldsFragment = graphql(`
-    fragment RentalCategoryCardFields on RentalCategory {
-        sys {
-            id
-        }
-        categoryName
-        shortDescription
-        categoryImage {
-            contentType
-            url
-        }
-        slug
-    }
-`)
+import type { RentalCategoriesQuery } from 'app/lib/gql/client/graphql'
+import RentalCategoryCard from 'components/contentful/ctf-rental-category-card'
 
 export default function HomeCategories() {
     const { rentalCategoriesRef } = useOutletContext<RootOutletContext>();
     const { data } = useReadQuery(rentalCategoriesRef);
-    const categoryItems = data.rentalCategoryCollection?.items.filter(item => item !== null) ?? [];
-    const categories = useFragment(RentalCategoryCardFieldsFragment, categoryItems).flatMap(category => {
-        if (!category.slug || !category.categoryImage?.url) return [];
-
-        return [{
-            id: category.sys.id,
-            slug: category.slug,
-            categoryName: category.categoryName ?? "Rental category",
-            shortDescription: category.shortDescription ?? "",
-            imageUrl: category.categoryImage.url
-        }];
-    });
+    const liveData = useContentfulLiveUpdates(data as RentalCategoriesQuery | undefined);
+    const categoryItems = liveData?.rentalCategoryCollection?.items.filter(item => item !== null) ?? [];
 
     return (
         <div className='relative w-full overflow-hidden px-4 py-8 sm:px-6 lg:px-24'>
@@ -60,31 +29,9 @@ export default function HomeCategories() {
                     </p>
                 </div>
                 <div className='h-fit'>
-                    <SnapCarousel cards={categories} Card={Card} visibleCount={3} />
+                    <SnapCarousel cards={categoryItems} Card={RentalCategoryCard} visibleCount={3} />
                 </div>
             </div>
         </div>
-    )
-}
-
-function Card({ content }: { content: RentalCategory }) {
-    return (
-        <Link
-            to={`/rentals/${content.slug}`}
-            className='block overflow-hidden rounded-xl border border-border bg-card shadow-md transition-transform hover:cursor-pointer hover:-translate-y-1'
-        >
-            <div className='flex aspect-square items-center justify-center bg-muted md:h-64 md:aspect-auto'>
-                <img
-                    src={content.imageUrl}
-                    alt={`${content.categoryName} category`}
-                    className='w-full h-full object-contain p-3 select-none pointer-events-none md:p-4'
-                    draggable={false}
-                />
-            </div>
-            <div className='min-h-28 space-y-2 p-3 md:min-h-32 md:space-y-3 md:p-4'>
-                <h1 className='text-lg font-semibold text-foreground md:text-xl'>{content.categoryName}</h1>
-                <p className='text-xs leading-5 text-muted-foreground md:text-base'>{content.shortDescription}</p>
-            </div>
-        </Link>
     )
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { InfoOverlay } from 'components/ui'
-import { Instagram, Facebook, Balloon, PartyPopper, ShieldCheck, CalendarCheck, ChevronRight } from 'lucide-react'
+import { Balloon, PartyPopper, ShieldCheck, CalendarCheck, ChevronRight } from 'lucide-react'
+import { SiFacebook, SiInstagram } from '@icons-pack/react-simple-icons';
 import type { LucideIcon } from 'lucide-react'
 import bounceHouse from '../../assets/logo-bounce-house-remade.png'
 
@@ -104,10 +105,10 @@ export default function ServiceOverview() {
                         </p>
                         <div className='flex gap-3'>
                             <div className='group p-4 bg-primary/10 rounded-full hover:bg-secondary/30 cursor-pointer'>
-                                <Facebook className='text-primary group-hover:text-secondary-foreground fill-current'/>
+                                <SiFacebook size={28} className='text-primary group-hover:text-secondary-foreground'/>
                             </div>
                             <div className='group p-4 bg-primary/10 rounded-full hover:bg-secondary/30 cursor-pointer'>
-                                <Instagram className='text-primary group-hover:text-secondary-foreground'/>
+                                <SiInstagram size={28} className='text-primary group-hover:text-secondary-foreground'/>
                             </div>
                         </div>
                     </div>

@@ -3,19 +3,23 @@ import {
   createApolloLoaderHandler,
   ApolloClient,
 } from "@apollo/client-integration-react-router";
-import { appConfig } from "./config";
 
-const { spaceId, accessToken } = appConfig.contentful;
+function isBrowserPreviewRequest() {
+  if (typeof window === "undefined") return false;
+
+  return new URLSearchParams(window.location.search).get("preview") === "true";
+}
 
 // `request` will be available on the server during SSR or in loaders, but not in the browser
 export const makeClient = (request?: Request) => {
+  const isPreview = isBrowserPreviewRequest();
+
   return new ApolloClient({
     cache: new InMemoryCache(),
     link: new HttpLink({
-      uri: `https://graphql.contentful.com/content/v1/spaces/${spaceId}`,
+      uri: `/api/contentful${isPreview ? "?preview=true" : ""}`,
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
     }),
   });

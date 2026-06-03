@@ -3,7 +3,19 @@ export type BusinessHour = {
     hours: string;
 };
 
-export type AppConfig = {
+export type EmailJsFormConfig = {
+    serviceId: string;
+    publicKey: string;
+    internalTemplateId: string;
+    autoReplyTemplateId: string;
+};
+
+export type EmailJsConfig = {
+    contactForm: EmailJsFormConfig;
+    bookingForm: EmailJsFormConfig;
+};
+
+export type BusinessConfig = {
     business: {
         name: string;
         shortName: string;
@@ -23,37 +35,13 @@ export type AppConfig = {
         };
         hours: BusinessHour[];
     };
+};
+
+export type AppConfig = {
     booking: {
         deliveryFee: number;
-        successRedirectDelayMs: number;
     };
-    emailjs: {
-        contactForm: {
-            serviceId: string;
-            publicKey: string;
-            internalTemplateId: string;
-            autoReplyTemplateId: string;
-        };
-        bookingForm: {
-            serviceId: string;
-            publicKey: string;
-            internalTemplateId: string;
-            autoReplyTemplateId: string;
-        };
-    };
-    contentful: {
-        spaceId: string;
-        accessToken: string;
-    };
+    emailjs: EmailJsConfig;
 };
 
 export const appConfig: AppConfig;
-
-export type CmsBusinessInfo = {
-    phoneNumber?: string | null;
-    email?: string | null;
-    facebookLink?: string | null;
-    instagramLink?: string | null;
-} | null | undefined;
-
-export function createAppConfig(cmsBusinessInfo?: CmsBusinessInfo): AppConfig;

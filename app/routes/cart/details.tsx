@@ -1,5 +1,5 @@
 import { useState, type KeyboardEvent } from "react";
-import { Link, useNavigate, useOutletContext } from "react-router"
+import { Link, useOutletContext } from "react-router"
 import { ArrowLeft, ArrowRight, CalendarDays, MapPin, User } from "lucide-react";
 import type { CartOutletContext, FieldName, InputConfig, SectionConfig } from "./types.js";
 import { sanitizeFieldValue, type TouchedFields, validateDraft } from "./validation.js";
@@ -187,7 +187,6 @@ const allFieldNames = formSections.flatMap(section =>
 
 export default function DetailsSection() {
     const { draft, setDraft } = useOutletContext<CartOutletContext>();
-    const navigate = useNavigate();
     const [touched, setTouched] = useState<TouchedFields>({});
     const errors = validateDraft(draft);
     const canReviewRequest = Object.keys(errors).length === 0;
@@ -209,18 +208,17 @@ export default function DetailsSection() {
         }));
     };
 
-    const handleReviewRequest = () => {
+    const handleReviewRequest = (event: React.MouseEvent<HTMLAnchorElement>) => {
         markAllFieldsTouched();
 
-        if (canReviewRequest) {
-            navigate("/review");
+        if (!canReviewRequest) {
+            event.preventDefault();
+            return;
         }
     };
 
     return (
-        <div
-            className="max-w-4xl m-4 sm:mx-8 lg:mx-auto py-4 sm:py-8 space-y-8"
-        >
+        <div className="max-w-4xl m-4 sm:mx-8 lg:mx-auto py-4 sm:py-8 space-y-8">
             <Link
                 to="/cart"
                 className="inline-flex items-center gap-2 text-primary font-semibold hover:underline"
@@ -278,18 +276,18 @@ export default function DetailsSection() {
                     </div>
                 ))}
             </div>
-            <button
-                type="button"
-                aria-disabled={!canReviewRequest}
+            <Link
+                to="/cart/review"
                 onClick={handleReviewRequest}
+                aria-disabled={!canReviewRequest}
                 className={`w-full py-3 rounded-xl font-semibold flex justify-center items-center gap-2 ${
                     canReviewRequest
                         ? "bg-accent text-accent-foreground hover:bg-accent/90 cursor-pointer"
-                        : "bg-muted text-muted-foreground cursor-not-allowed"
+                        : "bg-muted text-muted-foreground cursor-not-allowed pointer-events-auto"
                 }`}
             >
                 Review Request <ArrowRight className="w-4 h-4"/>
-            </button>
+            </Link>
         </div>
     )
 }

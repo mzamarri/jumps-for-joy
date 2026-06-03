@@ -1,7 +1,8 @@
-import { useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { Check } from "lucide-react"
-import { Form, Outlet, useLocation } from "react-router"
+import { Outlet, useLocation } from "react-router"
 import { initialRequestDraft } from "./types.js";
+import { readPersistedClientDraft, pickPersistedClientDraft, CLIENT_DRAFT_STORAGE_KEY } from "./cart-helpers";
 
 
 const stepperSections = [
@@ -20,18 +21,25 @@ const stepperSections = [
 ]
 
 export default function CartLayout() {
-    const formRef = useRef(null);
     const [draft, setDraft] = useState(initialRequestDraft);
 
+    useEffect(() => {
+        const persistedClientDraft = readPersistedClientDraft();
+        if (Object.keys(persistedClientDraft).length === 0) return;
+        setDraft(prev => ({ ...prev, ...persistedClientDraft }));
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const persistedClientDraft = pickPersistedClientDraft(draft);
+        window.localStorage.setItem(CLIENT_DRAFT_STORAGE_KEY, JSON.stringify(persistedClientDraft));
+    }, [draft]);
+
     return (
-        <Form 
-            ref={formRef} style={{"--h-stepper": "4rem"}}
-            onSubmit={e => e.preventDefault()}
-            className=""
-        >
+        <div style={{"--h-stepper": "4rem"}}>
             <RentalRequestStepper />
             <Outlet context={{ draft, setDraft }} />
-        </Form>
+        </div>
     )
 }
 
@@ -40,9 +48,9 @@ function RentalRequestStepper() {
 
     console.log("Location " + location.pathname)
     let step = 1;
-    if (location.pathname === "/details") {
+    if (location.pathname === "/cart/details") {
         step = 2;
-    } else if (location.pathname === "/review") {
+    } else if (location.pathname === "/cart/review") {
         step = 3;
     }
 

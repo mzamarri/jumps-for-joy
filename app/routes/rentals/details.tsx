@@ -6,9 +6,14 @@ import type { CatalogOutletContext } from "./catalog-provider";
 import CtfIconTextComponent from "components/contentful/ctf-icon-text-component";
 import { RentalImageGallery } from "components/ui";
 import type { RentalGalleryImage } from "components/ui/rental-image-gallery";
+import { useContentfulInspectorMode } from "@contentful/live-preview/react";
 
 const ItemDetailsFragment = graphql(`
     fragment ItemDetails on RentalItemDetails {
+        __typename
+        sys {
+            id
+        }
         name
         cost
         smallDescription
@@ -21,11 +26,17 @@ const ItemDetailsFragment = graphql(`
         }
         features
         thumbnailImage {
+            sys {
+                id
+            }
             contentType
             url
         }
         galleryImagesCollection {
             items {
+                sys {
+                    id
+                }
                 contentType
                 url
             }
@@ -50,6 +61,7 @@ export default function RentalDetails() {
     const { category } = useOutletContext<CatalogOutletContext>();
     const rentalItemRef = category?.rentalItemsCollection?.items.find(item => item?.slug === itemId);
     const rentalItem = useFragment(ItemDetailsFragment, rentalItemRef);
+    const inspectorProps = useContentfulInspectorMode({ entryId: rentalItem?.sys?.id });
 
     if (!category || !rentalItem) {
         return (
@@ -68,9 +80,12 @@ export default function RentalDetails() {
         )
     }
 
+    const thumbnailImageId = rentalItem?.thumbnailImage?.sys?.id;
+    const galleryImageIds = rentalItem?.galleryImagesCollection?.items.map(image => image?.sys?.id);
+
     const galleryImages: RentalGalleryImage[] = [
         {
-            id: `${rentalItem.slug ?? rentalItem.name}-thumbnail`,
+            id: rentalItem?.thumbnailImage?.sys?.id || `${rentalItem.slug ?? rentalItem.name}-thumbnail`,
             url: normalizeImageUrl(rentalItem.thumbnailImage?.url),
             alt: rentalItem.name ?? "Rental item"
         },
@@ -80,13 +95,13 @@ export default function RentalDetails() {
             if (!url) return [];
 
             return [{
-                id: `${rentalItem.slug ?? rentalItem.name}-gallery-${index}`,
+                id: image?.sys?.id || `${rentalItem.slug ?? rentalItem.name}-gallery-${index}`,
                 url,
                 alt: `${rentalItem.name ?? "Rental item"} image ${index + 1}`
             }];
         }) ?? [])
     ].filter(image => image.url);
-
+    
     const cartItem = {
         id: rentalItem.slug ?? rentalItem.name ?? "rental-item",
         name: rentalItem.name,
@@ -109,20 +124,31 @@ export default function RentalDetails() {
                 </Link>
                 <div className='rental-item space-y-8'>
                     <div className='flex flex-col gap-8 lg:flex-row'>
-                        <RentalImageGallery images={galleryImages} title={rentalItem.name ?? "Rental item"} />
+                        <RentalImageGallery thumbnailImageId={thumbnailImageId || ""} galleryImageIds={galleryImageIds || []} images={galleryImages} title={rentalItem.name ?? "Rental item"} inspectorProps={inspectorProps} />
                         <div className='flex-1 space-y-6'>
                             <div className="space-y-3">
-                                <h1 className='text-4xl text-foreground font-bold'>{rentalItem.name}</h1>
-                                <span className="text-2xl font-bold text-primary block">
+                                <h1 
+                                    className='text-4xl text-foreground font-bold'
+                                    {...inspectorProps({ fieldId: "name" })}
+                                >
+                                    {rentalItem?.name}
+                                </h1>
+                                <span 
+                                    className="text-2xl font-bold text-primary block"
+                                    {...inspectorProps({ fieldId: "cost" })}
+                                >
                                     ${rentalItem?.cost} <span className="text-sm text-muted-foreground font-normal">/ day</span>
                                 </span>
-                                <p className="text-muted-foreground text-lg">
+                                <p 
+                                    className="text-muted-foreground text-lg"
+                                    {...inspectorProps({ fieldId: "smallDescription" })}
+                                >
                                     {rentalItem?.smallDescription}
                                 </p>
                             </div>
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 {
-                                    rentalItem?.specificationsCollection?.items.map(item => item !== null 
+                                    rentalItem?.specificationsCollection?.items?.map(item => item !== null 
                                         ? (
                                             <CtfIconTextComponent 
                                                 content={item} 
@@ -135,7 +161,10 @@ export default function RentalDetails() {
                             </div>
                             <div>
                                 <h1 className="text-lg font-bold">Features</h1>
-                                <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                <ul
+                                    className="grid grid-cols-1 gap-2 sm:grid-cols-2"
+                                    {...inspectorProps({ fieldId: "features" })}
+                                >
                                     {
                                         (rentalItem?.features || []).map(feature => feature !== null ? (
                                             <li key={feature} className="text-muted-foreground flex items-start gap-2">
@@ -163,7 +192,11 @@ export default function RentalDetails() {
                             </span>
                             <h2 className='text-3xl font-bold lg:text-4xl'>About This Rental</h2>
                             <div className='space-y-2'>
-                                    <p key={rentalItem.slug} className='text-base leading-7 text-muted-foreground lg:text-lg'>
+                                    <p
+                                        key={rentalItem.slug}
+                                        className='text-base leading-7 text-muted-foreground lg:text-lg'
+                                        {...inspectorProps({ fieldId: "longDescription" })}
+                                    >
                                         {rentalItem.longDescription}
                                     </p>
                             </div>

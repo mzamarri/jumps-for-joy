@@ -10,14 +10,21 @@ import {
     Scripts,
     ScrollRestoration,
     useLoaderData
-} from "react-router"
+} from "react-router" 
 import { ShoppingCart, Mail, Phone, MapPin, Clock3, Menu } from 'lucide-react'
 import Dropdown from 'components/ui/dropdown'
-import { apolloLoader } from './apollo';
-import { appConfig, createAppConfig, type CmsBusinessInfo } from './config';
-import { AppConfigProvider, useAppConfig } from './context/app-config-context';
+import { ApolloProvider } from '@apollo/client/react';
+import { apolloLoader, isPreview } from './apollo.server';
+import { makeClient } from './apollo';
+import { ApolloHydrationHelper } from '@apollo/client-integration-react-router';
+import { appConfig, type AppConfig, type BusinessConfig } from './config';
+import { AppConfigProvider, useAppConfig, type ResolvedAppConfig } from './context/app-config-context';
 import { useReadQuery, type QueryRef } from '@apollo/client/react';
 import { graphql } from './lib/gql/client';
+import {
+    ContentfulLivePreviewProvider,
+    useContentfulLiveUpdates
+} from '@contentful/live-preview/react';
 import type {
     HeroSlidesQuery,
     RentalCategoriesQuery,
@@ -34,7 +41,7 @@ export function Layout({
             <head>
                 <meta charSet="UTF-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                <title>{appConfig.business.name}</title>
+                <title>Jump For Joy Inflatables</title>
                 <Meta />
                 <Links />
             </head>
@@ -54,6 +61,19 @@ export type RootOutletContext = {
     rentalCategoriesRef: QueryRef<RentalCategoriesQuery>;
     featuredRentalsRef: QueryRef<FeaturedRentalsQuery>
     businessInformationRef: QueryRef<BusinessInformationQuery>;
+    isPreview: boolean;
+    contentfulLocale: string;
+};
+
+type CmsBusinessInfo = {
+    sys?: {
+        id: string;
+    };
+    phoneNumber?: string | null;
+    email?: string | null;
+    location?: string | null;
+    facebookLink?: string | null;
+    instagramLink?: string | null;
 };
 
 type BusinessInformationQuery = {
@@ -62,9 +82,78 @@ type BusinessInformationQuery = {
     } | null;
 };
 
+const fallbackBusinessConfig: BusinessConfig = {
+    business: {
+        name: "Jump For Joy Inflatables",
+        shortName: "Jump For Joy",
+        phone: {
+            display: "(555) 555-0199",
+            href: "tel:+15555550199",
+        },
+        email: {
+            display: "bookings@jumpforjoy.com",
+            href: "mailto:bookings@jumpforjoy.com",
+        },
+        location: "Chandler, AZ",
+        verse: "1 Peter 1:8",
+        social: {
+            facebook: "",
+            instagram: "",
+        },
+        hours: [
+            { day: "Mon - Thu", hours: "9:00 AM - 8:00 PM" },
+            { day: "Friday", hours: "9:00 AM - 9:00 PM" },
+            { day: "Saturday", hours: "8:00 AM - 9:00 PM" },
+            { day: "Sunday", hours: "9:00 AM - 6:00 PM" },
+        ],
+    },
+};
+
+function trimString(value: unknown): string {
+    return typeof value === "string" ? value.trim() : "";
+}
+
+function createPhoneHref(phoneNumber: string): string {
+    const digits = phoneNumber.replace(/\D/g, "");
+    return digits
+        ? `tel:+1${digits.length === 10 ? digits : digits.replace(/^1/, "")}`
+        : fallbackBusinessConfig.business.phone.href;
+}
+
+function createEmailHref(email: string): string {
+    return email ? `mailto:${email}` : fallbackBusinessConfig.business.email.href;
+}
+
+function resolveAppConfig(baseConfig: AppConfig, cmsBusinessInfo?: CmsBusinessInfo | null): ResolvedAppConfig {
+    const phoneNumber = trimString(cmsBusinessInfo?.phoneNumber);
+    const email = trimString(cmsBusinessInfo?.email);
+    const location = trimString(cmsBusinessInfo?.location);
+    const facebookLink = trimString(cmsBusinessInfo?.facebookLink);
+    const instagramLink = trimString(cmsBusinessInfo?.instagramLink);
+
+    return {
+        ...baseConfig,
+        business: {
+            ...fallbackBusinessConfig.business,
+            phone: phoneNumber
+                ? { display: phoneNumber, href: createPhoneHref(phoneNumber) }
+                : fallbackBusinessConfig.business.phone,
+            email: email
+                ? { display: email, href: createEmailHref(email) }
+                : fallbackBusinessConfig.business.email,
+            location: location || fallbackBusinessConfig.business.location,
+            social: {
+                ...fallbackBusinessConfig.business.social,
+                facebook: facebookLink || fallbackBusinessConfig.business.social.facebook,
+                instagram: instagramLink || fallbackBusinessConfig.business.social.instagram,
+            },
+        },
+    };
+}
+
 const HeroSlidesQueryDocument = graphql(`
-    query HeroSlides {
-        heroSlideCollection {
+    query HeroSlides($preview: Boolean) {
+        heroSlideCollection(preview: $preview) {
             items {
                 ...HeroSlideFields
             }
@@ -73,8 +162,8 @@ const HeroSlidesQueryDocument = graphql(`
 `)
 
 const RentalCategoriesQueryDocument = graphql(`
-    query RentalCategories {
-        rentalCategoryCollection(order: displayOrder_ASC, limit: 15) {
+    query RentalCategories($preview: Boolean) {
+        rentalCategoryCollection(order: displayOrder_ASC, limit: 15, preview: $preview) {
             items {
                 ...RentalCategoryCardFields
                 ...CategoryCatalog
@@ -84,14 +173,15 @@ const RentalCategoriesQueryDocument = graphql(`
 `)
 
 const FeaturedRentalsQueryDocument = graphql(`
-    query featuredRentals {
+    query featuredRentals($preview: Boolean) {
         rentalCategoryCollection(
             limit: 15, 
             where: {
                 rentalItems: { 
                     featuredItem_exists: true 
                 }
-            }
+            },
+            preview: $preview
         ) {
             items {
                 ...FeaturedCards
@@ -101,9 +191,13 @@ const FeaturedRentalsQueryDocument = graphql(`
 `)
 
 const BusinessInformationQueryDocument = graphql(`
-    query BusinessInformation {
-        generalBusinessInformationCollection(limit: 1) {
+    query BusinessInformation($preview: Boolean) {
+        generalBusinessInformationCollection(limit: 1, preview: $preview) {
             items {
+                __typename
+                sys {
+                    id
+                }
                 phoneNumber
                 email
                 location
@@ -114,40 +208,65 @@ const BusinessInformationQueryDocument = graphql(`
     }
 `);
 
-export const clientLoader = apolloLoader()(({ preloadQuery }) => {
-    const heroSlidesRef = preloadQuery(HeroSlidesQueryDocument);
-    const rentalCategoriesRef = preloadQuery(RentalCategoriesQueryDocument);
-    const featuredRentalsRef = preloadQuery(FeaturedRentalsQueryDocument);
-    const businessInformationRef = preloadQuery(BusinessInformationQueryDocument);
+export const loader = apolloLoader()(({ preloadQuery }) => {
+    const contentfulLocale = process.env.CONTENTFUL_LOCALE || "en-US";
+    const variables = { preview: isPreview };
+    const heroSlidesRef = preloadQuery(HeroSlidesQueryDocument, { variables });
+    const rentalCategoriesRef = preloadQuery(RentalCategoriesQueryDocument, { variables });
+    const featuredRentalsRef = preloadQuery(FeaturedRentalsQueryDocument, { variables });
+    const businessInformationRef = preloadQuery(BusinessInformationQueryDocument, { variables });
     
 
-    return { heroSlidesRef, rentalCategoriesRef, featuredRentalsRef, businessInformationRef } satisfies RootOutletContext;
+    return {
+        heroSlidesRef,
+        rentalCategoriesRef,
+        featuredRentalsRef,
+        businessInformationRef,
+        isPreview,
+        contentfulLocale
+    } satisfies RootOutletContext;
 });
 
 export default function Root() {
-    const loaderData = useLoaderData<typeof clientLoader>();
-    const { data } = useReadQuery(loaderData.businessInformationRef);
-    const resolvedAppConfig = useMemo(() => {
-        const cmsBusinessInfo = data.generalBusinessInformationCollection?.items.find(Boolean);
-        return createAppConfig(cmsBusinessInfo);
-    }, [data]);
+    const client = useMemo(() => makeClient(), []);
+    return (
+        <ApolloProvider client={client}>
+            <ApolloHydrationHelper>
+                <RootContent />
+            </ApolloHydrationHelper>
+        </ApolloProvider>
+    );
+}
 
-    console.log(resolvedAppConfig);
+function RootContent() {
+    const loaderData = useLoaderData<typeof loader>();
+    const { data } = useReadQuery(loaderData.businessInformationRef);
+    const businessData = useContentfulLiveUpdates(data as BusinessInformationQuery | undefined);
+    const resolvedAppConfig = useMemo(() => {
+        const cmsBusinessInfo = businessData?.generalBusinessInformationCollection?.items?.find(Boolean);
+        return resolveAppConfig(appConfig, cmsBusinessInfo);
+    }, [businessData]);
     
     return (
-        <AppConfigProvider config={resolvedAppConfig}>
-            <div className='bg-background'>
-                <ToastProvider>
-                    <CartProvider>
-                        <div className="" style={{"--h-nav": "4rem"}}>
-                            <NavBar/>
-                            <Outlet context={loaderData}/>
-                        </div>
-                    </CartProvider>
-                </ToastProvider>
-                <Footer/>
-            </div>
-        </AppConfigProvider>
+        <ContentfulLivePreviewProvider
+            locale={loaderData.contentfulLocale}
+            enableInspectorMode={loaderData.isPreview}
+            enableLiveUpdates={loaderData.isPreview}
+        >
+            <AppConfigProvider config={resolvedAppConfig}>
+                <div className='bg-background'>
+                    <ToastProvider>
+                        <CartProvider>
+                            <div className="" style={{"--h-nav": "4rem"}}>
+                                <NavBar/>
+                                <Outlet context={loaderData}/>
+                            </div>
+                        </CartProvider>
+                    </ToastProvider>
+                    <Footer/>
+                </div>
+            </AppConfigProvider>
+        </ContentfulLivePreviewProvider>
     );
 }
 

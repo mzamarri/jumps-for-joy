@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router'
-import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down.js'
+import { ChevronDown } from 'lucide-react'
 
 type DropdownItem = {
     id: string

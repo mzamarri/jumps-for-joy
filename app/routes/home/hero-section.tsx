@@ -11,6 +11,7 @@ import slide4 from "../../assets/event-worker.png"
 import { useFragment } from '../../lib/gql/client/fragment-masking';
 import { graphql } from '../../lib/gql/client/';
 import type { HeroSlidesQuery } from '../../lib/gql/client/graphql';
+import { useContentfulInspectorMode } from '@contentful/live-preview/react';
 
 type HeroSectionProps = {
     queryData?: HeroSlidesQuery;
@@ -38,6 +39,7 @@ type CtaComponent = {
 };
 const HeroSlideFieldsFragment = graphql(`
     fragment HeroSlideFields on HeroSlide {
+    __typename
     sys {
         __typename
         id
@@ -449,6 +451,7 @@ export default function HeroSection({ queryData }: HeroSectionProps) {
     }
 
     const currentService = services[currentSlide] ?? services[0];
+    const inspectorProps = useContentfulInspectorMode({ entryId: currentService.id });
 
     
 
@@ -511,12 +514,26 @@ export default function HeroSection({ queryData }: HeroSectionProps) {
                                     className="flex h-[16.5rem] flex-col justify-center space-y-3 sm:h-[17rem]"
                                 >
                                     <h1 className='text-4xl leading-tight font-bold text-primary-foreground'>
-                                        {currentService.title.foreground} <span className='text-secondary'>{currentService.title.secondary}</span>
+                                        <span {...(inspectorProps({ fieldId: "titleForegroundColor" }) ?? {})}>
+                                            {currentService.title.foreground}
+                                        </span>{" "}
+                                        <span
+                                            className='text-secondary'
+                                            {...(inspectorProps({ fieldId: "titleSecondaryColor" }) ?? {})}
+                                        >
+                                            {currentService.title.secondary}
+                                        </span>
                                     </h1>
-                                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-secondary">
+                                    <p
+                                        className="text-sm font-semibold uppercase tracking-[0.18em] text-secondary"
+                                        {...(inspectorProps({ fieldId: "subTitle" }) ?? {})}
+                                    >
                                         {currentService.subTitle}
                                     </p>
-                                    <p className="text-sm leading-7 text-primary-foreground/90">
+                                    <p
+                                        className="text-sm leading-7 text-primary-foreground/90"
+                                        {...(inspectorProps({ fieldId: "description" }) ?? {})}
+                                    >
                                         {currentService.description}
                                     </p>
                                 </MotionDiv>
@@ -569,12 +586,26 @@ export default function HeroSection({ queryData }: HeroSectionProps) {
                                 className='flex h-[18rem] max-w-5xl flex-col items-center justify-center space-y-5 lg:h-[19rem]'
                             >
                                 <h1 className='text-primary-foreground font-bold text-6xl lg:text-7xl'>
-                                    {currentService.title.foreground} <span className='text-secondary'>{currentService.title.secondary}</span>
+                                    <span {...(inspectorProps({ fieldId: "titleForegroundColor" }) ?? {})}>
+                                        {currentService.title.foreground}
+                                    </span>{" "}
+                                    <span
+                                        className='text-secondary'
+                                        {...(inspectorProps({ fieldId: "titleSecondaryColor" }) ?? {})}
+                                    >
+                                        {currentService.title.secondary}
+                                    </span>
                                 </h1>
-                                <p className="text-sm font-semibold uppercase tracking-widest text-secondary md:text-lg">
+                                <p
+                                    className="text-sm font-semibold uppercase tracking-widest text-secondary md:text-lg"
+                                    {...(inspectorProps({ fieldId: "subTitle" }) ?? {})}
+                                >
                                     {currentService.subTitle}
                                 </p>
-                                <p className="w-full px-24 text-xl text-primary-foreground/90">
+                                <p
+                                    className="w-full px-24 text-xl text-primary-foreground/90"
+                                    {...(inspectorProps({ fieldId: "description" }) ?? {})}
+                                >
                                     {currentService.description}
                                 </p>
                             </MotionDiv>

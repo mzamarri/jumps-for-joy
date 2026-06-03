@@ -4,9 +4,15 @@ import { graphql, useFragment } from "app/lib/gql/client"
 import { useOutletContext } from "react-router";
 import type { RootOutletContext } from "app/root";
 import { useReadQuery } from "@apollo/client/react";
+import { useContentfulLiveUpdates } from "@contentful/live-preview/react";
+import type { FeaturedRentalsQuery } from "app/lib/gql/client/graphql";
 
 const FeaturedCardFieldsFragment = graphql(`
     fragment FeaturedCards on RentalCategory {
+        __typename
+        sys {
+            id
+        }
         slug
         rentalItemsCollection(where: { featuredItem_exists:  true}) {
             items {
@@ -19,7 +25,8 @@ const FeaturedCardFieldsFragment = graphql(`
 export default function Featured() {
     const { featuredRentalsRef } = useOutletContext<RootOutletContext>();
     const { data } = useReadQuery(featuredRentalsRef);
-    const featuredRentals = useFragment(FeaturedCardFieldsFragment, data?.rentalCategoryCollection?.items.filter(item => item !== null) ?? [])
+    const liveData = useContentfulLiveUpdates(data as FeaturedRentalsQuery | undefined);
+    const featuredRentals = useFragment(FeaturedCardFieldsFragment, liveData?.rentalCategoryCollection?.items.filter(item => item !== null) ?? [])
         .flatMap(category => category?.rentalItemsCollection?.items
             .map(item => ({
                 categorySlug: category.slug ?? "",

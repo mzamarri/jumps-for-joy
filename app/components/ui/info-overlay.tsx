@@ -1,5 +1,5 @@
 import { useEffect, useId } from "react";
-import X from "lucide-react/dist/esm/icons/x.js";
+import { X } from "lucide-react";
 
 type InfoOverlayProps = {
     open: boolean;

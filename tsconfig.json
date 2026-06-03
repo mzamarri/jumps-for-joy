@@ -16,7 +16,8 @@
       "components/*": ["./app/components/*"],
       "views/*": ["./app/components/views/*"],
       "context/*": ["./app/context/*"],
-      "data/*": ["./app/data/*"]
+      "data/*": ["./app/data/*"],
+      "lib/*": ["./app/lib/*"]
     },
     "esModuleInterop": true,
     "verbatimModuleSyntax": true,

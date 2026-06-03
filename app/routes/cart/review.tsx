@@ -1,14 +1,13 @@
-import { useEffect, useState, type KeyboardEvent } from 'react'
-import { Link, useNavigate, useOutletContext } from "react-router";
+import { useCallback, useEffect, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { Link, useNavigation, useOutletContext, Form, redirect } from "react-router";
 import { ArrowLeft, Save, SquarePen, User, MapPin, CalendarDays, ShoppingBag } from 'lucide-react';
 import Icon from 'components/ui/icon';
 import { useCart } from "context/cart-context";
 import { useAppConfig } from "context/app-config-context";
-import { sendBookingRequestEmails } from "../../lib/emailjs-client";
-import { delay } from "../../lib/time";
 import type { CartOutletContext, FieldName, RequestDraft, ReviewSection } from "./types.js";
 import { sanitizeFieldValue, validateDraft, validateField } from "./validation.js";
 import { removePreviousPhoneDigit } from "../../lib/validation/form";
+import { sendBookingRequestEmails } from "lib/emailjs-client"
 
 const fieldSections: ReviewSection[] = [
     {
@@ -119,15 +118,42 @@ const fieldSections: ReviewSection[] = [
 const formatValidationMessage = (errors: Record<string, string>) =>
     `Please fix the following before submitting: ${Object.values(errors).join(" ")}`;
 
+export async function clientAction({ request }: { request: Request }) {
+    console.log("running action...")
+    const formData = await request.formData();
+    const intent = String(formData.get("_intent") ?? "");
+
+    if (intent !== "submit-booking") {
+        return null;
+    }
+
+    const serializedEmailParams = String(formData.get("emailParams") ?? "");
+
+    if (!serializedEmailParams) {
+        return { error: "Unable to submit request. Please try again." };
+    }
+
+    try {
+        const emailParams = JSON.parse(serializedEmailParams) as Record<string, string>;
+        await sendBookingRequestEmails(emailParams);
+        console.log("Successfully sent");
+    } catch (error) {
+        console.error("Booking request email failed", error);
+        return { error: "There was an error sending your request. Please try again." };
+    }
+
+    return redirect("/success?source=booking");
+}
+
 export default function ReviewSection() {
     const [ editingField, setEditingField ] = useState<FieldName | "">("");
-    const { draft, setDraft } = useOutletContext<CartOutletContext>();
+    const { draft, setDraft, actionError, setFormSubmitValidator } = useOutletContext<CartOutletContext>();
     const [ canProceed, setCanProceed ] = useState(false);
-    const [ isSubmitting, setIsSubmitting ] = useState(false);
     const [ statusMessage, setStatusMessage ] = useState("");
     const { cart } = useCart();
     const { booking } = useAppConfig();
-    const navigate = useNavigate();
+    const navigation = useNavigation();
+    const isSubmitting = navigation.state === "submitting";
     const deliveryFee = booking.deliveryFee;
     const subtotal = cart.reduce((sum, item) => sum + item.cost * item.quantity, 0);
     const total = subtotal + deliveryFee;
@@ -158,74 +184,66 @@ export default function ReviewSection() {
             currency: "USD",
         }).format(value);
 
-    const submitRequest = async () => {
+    const fullName = `${draft.firstName} ${draft.lastName}`.trim();
+    const cityAndState = [draft.city.trim(), draft.state.trim()].filter(Boolean).join(", ");
+    const cityStateZip = [cityAndState, draft.zip.trim()].filter(Boolean).join(" ");
+    const fullAddress = [draft.street.trim(), draft.unit.trim(), cityStateZip].filter(Boolean).join("\n");
+    const itemsSummary = cart
+        .map(item => `${item.quantity} x ${String(item.name ?? "Rental Item")} - ${formatCurrency(item.cost * item.quantity)}`)
+        .join("\n");
+
+    const emailParams = {
+        fullName,
+        firstName: draft.firstName.trim(),
+        email: draft.email.trim(),
+        phoneNumber: draft.phoneNumber.trim(),
+        date: draft.date.trim(),
+        time: draft.time.trim(),
+        duration: draft.duration.trim(),
+        eventType: draft.eventType.trim() || "Not provided",
+        surfaceType: draft.surfaceType.trim(),
+        fullAddress,
+        itemsSummary,
+        notes: draft.notes.trim() || "None",
+        subtotal: formatCurrency(subtotal),
+        deliveryFee: formatCurrency(deliveryFee),
+        total: formatCurrency(total),
+        submittedAt: new Intl.DateTimeFormat("en-US", {
+            dateStyle: "medium",
+            timeStyle: "short",
+        }).format(new Date()),
+    };
+
+    const handleSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
         if (!canProceed || isSubmitting) {
+            event.preventDefault();
             return;
         }
 
         const validationErrors = validateDraft(draft);
-
         if (Object.keys(validationErrors).length > 0) {
+            event.preventDefault();
             setStatusMessage(formatValidationMessage(validationErrors));
             return;
         }
-
         if (cart.length === 0) {
+            event.preventDefault();
             setStatusMessage("Add at least one rental item before submitting your request.");
             return;
         }
 
-        setIsSubmitting(true);
         setStatusMessage("");
+    }, [canProceed, cart.length, draft, isSubmitting]);
 
-        try {
-            const fullName = `${draft.firstName} ${draft.lastName}`.trim();
-            const cityAndState = [draft.city.trim(), draft.state.trim()].filter(Boolean).join(", ");
-            const cityStateZip = [cityAndState, draft.zip.trim()].filter(Boolean).join(" ");
-            const fullAddress = [draft.street.trim(), draft.unit.trim(), cityStateZip].filter(Boolean).join("\n");
-            const itemsSummary = cart
-                .map(item => `${item.quantity} x ${String(item.name ?? "Rental Item")} - ${formatCurrency(item.cost * item.quantity)}`)
-                .join("\n");
-
-            await sendBookingRequestEmails({
-                fullName,
-                firstName: draft.firstName.trim(),
-                email: draft.email.trim(),
-                phoneNumber: draft.phoneNumber.trim(),
-                date: draft.date.trim(),
-                time: draft.time.trim(),
-                duration: draft.duration.trim(),
-                eventType: draft.eventType.trim() || "Not provided",
-                surfaceType: draft.surfaceType.trim(),
-                fullAddress,
-                itemsSummary,
-                notes: draft.notes.trim() || "None",
-                subtotal: formatCurrency(subtotal),
-                deliveryFee: formatCurrency(deliveryFee),
-                total: formatCurrency(total),
-                submittedAt: new Intl.DateTimeFormat("en-US", {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                }).format(new Date()),
-            });
-
-            await delay(booking.successRedirectDelayMs);
-            console.log("Successfully sent");
-            navigate("/success?source=booking");
-        } catch (error) {
-            console.error("Booking request email failed", error);
-            setStatusMessage("There was an error sending your request. Please try again.");
-        } finally {
-            setIsSubmitting(false);
-        }
-    }
+    useEffect(() => {
+        setFormSubmitValidator?.(() => handleSubmit);
+        return () => setFormSubmitValidator?.(null);
+    }, [setFormSubmitValidator, handleSubmit]);
 
     return (
-        <div
-            className="max-w-4xl m-4 sm:mx-8 lg:mx-auto py-8 space-y-8"
-        >
+        <Form method="post" className="max-w-4xl m-4 sm:mx-8 lg:mx-auto py-8 space-y-8">
             <Link
-                to="/details"
+                to="/cart/details"
                 className="inline-flex items-center gap-2 text-primary font-semibold hover:underline"
             >
                 <ArrowLeft className="w-4 h-4" /> Back To Details
@@ -319,6 +337,8 @@ export default function ReviewSection() {
                 </div>
             </div>
             <div className='flex flex-col items-center space-y-8'>
+                <input type="hidden" name="_intent" value="submit-booking" />
+                <input type="hidden" name="emailParams" value={JSON.stringify(emailParams)} />
                 <div className='flex justify-center gap-2'>
                         <input
                             type="checkbox"
@@ -330,12 +350,12 @@ export default function ReviewSection() {
                             I understand this is a request, not a booking
                         </label>
                 </div>
-                {statusMessage ? (
+                {(statusMessage || actionError) ? (
                     <p className="w-full rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-center text-sm font-semibold text-destructive" role="alert">
-                        {statusMessage}
+                        {statusMessage || actionError}
                     </p>
                 ) : null}
-                <button type="button" disabled={!canProceed || isSubmitting} onClick={submitRequest} className={`py-3 w-full rounded-lg ${
+                <button type="submit" disabled={!canProceed || isSubmitting} className={`py-3 w-full rounded-lg ${
                     canProceed && !isSubmitting
                         ? "text-accent-foreground bg-accent hover:bg-accent/90  hover:cursor-pointer"
                         : "bg-muted text-muted-foreground"
@@ -343,7 +363,7 @@ export default function ReviewSection() {
                     {isSubmitting ? "Sending Request..." : "Submit Request"}
                 </button>
             </div>
-        </div>
+        </Form>
     )
 }
 

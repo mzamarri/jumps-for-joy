@@ -1,6 +1,5 @@
 import { createContext, useContext, useMemo, useRef, useState } from "react";
-import CheckCircle2 from "lucide-react/dist/esm/icons/circle-check.js";
-import X from "lucide-react/dist/esm/icons/x.js";
+import { CheckCircle2, X } from "lucide-react";
 
 type Toast = {
     id: number;

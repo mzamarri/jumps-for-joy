@@ -1,13 +1,14 @@
-import { Link, NavLink, useOutletContext, useParams } from "react-router"
-import type { Params } from "react-router"
+import { Link, NavLink, useOutletContext } from "react-router"
 import { useState } from "react"
 import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react"
 import { RentalItemCard } from "components/ui";
 import type { CatalogOutletContext } from "./catalog-provider";
+import { useContentfulInspectorMode } from "@contentful/live-preview/react";
 
-export default function RentalCatalog({ params }: Params) {
+export default function RentalCatalog() {
     const { category, categories } = useOutletContext<CatalogOutletContext>();
     const rentals = category?.rentalItemsCollection?.items || [];
+    const inspectorProps = useContentfulInspectorMode({ entryId: category?.sys?.id });
 
     if (!category) {
         return (
@@ -32,16 +33,28 @@ export default function RentalCatalog({ params }: Params) {
                     </Link>
                     <div className='flex flex-col-reverse items-center gap-8 lg:flex-row lg:justify-center lg:items-center lg:gap-16'>
                         <div className='max-w-2xl flex-1 space-y-4 text-center'>
-                            <h1 className='text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl'>{category.categoryName}</h1>
-                            <p className='text-sm font-semibold uppercase tracking-widest text-primary sm:text-base'>
+                            <h1 
+                                className='text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl'
+                                {...inspectorProps({ fieldId: "categoryName" })}
+                            >
+                                {category.categoryName}
+                            </h1>
+                            <p 
+                                className='text-sm font-semibold uppercase tracking-widest text-primary sm:text-base'
+                                {...inspectorProps({ fieldId: "subHeader"})}
+                            >
                                 {category.subHeader}
                             </p>
-                            <p className='text-base leading-7 text-muted-foreground sm:text-lg'>
+                            <p 
+                                className='text-base leading-7 text-muted-foreground sm:text-lg'
+                                {...inspectorProps({ fieldId: "longDescription"})}
+                            >
                                 {category.longDescription}
                             </p>
                         </div>
                         <div className='w-full self-center rounded-full bg-muted p-6 max-w-40 sm:max-w-48 md:max-w-64 lg:max-w-80'>
                             <img
+                                {...inspectorProps({ fieldId: "categoryImage"})}
                                 src={category?.categoryImage?.url || ""}
                                 alt={`${category.categoryName} category`}
                                 className='w-full object-contain'
@@ -73,6 +86,7 @@ function CategoryTabs({
 }) {
     const [open, setOpen] = useState(false);
     const panelId = 'catalog-category-list';
+    const inspectorProps = useContentfulInspectorMode();
 
     return (
         <div className="sticky top-(--h-nav) z-10">
@@ -90,7 +104,10 @@ function CategoryTabs({
                             <div className='min-w-0'>
                                 <div className='flex items-center gap-2 overflow-hidden'>
                                     <span className='font-medium '>Category: </span>
-                                    <span className='text-primary-foreground bg-primary px-3 py-1 font-semibold rounded-full'>
+                                    <span 
+                                        className='text-primary-foreground bg-primary px-3 py-1 font-semibold rounded-full'
+                                        {...inspectorProps({ entryId: currentCategory?.sys?.id, fieldId: "categoryName"})}
+                                    >
                                         {currentCategory?.categoryName ? `${currentCategory.categoryName}` : 'Choose a category'}
                                     </span>
                                 </div>
@@ -129,6 +146,7 @@ function CategoryTabs({
                                                 }
                                             `}
                                             onClick={() => setOpen(false)}
+                                            {...inspectorProps({ entryId: category?.sys?.id, fieldId: "categoryName"})}
                                         >
                                             {category.categoryName}
                                         </NavLink>

@@ -1,8 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import type { PanInfo } from "motion/react";
-import ChevronLeft from "lucide-react/dist/esm/icons/chevron-left.js";
-import ChevronRight from "lucide-react/dist/esm/icons/chevron-right.js";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const DRAG_THRESHOLD = 60;
 
@@ -12,7 +11,7 @@ type SnapCarouselCard = {
 
 type SnapCarouselProps<TCard extends SnapCarouselCard> = {
     cards?: TCard[];
-    Card?: React.ComponentType<{ content: TCard }>;
+    Card?: React.ComponentType<{ rentalCategory: TCard }>;
     visibleCount?: number;
     gap?: number;
 };
@@ -104,7 +103,7 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
                             className="shrink-0"
                             style={{ width: cardWidth }}
                         >
-                            {Card ? <Card content={card} /> : null}
+                            {Card ? <Card rentalCategory={card} /> : null}
                         </div>
                     ))}
                 </motion.div>

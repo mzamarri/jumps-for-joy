@@ -1,14 +1,18 @@
 import { startTransition } from "react";
 import type { MouseEvent, KeyboardEvent } from "react";
-import ShoppingCart from "lucide-react/dist/esm/icons/shopping-cart.js";
+import { ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useCart } from "context/cart-context";
 import { useToast } from "context/toast-context";
-import type { FeaturedCardsFragment } from "app/lib/gql/client/graphql";
-import { graphql, useFragment, type FragmentType } from "app/lib/gql/client";
+import { graphql, useFragment } from "app/lib/gql/client";
+import { useContentfulInspectorMode } from "@contentful/live-preview/react";
 
 const RentalItemCardFragment = graphql(`
     fragment RentalItemCardFragment on RentalItemDetails {
+        __typename
+        sys {
+            id
+        }
         name
         cost
         smallDescription
@@ -29,6 +33,7 @@ export type RentalItemCardProps = {
 
 export default function RentalItemCard({ categorySlug, content }: RentalItemCardProps) {
     const {
+        sys,
         name,
         cost,
         smallDescription: description,
@@ -40,6 +45,7 @@ export default function RentalItemCard({ categorySlug, content }: RentalItemCard
     const navigate = useNavigate();
     const { addItem } = useCart();
     const { showToast } = useToast();
+    const inspectorProps = useContentfulInspectorMode({ entryId: sys?.id });
 
     const handleNavigate = () => {
         startTransition(() => {
@@ -81,6 +87,7 @@ export default function RentalItemCard({ categorySlug, content }: RentalItemCard
                         src={thumbnailImage?.url}
                         alt={name ?? ""}
                         className="h-full w-full object-contain p-3 transition-transform duration-300 group-hover:scale-[1.03] md:p-5"
+                        {...(inspectorProps({ fieldId: "thumbnailImage" }) ?? {})}
                     />
                 ) : (
                     <div className="flex h-full items-center justify-center text-muted-foreground">
@@ -92,10 +99,25 @@ export default function RentalItemCard({ categorySlug, content }: RentalItemCard
                 <div className="flex flex-1 flex-col gap-2 justify-between md:flex-row md:items-start md:justify-between md:gap-4">
                     <div className="w-full space-y-2">
                         <div className="flex justify-between gap-4">
-                            <h2 className="flex-1 text-sm font-bold leading-5 text-foreground md:text-lg md:leading-6">{name}</h2>
-                            <span className="shrink-0 text-sm font-bold text-primary md:text-lg">${cost}</span>
+                            <h2
+                                className="flex-1 text-sm font-bold leading-5 text-foreground md:text-lg md:leading-6"
+                                {...(inspectorProps({ fieldId: "name" }) ?? {})}
+                            >
+                                {name}
+                            </h2>
+                            <span
+                                className="shrink-0 text-sm font-bold text-primary md:text-lg"
+                                {...(inspectorProps({ fieldId: "cost" }) ?? {})}
+                            >
+                                ${cost}
+                            </span>
                         </div>
-                        <p className="text-xs leading-5 text-muted-foreground md:text-sm">{description}</p>
+                        <p
+                            className="text-xs leading-5 text-muted-foreground md:text-sm"
+                            {...(inspectorProps({ fieldId: "smallDescription" }) ?? {})}
+                        >
+                            {description}
+                        </p>
                     </div>
                 </div>
                 <button

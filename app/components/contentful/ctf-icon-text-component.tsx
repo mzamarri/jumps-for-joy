@@ -1,10 +1,15 @@
 import { useFragment, type FragmentType } from "app/lib/gql/client"
 import { graphql } from "app/lib/gql/client"
+import { useContentfulInspectorMode } from "@contentful/live-preview/react"
 import { DynamicIcon, type IconName } from "lucide-react/dynamic"
 import { twMerge } from "tailwind-merge"
 
 const IconTextComponentFieldsFragment = graphql(`
     fragment IconTextComponentFields on IconTextComponent {
+        __typename
+        sys {
+            id
+        }
         displayText
         lucideIconName
         lucideIconColor
@@ -43,6 +48,7 @@ export default function CtfIconTextComponent({
     descriptionClassName
 }: CtfIconTextComponentProps) {
     const data = useFragment(IconTextComponentFieldsFragment, content);
+    const inspectorProps = useContentfulInspectorMode({ entryId: data.sys?.id });
 
     const description: Description = {
         text: data.text || "",
@@ -59,6 +65,7 @@ export default function CtfIconTextComponent({
         data.descriptionType === "text" || data.descriptionType === "dimensions"
             ? data.descriptionType
             : null;
+    const descriptionFieldId = descriptionKey === "dimensions" ? "dimensionsLength" : "text";
 
     return (
         <div className={containerClassName}>
@@ -66,8 +73,16 @@ export default function CtfIconTextComponent({
                 <DynamicIcon name={data.lucideIconName as IconName} className={twMerge("w-5 h-5", iconClassName)}/>
             </div>
             <div className={textContainerClassName}>
-                <h1 className={displayTextClassName}>{data.displayText}</h1>
-                <p className={descriptionClassName}>
+                <h1
+                    className={displayTextClassName}
+                    {...(inspectorProps({ fieldId: "displayText" }) ?? {})}
+                >
+                    {data.displayText}
+                </h1>
+                <p
+                    className={descriptionClassName}
+                    {...(inspectorProps({ fieldId: descriptionFieldId }) ?? {})}
+                >
                     {descriptionKey ? description[descriptionKey] : ""}
                 </p>
             </div>

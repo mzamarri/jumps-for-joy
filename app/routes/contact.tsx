@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type KeyboardEvent } from "react";
-import { useNavigate } from "react-router";
+import { Form, redirect, useActionData, useNavigation } from "react-router";
+import type { ClientActionFunctionArgs } from "react-router";
 import { Mail, Phone, Clock } from "lucide-react";
 import Icon from 'components/ui/icon';
 import { useAppConfig } from "context/app-config-context";
@@ -11,7 +12,6 @@ import {
     removePreviousPhoneDigit,
     PHONE_NUMBER_ERROR_MESSAGE,
 } from "../lib/validation/form";
-import { delay } from "../lib/time";
 
 const initialContactForm = {
     name: "",
@@ -20,53 +20,69 @@ const initialContactForm = {
     message: "",
 };
 
+export async function clientAction({ request }: ClientActionFunctionArgs) {
+    const formData = await request.formData();
+    const name = String(formData.get("name") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
+    const message = String(formData.get("message") ?? "").trim();
+
+    if (!name || !email || !message) {
+        return { error: "Please enter your name, email, and message before submitting." };
+    }
+    if (!isValidEmail(email)) {
+        return { error: "Please enter a valid email address, like name@example.com." };
+    }
+    if (phone && !isValidPhoneNumber(phone)) {
+        return { error: PHONE_NUMBER_ERROR_MESSAGE };
+    }
+
+    try {
+        await sendContactEmails({
+            name,
+            email,
+            phone: phone || "Not provided",
+            message,
+            submittedAt: new Intl.DateTimeFormat("en-US", {
+                dateStyle: "medium",
+                timeStyle: "short",
+            }).format(new Date()),
+        });
+        console.log("Successfully sent");
+    } catch {
+        return { error: "There was an error sending your message. Please try again." };
+    }
+
+    return redirect("/success?source=contact");
+}
+
 export default function ContactPage() {
     const [form, setForm] = useState(initialContactForm);
-    const [statusMessage, setStatusMessage] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const navigate = useNavigate();
+    const [clientError, setClientError] = useState("");
+    const actionData = useActionData<typeof clientAction>();
+    const navigation = useNavigation();
+    const isSubmitting = navigation.state === "submitting";
     const config = useAppConfig();
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    const statusMessage = clientError || actionData?.error || "";
+
+    const handleClientValidation = (event: FormEvent<HTMLFormElement>) => {
+        setClientError("");
 
         if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
-            setStatusMessage("Please enter your name, email, and message before submitting.");
+            event.preventDefault();
+            setClientError("Please enter your name, email, and message before submitting.");
             return;
         }
-
         if (!isValidEmail(form.email)) {
-            setStatusMessage("Please enter a valid email address, like name@example.com.");
+            event.preventDefault();
+            setClientError("Please enter a valid email address, like name@example.com.");
             return;
         }
-
         if (form.phone.trim() && !isValidPhoneNumber(form.phone)) {
-            setStatusMessage(PHONE_NUMBER_ERROR_MESSAGE);
+            event.preventDefault();
+            setClientError(PHONE_NUMBER_ERROR_MESSAGE);
             return;
-        }
-
-        setIsSubmitting(true);
-        setStatusMessage("");
-
-        try {
-            await sendContactEmails({
-                name: form.name.trim(),
-                email: form.email.trim(),
-                phone: form.phone.trim() || "Not provided",
-                message: form.message.trim(),
-                submittedAt: new Intl.DateTimeFormat("en-US", {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                }).format(new Date()),
-            });
-
-            await delay(config.booking.successRedirectDelayMs);
-            console.log("Successfully sent");
-            navigate("/success?source=contact");
-        } catch {
-            setStatusMessage("There was an error sending your message. Please try again.");
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -163,7 +179,7 @@ export default function ContactPage() {
 
                 <div id="contact-form" className="max-w-2xl flex-1 rounded-2xl border border-border bg-card p-6 space-y-4">
                     <h2 className="text-2xl font-semibold md:text-3xl">Send Us a Message</h2>
-                    <form className="space-y-4 text-sm" onSubmit={handleSubmit}>
+                    <Form method="post" className="space-y-4 text-sm" onSubmit={handleClientValidation}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="flex flex-col gap-1 text-sm">
                                 <label htmlFor="name" className="font-semibold">
@@ -171,6 +187,7 @@ export default function ContactPage() {
                                 </label>
                                 <input 
                                     id="name"
+                                    name="name"
                                     className="bg-background border border-border rounded-lg p-3" 
                                     type="text" 
                                     placeholder="Arthur Morgan" 
@@ -185,6 +202,7 @@ export default function ContactPage() {
                                 </label>
                                 <input 
                                     id="phone"
+                                    name="phone"
                                     className="bg-background border border-border rounded-lg p-3" 
                                     type="tel" 
                                     placeholder="(555) 123-4567" 
@@ -200,6 +218,7 @@ export default function ContactPage() {
                             </label>
                             <input 
                                 id="email"
+                                name="email"
                                 className="bg-background border border-border rounded-lg p-3" 
                                 type="email" 
                                 placeholder="arthur@example.com" 
@@ -214,6 +233,7 @@ export default function ContactPage() {
                             </label>
                             <textarea
                                 id="message"
+                                name="message"
                                 className="bg-background border border-border rounded-lg p-3 w-full" 
                                 rows={10}
                                 placeholder="Tell us about your event or ask any questions..." 
@@ -234,7 +254,7 @@ export default function ContactPage() {
                         >
                             {isSubmitting ? "Sending..." : "Submit Inquiry"}
                         </button>
-                    </form>
+                    </Form>
                 </div>
             </div>
         </div>

@@ -60,7 +60,7 @@ export default function CartSection() {
                                             <span className="text-primary font-bold">{`$${deliveryFee + subtotal}`}</span>
                                         </div>
                                         <Link 
-                                            to="/details"
+                                            to="/cart/details"
                                             className='bg-accent text-accent-foreground sm:text-sm font-semibold py-3 my-6 rounded-lg flex items-center justify-center gap-2 hover:cursor-pointer hover:bg-accent/90'
                                         >
                                             Continue to Details <ArrowRight className="w-4 h-4"/>

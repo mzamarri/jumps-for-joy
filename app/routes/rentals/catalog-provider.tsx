@@ -1,11 +1,16 @@
 import { Outlet, useOutletContext, useParams } from "react-router"
 import { useReadQuery } from "@apollo/client/react";
 import type { RootOutletContext } from "app/root";
-import { graphql, useFragment, type FragmentType } from "app/lib/gql/client";
-import type { CategoryCatalogFragment } from "app/lib/gql/client/graphql";
+import { graphql, useFragment } from "app/lib/gql/client";
+import type { CategoryCatalogFragment, RentalCategoriesQuery } from "app/lib/gql/client/graphql";
+import { useContentfulLiveUpdates } from "@contentful/live-preview/react";
 
 const RentalCatalogFieldsFragment = graphql(`
     fragment CategoryCatalog on RentalCategory {
+        __typename
+        sys {
+            id
+        }
         categoryName
         subHeader
         longDescription
@@ -15,6 +20,10 @@ const RentalCatalogFieldsFragment = graphql(`
         }
         rentalItemsCollection(limit: 15) {
             items {
+                __typename
+                sys {
+                    id
+                }
                 name
                 cost
                 smallDescription
@@ -39,7 +48,8 @@ export default function RentalCategories() {
     const { categoryId } = useParams();
     const { rentalCategoriesRef } = useOutletContext<RootOutletContext>();
     const { data } = useReadQuery(rentalCategoriesRef);
-    const rentalCategoryCollection = data?.rentalCategoryCollection?.items.filter(item => item !== null) ?? [];
+    const liveData = useContentfulLiveUpdates(data as RentalCategoriesQuery | undefined);
+    const rentalCategoryCollection = liveData?.rentalCategoryCollection?.items.filter(item => item !== null) ?? [];
     const categories = useFragment(RentalCatalogFieldsFragment, rentalCategoryCollection);
     const category = categories.find(category => category.slug === categoryId);
 

@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, FormEvent, SetStateAction } from "react";
 import type { LucideIcon } from "lucide-react";
 
 export type CartItem = {
@@ -33,6 +33,8 @@ export type RequestDraft = Record<FieldName, string>;
 export type CartOutletContext = {
     draft: RequestDraft;
     setDraft: Dispatch<SetStateAction<RequestDraft>>;
+    actionError?: string;
+    setFormSubmitValidator?: Dispatch<SetStateAction<((event: FormEvent<HTMLFormElement>) => void) | null>>;
 };
 
 export type SelectOption = {

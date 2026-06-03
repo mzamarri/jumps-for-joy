@@ -14,8 +14,8 @@ export default [
             route(":itemId", "./routes/rentals/details.tsx")
         ])
     ]),
-    layout("./routes/cart/layout.tsx", [
-        route("cart", "./routes/cart/cart.tsx"),
+    route("cart", "./routes/cart/layout.tsx", [
+        index("./routes/cart/cart.tsx"),
         route("details", "./routes/cart/details.tsx"),
         route("review", "./routes/cart/review.tsx") 
     ])

@@ -1,7 +1,5 @@
 import type { ComponentType } from 'react';
-import CircleAlert from 'lucide-react/dist/esm/icons/circle-alert.js';
-import Toolbox from 'lucide-react/dist/esm/icons/toolbox.js';
-import Truck from 'lucide-react/dist/esm/icons/truck.js';
+import { CircleAlert, Toolbox, Truck } from 'lucide-react';
 
 export type LocationInfoCard = {
     id: string;
