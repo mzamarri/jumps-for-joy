@@ -1,17 +1,15 @@
-import { Link, useOutletContext } from 'react-router'
 import { SnapCarousel } from 'components/ui'
 import { Castle } from 'lucide-react'
-import { useReadQuery } from '@apollo/client/react'
-import { useContentfulLiveUpdates } from '@contentful/live-preview/react'
-import type { RootOutletContext } from 'app/root'
-import type { RentalCategoriesQuery } from 'app/lib/gql/client/graphql'
 import RentalCategoryCard from 'components/contentful/ctf-rental-category-card'
+import type { SectionProps } from '.'
 
-export default function HomeCategories() {
-    const { rentalCategoriesRef } = useOutletContext<RootOutletContext>();
-    const { data } = useReadQuery(rentalCategoriesRef);
-    const liveData = useContentfulLiveUpdates(data as RentalCategoriesQuery | undefined);
-    const categoryItems = liveData?.rentalCategoryCollection?.items.filter(item => item !== null) ?? [];
+export default function HomeCategories({ queryData }: SectionProps) {
+    const rentalCategoriesGroup = queryData?.rentalCategoriesGroup?.items[0]?.rentalCategoriesCollection?.items.filter(item => item !== null) ?? [];
+    const rentalCategoryCollection = queryData?.rentalCategoryCollection?.items.filter(item => {
+        if (item === null) return false
+        return !rentalCategoriesGroup.some(groupItem => groupItem?.sys?.id === item.sys.id);
+    }) ?? [];
+    const rentalCategories = [ ...rentalCategoriesGroup, ...rentalCategoryCollection ]
 
     return (
         <div className='relative w-full overflow-hidden px-4 py-8 sm:px-6 lg:px-24'>
@@ -29,7 +27,7 @@ export default function HomeCategories() {
                     </p>
                 </div>
                 <div className='h-fit'>
-                    <SnapCarousel cards={categoryItems} Card={RentalCategoryCard} visibleCount={3} />
+                    <SnapCarousel cards={rentalCategories} Card={RentalCategoryCard} visibleCount={3} />
                 </div>
             </div>
         </div>

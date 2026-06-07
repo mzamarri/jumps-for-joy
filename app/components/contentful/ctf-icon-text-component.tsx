@@ -68,20 +68,22 @@ export default function CtfIconTextComponent({
     const descriptionFieldId = descriptionKey === "dimensions" ? "dimensionsLength" : "text";
 
     return (
-        <div className={containerClassName}>
+        <div 
+            className={containerClassName}
+        >
             <div className={twMerge("w-10 h-10 rounded-lg flex justify-center items-center shrink-0", iconColorClasses[data.lucideIconColor  as IconColor], iconContainerClassName)}>
                 <DynamicIcon name={data.lucideIconName as IconName} className={twMerge("w-5 h-5", iconClassName)}/>
             </div>
             <div className={textContainerClassName}>
                 <h1
                     className={displayTextClassName}
-                    {...(inspectorProps({ fieldId: "displayText" }) ?? {})}
+                    // {...(inspectorProps({ fieldId: "displayText" }) ?? {})}
                 >
                     {data.displayText}
                 </h1>
                 <p
                     className={descriptionClassName}
-                    {...(inspectorProps({ fieldId: descriptionFieldId }) ?? {})}
+                    // {...(inspectorProps({ fieldId: descriptionFieldId }) ?? {})}
                 >
                     {descriptionKey ? description[descriptionKey] : ""}
                 </p>

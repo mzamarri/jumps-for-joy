@@ -2,8 +2,33 @@ import { Link, NavLink, useOutletContext } from "react-router"
 import { useState } from "react"
 import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react"
 import { RentalItemCard } from "components/ui";
-import type { CatalogOutletContext } from "./catalog-provider";
 import { useContentfulInspectorMode } from "@contentful/live-preview/react";
+import { graphql } from 'lib/gql/client'
+import type { RentalCatalogFieldsFragment } from "lib/gql/client/graphql";
+import type { CatalogOutletContext } from "./catalog-provider";
+
+const RentalCatalogFieldsFragment = graphql(`
+    fragment RentalCatalogFields on RentalCategory {
+         sys {
+            id
+        }
+        categoryName
+        subHeader
+        longDescription
+        slug
+        categoryImage {
+            contentType
+            url
+        }
+        rentalItemsCollection(limit: 15) {
+            items {
+                slug
+                ...RentalItemCard
+                ...ItemDetails
+            }
+        }
+    }    
+`)
 
 export default function RentalCatalog() {
     const { category, categories } = useOutletContext<CatalogOutletContext>();
@@ -66,7 +91,7 @@ export default function RentalCatalog() {
                             rentals.map(item => {
                                 return (
                                     <li key={item?.slug}>
-                                        <RentalItemCard categorySlug={category.slug} content={item} />
+                                        <RentalItemCard categorySlug={category.slug} rentalItem={item} />
                                     </li>
                                 )
                             })

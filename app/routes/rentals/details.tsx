@@ -18,14 +18,18 @@ const ItemDetailsFragment = graphql(`
         cost
         smallDescription
         longDescription
-        featuredItem
         specificationsCollection {
             items {
+                __typename
+                sys {
+                    id
+                }
                 ...IconTextComponentFields
             }
         }
         features
         thumbnailImage {
+            __typename
             sys {
                 id
             }
@@ -34,6 +38,7 @@ const ItemDetailsFragment = graphql(`
         }
         galleryImagesCollection {
             items {
+                __typename
                 sys {
                     id
                 }
@@ -43,6 +48,10 @@ const ItemDetailsFragment = graphql(`
         }
         bookingInformationCollection {
             items {
+                __typename
+                sys {
+                    id
+                }
                 ...IconTextComponentFields
             }
         }
@@ -150,12 +159,14 @@ export default function RentalDetails() {
                                 {
                                     rentalItem?.specificationsCollection?.items?.map(item => item !== null 
                                         ? (
-                                            <CtfIconTextComponent 
-                                                content={item} 
-                                                containerClassName="flex gap-2 text-foreground"
-                                                displayTextClassName="text-xs text-muted-foreground"
-                                                descriptionClassName="text-sm font-semibold"
-                                            />
+                                            <div {...inspectorProps({ entryId: item?.sys?.id, fieldId: "specifications" })}>
+                                                <CtfIconTextComponent 
+                                                    content={item} 
+                                                    containerClassName="flex gap-2 text-foreground"
+                                                    displayTextClassName="text-xs text-muted-foreground"
+                                                    descriptionClassName="text-sm font-semibold"
+                                                />
+                                            </div>
                                         ) : null)
                                 }
                             </div>
@@ -214,13 +225,15 @@ export default function RentalDetails() {
                                 {
                                     rentalItem?.bookingInformationCollection?.items.map(item => item !== null 
                                         ? (
-                                            <CtfIconTextComponent 
-                                                content={item}
-                                                containerClassName="flex gap-4 rounded-xl bg-muted p-4 text-foreground"
-                                                textContainerClassName="space-y-1"
-                                                displayTextClassName="text-lg font-semibold"
-                                                descriptionClassName="text-muted-foreground leading-6 text-sm"
-                                            /> 
+                                            <div {...inspectorProps({ entryId: item?.sys?.id, fieldId: "bookingInformation" })}>
+                                                <CtfIconTextComponent 
+                                                    content={item}
+                                                    containerClassName="flex gap-4 rounded-xl bg-muted p-4 text-foreground"
+                                                    textContainerClassName="space-y-1"
+                                                    displayTextClassName="text-lg font-semibold"
+                                                    descriptionClassName="text-muted-foreground leading-6 text-sm"
+                                                /> 
+                                            </div>
                                         ) : null
                                     )
                                 }

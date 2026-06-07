@@ -25,11 +25,6 @@ import {
     ContentfulLivePreviewProvider,
     useContentfulLiveUpdates
 } from '@contentful/live-preview/react';
-import type {
-    HeroSlidesQuery,
-    RentalCategoriesQuery,
-    FeaturedRentalsQuery
-} from './lib/gql/client/graphql';
 
 export function Layout({
     children
@@ -57,9 +52,6 @@ export function Layout({
 
 
 export type RootOutletContext = {
-    heroSlidesRef: QueryRef<HeroSlidesQuery>;
-    rentalCategoriesRef: QueryRef<RentalCategoriesQuery>;
-    featuredRentalsRef: QueryRef<FeaturedRentalsQuery>
     businessInformationRef: QueryRef<BusinessInformationQuery>;
     isPreview: boolean;
     contentfulLocale: string;
@@ -151,45 +143,6 @@ function resolveAppConfig(baseConfig: AppConfig, cmsBusinessInfo?: CmsBusinessIn
     };
 }
 
-const HeroSlidesQueryDocument = graphql(`
-    query HeroSlides($preview: Boolean) {
-        heroSlideCollection(preview: $preview) {
-            items {
-                ...HeroSlideFields
-            }
-        }
-    }
-`)
-
-const RentalCategoriesQueryDocument = graphql(`
-    query RentalCategories($preview: Boolean) {
-        rentalCategoryCollection(order: displayOrder_ASC, limit: 15, preview: $preview) {
-            items {
-                ...RentalCategoryCardFields
-                ...CategoryCatalog
-            }
-        }
-    }
-`)
-
-const FeaturedRentalsQueryDocument = graphql(`
-    query featuredRentals($preview: Boolean) {
-        rentalCategoryCollection(
-            limit: 15, 
-            where: {
-                rentalItems: { 
-                    featuredItem_exists: true 
-                }
-            },
-            preview: $preview
-        ) {
-            items {
-                ...FeaturedCards
-            }
-        }
-    }
-`)
-
 const BusinessInformationQueryDocument = graphql(`
     query BusinessInformation($preview: Boolean) {
         generalBusinessInformationCollection(limit: 1, preview: $preview) {
@@ -211,16 +164,9 @@ const BusinessInformationQueryDocument = graphql(`
 export const loader = apolloLoader()(({ preloadQuery }) => {
     const contentfulLocale = process.env.CONTENTFUL_LOCALE || "en-US";
     const variables = { preview: isPreview };
-    const heroSlidesRef = preloadQuery(HeroSlidesQueryDocument, { variables });
-    const rentalCategoriesRef = preloadQuery(RentalCategoriesQueryDocument, { variables });
-    const featuredRentalsRef = preloadQuery(FeaturedRentalsQueryDocument, { variables });
     const businessInformationRef = preloadQuery(BusinessInformationQueryDocument, { variables });
-    
 
     return {
-        heroSlidesRef,
-        rentalCategoriesRef,
-        featuredRentalsRef,
         businessInformationRef,
         isPreview,
         contentfulLocale

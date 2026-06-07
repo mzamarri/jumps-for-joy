@@ -1,11 +1,8 @@
 import { RentalItemCard } from "components/ui";
 import { Star } from "lucide-react"
 import { graphql, useFragment } from "app/lib/gql/client"
-import { useOutletContext } from "react-router";
-import type { RootOutletContext } from "app/root";
-import { useReadQuery } from "@apollo/client/react";
-import { useContentfulLiveUpdates } from "@contentful/live-preview/react";
-import type { FeaturedRentalsQuery } from "app/lib/gql/client/graphql";
+import type { HomeContentQuery } from "lib/gql/client/graphql";
+import type { SectionProps } from ".";
 
 const FeaturedCardFieldsFragment = graphql(`
     fragment FeaturedCards on RentalCategory {
@@ -14,28 +11,19 @@ const FeaturedCardFieldsFragment = graphql(`
             id
         }
         slug
-        rentalItemsCollection(where: { featuredItem_exists:  true}) {
+        rentalItemsCollection {
             items {
-                ...RentalItemCardFragment
+                ...RentalItemCard
             }
         }
     }
 `)
 
-export default function Featured() {
-    const { featuredRentalsRef } = useOutletContext<RootOutletContext>();
-    const { data } = useReadQuery(featuredRentalsRef);
-    const liveData = useContentfulLiveUpdates(data as FeaturedRentalsQuery | undefined);
-    const featuredRentals = useFragment(FeaturedCardFieldsFragment, liveData?.rentalCategoryCollection?.items.filter(item => item !== null) ?? [])
-        .flatMap(category => category?.rentalItemsCollection?.items
-            .map(item => ({
-                categorySlug: category.slug ?? "",
-                rentalItem: item
-            })
-        ))
+export default function Featured({ queryData }: SectionProps) {
+    const featuredData = queryData?.featuredItems?.items[0]?.featuredCardsCollection?.items || [];
 
     return (
-        <div className='relative w-full overflow-hidden px-4 py-8 sm:px-6 lg:px-24'>
+        <div id="featured" className='relative w-full overflow-hidden px-4 py-8 sm:px-6 lg:px-24 scroll-mt-(--h-nav)'>
             <div className='flex h-full flex-col justify-center space-y-8 md:space-y-10'>
                 <div className='flex justify-center'>
                     <div className='max-w-3xl space-y-4 rounded-lg text-center'>
@@ -52,8 +40,8 @@ export default function Featured() {
                 </div>
                 <div className='carousel-container relative w-full'>
                     <div className='grid grid-cols-2 gap-4 sm:gap-6 xl:grid-cols-3 xl:gap-8'>
-                        {featuredRentals.map((rental, idx) => (
-                            <RentalItemCard key={idx} categorySlug={rental?.categorySlug} content={rental?.rentalItem} />
+                        {featuredData.map((item, idx) => (
+                            <RentalItemCard key={idx} rentalItem={item} />
                         ))}
                     </div>
                 </div>

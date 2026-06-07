@@ -10,12 +10,8 @@ import slide3 from "../../assets/event-setup.png"
 import slide4 from "../../assets/event-worker.png"
 import { useFragment } from '../../lib/gql/client/fragment-masking';
 import { graphql } from '../../lib/gql/client/';
-import type { HeroSlidesQuery } from '../../lib/gql/client/graphql';
 import { useContentfulInspectorMode } from '@contentful/live-preview/react';
-
-type HeroSectionProps = {
-    queryData?: HeroSlidesQuery;
-};
+import type { SectionProps } from '.';
 
 type HeroSlide = {
     id: string;
@@ -39,21 +35,19 @@ type CtaComponent = {
 };
 const HeroSlideFieldsFragment = graphql(`
     fragment HeroSlideFields on HeroSlide {
-    __typename
-    sys {
         __typename
-        id
-    }
-    internalName
+        sys {
+            id
+        }
+        internalName
     titleForegroundColor
-    titleSecondaryColor
-    slidePosition
-    subTitle
-    description
-    slideImage {
-        url
-        title
+        titleSecondaryColor
+        subTitle
         description
+        slideImage {
+            url
+            title
+            description
     }
     }
 `)
@@ -236,8 +230,8 @@ function HeroCtaLinks({
     );
 }
 
-export default function HeroSection({ queryData }: HeroSectionProps) {
-    const slideItems = queryData?.heroSlideCollection?.items.filter(
+export default function HeroSection({ queryData, isPreview }: SectionProps) {
+    const slideItems = queryData?.heroSlides?.items[0]?.heroSlidesCollection?.items.filter(
         (item): item is NonNullable<typeof item> => item !== null
     ) ?? [];
     const heroSlides = useFragment(HeroSlideFieldsFragment, slideItems);
@@ -299,6 +293,8 @@ export default function HeroSection({ queryData }: HeroSectionProps) {
     }, [services]);
 
     useEffect(() => {
+        if (isPreview) return;
+
         const heroSections = [mobileHeroRef.current, desktopHeroRef.current].filter(
             (section): section is HTMLDivElement => section !== null
         );
@@ -350,6 +346,8 @@ export default function HeroSection({ queryData }: HeroSectionProps) {
     }, []);
 
     useEffect(() => {
+        if (isPreview) return
+        
         clearAutoplayTimer();
 
         if (!canAutoplay) return;
@@ -456,7 +454,7 @@ export default function HeroSection({ queryData }: HeroSectionProps) {
     
 
     return (
-        <>
+        <div id="hero" className="scroll-mt-(--h-nav)">
             <div
                 ref={mobileHeroRef}
                 className="relative md:hidden"
@@ -501,7 +499,7 @@ export default function HeroSection({ queryData }: HeroSectionProps) {
 
                     <div className="flex flex-1 flex-col justify-between bg-primary px-5 pb- pt-5">
                         <div className="flex flex-col justify-between">
-                            <p className="w-fit rounded-full bg-secondary text-secondary-foreground px-4 py-1 text-sm font-bold uppercase tracking-[0.2em">
+                            <p className="w-fit rounded-full bg-secondary text-secondary-foreground px-4 py-1 text-sm font-bold uppercase tracking-[0.2em]">
                                 Party Rentals
                             </p>
                             <AnimatePresence mode="wait">
@@ -583,27 +581,34 @@ export default function HeroSection({ queryData }: HeroSectionProps) {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -12 }}
                                 transition={{ duration: 0.45, ease: "easeOut" }}
-                                className='flex h-[18rem] max-w-5xl flex-col items-center justify-center space-y-5 lg:h-[19rem]'
+                                className='flex h-72 max-w-5xl flex-col items-center justify-center space-y-5 lg:h-76'
                             >
                                 <h1 className='text-primary-foreground font-bold text-6xl lg:text-7xl'>
-                                    <span {...(inspectorProps({ fieldId: "titleForegroundColor" }) ?? {})}>
+                                    <span  
+                                        className={isPreview ? 'outline outline-secondary outline-dashed p-2 ' : ""}
+                                        {...(inspectorProps({ fieldId: "titleForegroundColor" }) ?? {})}
+                                    >
                                         {currentService.title.foreground}
                                     </span>{" "}
                                     <span
-                                        className='text-secondary'
+                                        className={`text-secondary ${isPreview ? 'outline outline-secondary outline-dashed p-2 ' : ""}`}
                                         {...(inspectorProps({ fieldId: "titleSecondaryColor" }) ?? {})}
                                     >
                                         {currentService.title.secondary}
                                     </span>
                                 </h1>
                                 <p
-                                    className="text-sm font-semibold uppercase tracking-widest text-secondary md:text-lg"
+                                    className={`text-sm font-semibold uppercase tracking-widest text-secondary md:text-lg ${
+                                        isPreview ? 'outline outline-secondary outline-dashed p-2 ' : ""
+                                    }`}
                                     {...(inspectorProps({ fieldId: "subTitle" }) ?? {})}
                                 >
                                     {currentService.subTitle}
                                 </p>
                                 <p
-                                    className="w-full px-24 text-xl text-primary-foreground/90"
+                                    className={`w-full px-24 text-xl text-primary-foreground/90 ${
+                                        isPreview ? 'outline outline-secondary outline-dashed p-2 ' : ""
+                                    }`}
                                     {...(inspectorProps({ fieldId: "description" }) ?? {})}
                                 >
                                     {currentService.description}
@@ -668,6 +673,6 @@ export default function HeroSection({ queryData }: HeroSectionProps) {
 
                 <TapHintOverlay visible={showTapHint} />
             </div>
-        </>
+        </div>
     )
 }

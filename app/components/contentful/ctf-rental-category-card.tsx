@@ -27,13 +27,15 @@ export default function RentalCategoryCard({ rentalCategory }: { rentalCategory:
             to={`/rentals/${category?.slug}`}
             className='block overflow-hidden rounded-xl border border-border bg-card shadow-md transition-transform hover:cursor-pointer hover:-translate-y-1'
         >
-            <div className='flex aspect-square items-center justify-center bg-muted md:h-64 md:aspect-auto'>
+            <div 
+                className='flex aspect-square items-center justify-center bg-muted md:h-64 md:aspect-auto'
+                {...(inspectorProps({ fieldId: "categoryImage" }) ?? {})}
+            >
                 <img
                     src={category?.categoryImage?.url || ""}
                     alt={`${category?.categoryName} category`}
                     className='w-full h-full object-contain p-3 select-none pointer-events-none md:p-4'
                     draggable={false}
-                    {...(inspectorProps({ fieldId: "categoryImage" }) ?? {})}
                 />
             </div>
             <div className='min-h-28 space-y-2 p-3 md:min-h-32 md:space-y-3 md:p-4'>

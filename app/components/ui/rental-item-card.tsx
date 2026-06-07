@@ -4,11 +4,12 @@ import { ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useCart } from "context/cart-context";
 import { useToast } from "context/toast-context";
-import { graphql, useFragment } from "app/lib/gql/client";
+import { graphql, useFragment, type FragmentType } from "app/lib/gql/client";
 import { useContentfulInspectorMode } from "@contentful/live-preview/react";
+import type { RentalItemCardFragment } from "lib/gql/client/graphql";
 
 const RentalItemCardFragment = graphql(`
-    fragment RentalItemCardFragment on RentalItemDetails {
+    fragment RentalItemCard on RentalItemDetails {
         __typename
         sys {
             id
@@ -16,11 +17,17 @@ const RentalItemCardFragment = graphql(`
         name
         cost
         smallDescription
-        featuredItem
         slug
         thumbnailImage {
             contentType
             url
+        }
+        linkedFrom {
+            rentalCategoryCollection(limit: 1) {
+                items {
+                    slug
+                }
+            }
         }
     }   
 `)
@@ -28,19 +35,19 @@ const RentalItemCardFragment = graphql(`
 
 export type RentalItemCardProps = {
     categorySlug: string,
-    content: any
+    rentalItem: FragmentType<typeof RentalItemCardFragment>
 }
 
-export default function RentalItemCard({ categorySlug, content }: RentalItemCardProps) {
+export default function RentalItemCard({ categorySlug, rentalItem }: RentalItemCardProps) {
+    const data = useFragment(RentalItemCardFragment, rentalItem);
     const {
         sys,
         name,
         cost,
         smallDescription: description,
-        featuredItem,
         slug: rentalItemSlug,
         thumbnailImage
-    } = useFragment(RentalItemCardFragment, content);
+    } = data;
 
     const navigate = useNavigate();
     const { addItem } = useCart();

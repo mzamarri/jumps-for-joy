@@ -18,5 +18,6 @@ export default [
         index("./routes/cart/cart.tsx"),
         route("details", "./routes/cart/details.tsx"),
         route("review", "./routes/cart/review.tsx") 
-    ])
+    ]),
+    route("preview", "./routes/preview-resolver.tsx")
 ] satisfies RouteConfig;

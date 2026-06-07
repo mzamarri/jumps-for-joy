@@ -348,6 +348,241 @@ enum GeneralBusinessInformationOrder {
 }
 
 """
+[See type definition](https://app.contentful.com/spaces/h6lueo8xvk4p/content_types/groupedContent)
+"""
+type GroupedContent implements Entry & _Node {
+  _id: ID!
+  contentfulMetadata: ContentfulMetadata!
+  featuredCardsCollection(limit: Int = 100, locale: String, order: [GroupedContentFeaturedCardsCollectionOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: RentalItemDetailsFilter): GroupedContentFeaturedCardsCollection
+  featuredCardsCursorCollection(limit: Int = 100, locale: String, order: [GroupedContentFeaturedCardsCursorCollectionOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean, where: RentalItemDetailsFilter): GroupedContentFeaturedCardsCursorCollection
+  groupType(locale: String, useFallbackLocale: Boolean): String
+  heroSlidesCollection(limit: Int = 100, locale: String, order: [GroupedContentHeroSlidesCollectionOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: HeroSlideFilter): GroupedContentHeroSlidesCollection
+  heroSlidesCursorCollection(limit: Int = 100, locale: String, order: [GroupedContentHeroSlidesCursorCollectionOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean, where: HeroSlideFilter): GroupedContentHeroSlidesCursorCollection
+  internalName(locale: String, useFallbackLocale: Boolean): String
+  linkedFrom(allowedLocales: [String]): GroupedContentLinkingCollections
+  rentalCategoriesCollection(limit: Int = 100, locale: String, order: [GroupedContentRentalCategoriesCollectionOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: RentalCategoryFilter): GroupedContentRentalCategoriesCollection
+  rentalCategoriesCursorCollection(limit: Int = 100, locale: String, order: [GroupedContentRentalCategoriesCursorCollectionOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean, where: RentalCategoryFilter): GroupedContentRentalCategoriesCursorCollection
+  sys: Sys!
+}
+
+type GroupedContentCollection {
+  items: [GroupedContent]!
+  limit: Int!
+  skip: Int!
+  total: Int!
+}
+
+type GroupedContentCursorCollection {
+  items: [GroupedContent]!
+  limit: Int!
+  pages: CursorPages!
+}
+
+type GroupedContentFeaturedCardsCollection {
+  items: [RentalItemDetails]!
+  limit: Int!
+  skip: Int!
+  total: Int!
+}
+
+enum GroupedContentFeaturedCardsCollectionOrder {
+  cost_ASC
+  cost_DESC
+  name_ASC
+  name_DESC
+  slug_ASC
+  slug_DESC
+  smallDescription_ASC
+  smallDescription_DESC
+  sys_firstPublishedAt_ASC
+  sys_firstPublishedAt_DESC
+  sys_id_ASC
+  sys_id_DESC
+  sys_publishedAt_ASC
+  sys_publishedAt_DESC
+  sys_publishedVersion_ASC
+  sys_publishedVersion_DESC
+}
+
+type GroupedContentFeaturedCardsCursorCollection {
+  items: [RentalItemDetails]!
+  limit: Int!
+  pages: CursorPages!
+}
+
+enum GroupedContentFeaturedCardsCursorCollectionOrder {
+  cost_ASC
+  cost_DESC
+  name_ASC
+  name_DESC
+  slug_ASC
+  slug_DESC
+  smallDescription_ASC
+  smallDescription_DESC
+  sys_firstPublishedAt_ASC
+  sys_firstPublishedAt_DESC
+  sys_id_ASC
+  sys_id_DESC
+  sys_publishedAt_ASC
+  sys_publishedAt_DESC
+  sys_publishedVersion_ASC
+  sys_publishedVersion_DESC
+}
+
+input GroupedContentFilter {
+  AND: [GroupedContentFilter]
+  OR: [GroupedContentFilter]
+  contentfulMetadata: ContentfulMetadataFilter
+  featuredCards: cfRentalItemDetailsNestedFilter
+  featuredCardsCollection_exists: Boolean
+  groupType: String
+  groupType_contains: String
+  groupType_exists: Boolean
+  groupType_in: [String]
+  groupType_not: String
+  groupType_not_contains: String
+  groupType_not_in: [String]
+  heroSlides: cfHeroSlideNestedFilter
+  heroSlidesCollection_exists: Boolean
+  internalName: String
+  internalName_contains: String
+  internalName_exists: Boolean
+  internalName_in: [String]
+  internalName_not: String
+  internalName_not_contains: String
+  internalName_not_in: [String]
+  rentalCategories: cfRentalCategoryNestedFilter
+  rentalCategoriesCollection_exists: Boolean
+  sys: SysFilter
+}
+
+type GroupedContentHeroSlidesCollection {
+  items: [HeroSlide]!
+  limit: Int!
+  skip: Int!
+  total: Int!
+}
+
+enum GroupedContentHeroSlidesCollectionOrder {
+  internalName_ASC
+  internalName_DESC
+  subTitle_ASC
+  subTitle_DESC
+  sys_firstPublishedAt_ASC
+  sys_firstPublishedAt_DESC
+  sys_id_ASC
+  sys_id_DESC
+  sys_publishedAt_ASC
+  sys_publishedAt_DESC
+  sys_publishedVersion_ASC
+  sys_publishedVersion_DESC
+  titleForegroundColor_ASC
+  titleForegroundColor_DESC
+  titleSecondaryColor_ASC
+  titleSecondaryColor_DESC
+}
+
+type GroupedContentHeroSlidesCursorCollection {
+  items: [HeroSlide]!
+  limit: Int!
+  pages: CursorPages!
+}
+
+enum GroupedContentHeroSlidesCursorCollectionOrder {
+  internalName_ASC
+  internalName_DESC
+  subTitle_ASC
+  subTitle_DESC
+  sys_firstPublishedAt_ASC
+  sys_firstPublishedAt_DESC
+  sys_id_ASC
+  sys_id_DESC
+  sys_publishedAt_ASC
+  sys_publishedAt_DESC
+  sys_publishedVersion_ASC
+  sys_publishedVersion_DESC
+  titleForegroundColor_ASC
+  titleForegroundColor_DESC
+  titleSecondaryColor_ASC
+  titleSecondaryColor_DESC
+}
+
+type GroupedContentLinkingCollections {
+  entryCollection(limit: Int = 100, locale: String, preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): EntryCollection
+  entryCursorCollection(limit: Int = 100, locale: String, pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): EntryCursorCollection
+}
+
+enum GroupedContentOrder {
+  groupType_ASC
+  groupType_DESC
+  internalName_ASC
+  internalName_DESC
+  sys_firstPublishedAt_ASC
+  sys_firstPublishedAt_DESC
+  sys_id_ASC
+  sys_id_DESC
+  sys_publishedAt_ASC
+  sys_publishedAt_DESC
+  sys_publishedVersion_ASC
+  sys_publishedVersion_DESC
+}
+
+type GroupedContentRentalCategoriesCollection {
+  items: [RentalCategory]!
+  limit: Int!
+  skip: Int!
+  total: Int!
+}
+
+enum GroupedContentRentalCategoriesCollectionOrder {
+  categoryName_ASC
+  categoryName_DESC
+  displayOrder_ASC
+  displayOrder_DESC
+  shortDescription_ASC
+  shortDescription_DESC
+  slug_ASC
+  slug_DESC
+  subHeader_ASC
+  subHeader_DESC
+  sys_firstPublishedAt_ASC
+  sys_firstPublishedAt_DESC
+  sys_id_ASC
+  sys_id_DESC
+  sys_publishedAt_ASC
+  sys_publishedAt_DESC
+  sys_publishedVersion_ASC
+  sys_publishedVersion_DESC
+}
+
+type GroupedContentRentalCategoriesCursorCollection {
+  items: [RentalCategory]!
+  limit: Int!
+  pages: CursorPages!
+}
+
+enum GroupedContentRentalCategoriesCursorCollectionOrder {
+  categoryName_ASC
+  categoryName_DESC
+  displayOrder_ASC
+  displayOrder_DESC
+  shortDescription_ASC
+  shortDescription_DESC
+  slug_ASC
+  slug_DESC
+  subHeader_ASC
+  subHeader_DESC
+  sys_firstPublishedAt_ASC
+  sys_firstPublishedAt_DESC
+  sys_id_ASC
+  sys_id_DESC
+  sys_publishedAt_ASC
+  sys_publishedAt_DESC
+  sys_publishedVersion_ASC
+  sys_publishedVersion_DESC
+}
+
+"""
 [See type definition](https://app.contentful.com/spaces/h6lueo8xvk4p/content_types/heroSlide)
 """
 type HeroSlide implements Entry & _Node {
@@ -357,7 +592,6 @@ type HeroSlide implements Entry & _Node {
   internalName(locale: String, useFallbackLocale: Boolean): String
   linkedFrom(allowedLocales: [String]): HeroSlideLinkingCollections
   slideImage(locale: String, preview: Boolean, useFallbackLocale: Boolean): Asset
-  slidePosition(locale: String, useFallbackLocale: Boolean): Int
   subTitle(locale: String, useFallbackLocale: Boolean): String
   sys: Sys!
   titleForegroundColor(locale: String, useFallbackLocale: Boolean): String
@@ -396,15 +630,6 @@ input HeroSlideFilter {
   internalName_not_contains: String
   internalName_not_in: [String]
   slideImage_exists: Boolean
-  slidePosition: Int
-  slidePosition_exists: Boolean
-  slidePosition_gt: Int
-  slidePosition_gte: Int
-  slidePosition_in: [Int]
-  slidePosition_lt: Int
-  slidePosition_lte: Int
-  slidePosition_not: Int
-  slidePosition_not_in: [Int]
   subTitle: String
   subTitle_contains: String
   subTitle_exists: Boolean
@@ -432,13 +657,43 @@ input HeroSlideFilter {
 type HeroSlideLinkingCollections {
   entryCollection(limit: Int = 100, locale: String, preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): EntryCollection
   entryCursorCollection(limit: Int = 100, locale: String, pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): EntryCursorCollection
+  groupedContentCollection(limit: Int = 100, locale: String, order: [HeroSlideLinkingCollectionsGroupedContentCollectionOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): GroupedContentCollection
+  groupedContentCursorCollection(limit: Int = 100, locale: String, order: [HeroSlideLinkingCollectionsGroupedContentCursorCollectionOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): GroupedContentCursorCollection
+}
+
+enum HeroSlideLinkingCollectionsGroupedContentCollectionOrder {
+  groupType_ASC
+  groupType_DESC
+  internalName_ASC
+  internalName_DESC
+  sys_firstPublishedAt_ASC
+  sys_firstPublishedAt_DESC
+  sys_id_ASC
+  sys_id_DESC
+  sys_publishedAt_ASC
+  sys_publishedAt_DESC
+  sys_publishedVersion_ASC
+  sys_publishedVersion_DESC
+}
+
+enum HeroSlideLinkingCollectionsGroupedContentCursorCollectionOrder {
+  groupType_ASC
+  groupType_DESC
+  internalName_ASC
+  internalName_DESC
+  sys_firstPublishedAt_ASC
+  sys_firstPublishedAt_DESC
+  sys_id_ASC
+  sys_id_DESC
+  sys_publishedAt_ASC
+  sys_publishedAt_DESC
+  sys_publishedVersion_ASC
+  sys_publishedVersion_DESC
 }
 
 enum HeroSlideOrder {
   internalName_ASC
   internalName_DESC
-  slidePosition_ASC
-  slidePosition_DESC
   subTitle_ASC
   subTitle_DESC
   sys_firstPublishedAt_ASC
@@ -576,8 +831,6 @@ type IconTextComponentLinkingCollections {
 enum IconTextComponentLinkingCollectionsRentalItemDetailsCollectionOrder {
   cost_ASC
   cost_DESC
-  featuredItem_ASC
-  featuredItem_DESC
   name_ASC
   name_DESC
   slug_ASC
@@ -597,8 +850,6 @@ enum IconTextComponentLinkingCollectionsRentalItemDetailsCollectionOrder {
 enum IconTextComponentLinkingCollectionsRentalItemDetailsCursorCollectionOrder {
   cost_ASC
   cost_DESC
-  featuredItem_ASC
-  featuredItem_DESC
   name_ASC
   name_DESC
   slug_ASC
@@ -781,53 +1032,13 @@ scalar JSON
 """
 type Page implements Entry & _Node {
   _id: ID!
-  additionalSectionsCollection(limit: Int = 100, locale: String, preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: PageAdditionalSectionsFilter): PageAdditionalSectionsCollection
-  additionalSectionsCursorCollection(limit: Int = 100, locale: String, pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean, where: PageAdditionalSectionsFilter): PageAdditionalSectionsCursorCollection
   contentfulMetadata: ContentfulMetadata!
-  internalName(locale: String, useFallbackLocale: Boolean): String
+  landingPage(locale: String, useFallbackLocale: Boolean): String
   linkedFrom(allowedLocales: [String]): PageLinkingCollections
-  pageName(locale: String, useFallbackLocale: Boolean): String
-  section(locale: String, preview: Boolean, useFallbackLocale: Boolean, where: PageSectionFilter): PageSection
   seo(locale: String, preview: Boolean, useFallbackLocale: Boolean, where: SeoFilter): Seo
   slug(locale: String, useFallbackLocale: Boolean): String
   sys: Sys!
 }
-
-type PageAdditionalSectionsCollection {
-  items: [PageAdditionalSectionsItem]!
-  limit: Int!
-  skip: Int!
-  total: Int!
-}
-
-type PageAdditionalSectionsCursorCollection {
-  items: [PageAdditionalSectionsItem]!
-  limit: Int!
-  pages: CursorPages!
-}
-
-input PageAdditionalSectionsFilter {
-  AND: [PageAdditionalSectionsFilter]
-  OR: [PageAdditionalSectionsFilter]
-  contentfulMetadata: ContentfulMetadataFilter
-  longDescription: String
-  longDescription_contains: String
-  longDescription_exists: Boolean
-  longDescription_in: [String]
-  longDescription_not: String
-  longDescription_not_contains: String
-  longDescription_not_in: [String]
-  slug: String
-  slug_contains: String
-  slug_exists: Boolean
-  slug_in: [String]
-  slug_not: String
-  slug_not_contains: String
-  slug_not_in: [String]
-  sys: SysFilter
-}
-
-union PageAdditionalSectionsItem = RentalCategory | RentalItemDetails
 
 type PageCollection {
   items: [Page]!
@@ -845,25 +1056,14 @@ type PageCursorCollection {
 input PageFilter {
   AND: [PageFilter]
   OR: [PageFilter]
-  additionalSections: cfadditionalSectionsMultiTypeNestedFilter
-  additionalSectionsCollection_exists: Boolean
   contentfulMetadata: ContentfulMetadataFilter
-  internalName: String
-  internalName_contains: String
-  internalName_exists: Boolean
-  internalName_in: [String]
-  internalName_not: String
-  internalName_not_contains: String
-  internalName_not_in: [String]
-  pageName: String
-  pageName_contains: String
-  pageName_exists: Boolean
-  pageName_in: [String]
-  pageName_not: String
-  pageName_not_contains: String
-  pageName_not_in: [String]
-  section: cfsectionMultiTypeNestedFilter
-  section_exists: Boolean
+  landingPage: String
+  landingPage_contains: String
+  landingPage_exists: Boolean
+  landingPage_in: [String]
+  landingPage_not: String
+  landingPage_not_contains: String
+  landingPage_not_in: [String]
   seo: cfSeoNestedFilter
   seo_exists: Boolean
   slug: String
@@ -882,10 +1082,8 @@ type PageLinkingCollections {
 }
 
 enum PageOrder {
-  internalName_ASC
-  internalName_DESC
-  pageName_ASC
-  pageName_DESC
+  landingPage_ASC
+  landingPage_DESC
   slug_ASC
   slug_DESC
   sys_firstPublishedAt_ASC
@@ -896,29 +1094,6 @@ enum PageOrder {
   sys_publishedAt_DESC
   sys_publishedVersion_ASC
   sys_publishedVersion_DESC
-}
-
-union PageSection = RentalCategory | RentalItemDetails
-
-input PageSectionFilter {
-  AND: [PageSectionFilter]
-  OR: [PageSectionFilter]
-  contentfulMetadata: ContentfulMetadataFilter
-  longDescription: String
-  longDescription_contains: String
-  longDescription_exists: Boolean
-  longDescription_in: [String]
-  longDescription_not: String
-  longDescription_not_contains: String
-  longDescription_not_in: [String]
-  slug: String
-  slug_contains: String
-  slug_exists: Boolean
-  slug_in: [String]
-  slug_not: String
-  slug_not_contains: String
-  slug_not_in: [String]
-  sys: SysFilter
 }
 
 """
@@ -937,6 +1112,9 @@ type Query {
   generalBusinessInformation(id: String!, locale: String, preview: Boolean, useFallbackLocale: Boolean): GeneralBusinessInformation
   generalBusinessInformationCollection(limit: Int = 100, locale: String, order: [GeneralBusinessInformationOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: GeneralBusinessInformationFilter): GeneralBusinessInformationCollection
   generalBusinessInformationCursorCollection(limit: Int = 100, locale: String, order: [GeneralBusinessInformationOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean, where: GeneralBusinessInformationFilter): GeneralBusinessInformationCursorCollection
+  groupedContent(id: String!, locale: String, preview: Boolean, useFallbackLocale: Boolean): GroupedContent
+  groupedContentCollection(limit: Int = 100, locale: String, order: [GroupedContentOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: GroupedContentFilter): GroupedContentCollection
+  groupedContentCursorCollection(limit: Int = 100, locale: String, order: [GroupedContentOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean, where: GroupedContentFilter): GroupedContentCursorCollection
   heroSlide(id: String!, locale: String, preview: Boolean, useFallbackLocale: Boolean): HeroSlide
   heroSlideCollection(limit: Int = 100, locale: String, order: [HeroSlideOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: HeroSlideFilter): HeroSlideCollection
   heroSlideCursorCollection(limit: Int = 100, locale: String, order: [HeroSlideOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean, where: HeroSlideFilter): HeroSlideCursorCollection
@@ -955,6 +1133,9 @@ type Query {
   seo(id: String!, locale: String, preview: Boolean, useFallbackLocale: Boolean): Seo
   seoCollection(limit: Int = 100, locale: String, order: [SeoOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: SeoFilter): SeoCollection
   seoCursorCollection(limit: Int = 100, locale: String, order: [SeoOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean, where: SeoFilter): SeoCursorCollection
+  testModel(id: String!, locale: String, preview: Boolean, useFallbackLocale: Boolean): TestModel
+  testModelCollection(limit: Int = 100, locale: String, order: [TestModelOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: TestModelFilter): TestModelCollection
+  testModelCursorCollection(limit: Int = 100, locale: String, order: [TestModelOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean, where: TestModelFilter): TestModelCursorCollection
 }
 
 """
@@ -1046,17 +1227,15 @@ input RentalCategoryFilter {
 type RentalCategoryLinkingCollections {
   entryCollection(limit: Int = 100, locale: String, preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): EntryCollection
   entryCursorCollection(limit: Int = 100, locale: String, pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): EntryCursorCollection
-  pageCollection(limit: Int = 100, locale: String, order: [RentalCategoryLinkingCollectionsPageCollectionOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): PageCollection
-  pageCursorCollection(limit: Int = 100, locale: String, order: [RentalCategoryLinkingCollectionsPageCursorCollectionOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): PageCursorCollection
+  groupedContentCollection(limit: Int = 100, locale: String, order: [RentalCategoryLinkingCollectionsGroupedContentCollectionOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): GroupedContentCollection
+  groupedContentCursorCollection(limit: Int = 100, locale: String, order: [RentalCategoryLinkingCollectionsGroupedContentCursorCollectionOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): GroupedContentCursorCollection
 }
 
-enum RentalCategoryLinkingCollectionsPageCollectionOrder {
+enum RentalCategoryLinkingCollectionsGroupedContentCollectionOrder {
+  groupType_ASC
+  groupType_DESC
   internalName_ASC
   internalName_DESC
-  pageName_ASC
-  pageName_DESC
-  slug_ASC
-  slug_DESC
   sys_firstPublishedAt_ASC
   sys_firstPublishedAt_DESC
   sys_id_ASC
@@ -1067,13 +1246,11 @@ enum RentalCategoryLinkingCollectionsPageCollectionOrder {
   sys_publishedVersion_DESC
 }
 
-enum RentalCategoryLinkingCollectionsPageCursorCollectionOrder {
+enum RentalCategoryLinkingCollectionsGroupedContentCursorCollectionOrder {
+  groupType_ASC
+  groupType_DESC
   internalName_ASC
   internalName_DESC
-  pageName_ASC
-  pageName_DESC
-  slug_ASC
-  slug_DESC
   sys_firstPublishedAt_ASC
   sys_firstPublishedAt_DESC
   sys_id_ASC
@@ -1115,8 +1292,6 @@ type RentalCategoryRentalItemsCollection {
 enum RentalCategoryRentalItemsCollectionOrder {
   cost_ASC
   cost_DESC
-  featuredItem_ASC
-  featuredItem_DESC
   name_ASC
   name_DESC
   slug_ASC
@@ -1142,8 +1317,6 @@ type RentalCategoryRentalItemsCursorCollection {
 enum RentalCategoryRentalItemsCursorCollectionOrder {
   cost_ASC
   cost_DESC
-  featuredItem_ASC
-  featuredItem_DESC
   name_ASC
   name_DESC
   slug_ASC
@@ -1169,7 +1342,6 @@ type RentalItemDetails implements Entry & _Node {
   bookingInformationCursorCollection(limit: Int = 100, locale: String, order: [RentalItemDetailsBookingInformationCursorCollectionOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean, where: IconTextComponentFilter): RentalItemDetailsBookingInformationCursorCollection
   contentfulMetadata: ContentfulMetadata!
   cost(locale: String, useFallbackLocale: Boolean): Float
-  featuredItem(locale: String, useFallbackLocale: Boolean): Int
   features(locale: String, useFallbackLocale: Boolean): [String]
   galleryImagesCollection(limit: Int = 100, locale: String, preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): AssetCollection
   galleryImagesCursorCollection(limit: Int = 100, locale: String, pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): AssetCursorCollection
@@ -1279,15 +1451,6 @@ input RentalItemDetailsFilter {
   cost_lte: Float
   cost_not: Float
   cost_not_in: [Float]
-  featuredItem: Int
-  featuredItem_exists: Boolean
-  featuredItem_gt: Int
-  featuredItem_gte: Int
-  featuredItem_in: [Int]
-  featuredItem_lt: Int
-  featuredItem_lte: Int
-  featuredItem_not: Int
-  featuredItem_not_in: [Int]
   features_contains_all: [String]
   features_contains_none: [String]
   features_contains_some: [String]
@@ -1330,19 +1493,17 @@ input RentalItemDetailsFilter {
 type RentalItemDetailsLinkingCollections {
   entryCollection(limit: Int = 100, locale: String, preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): EntryCollection
   entryCursorCollection(limit: Int = 100, locale: String, pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): EntryCursorCollection
-  pageCollection(limit: Int = 100, locale: String, order: [RentalItemDetailsLinkingCollectionsPageCollectionOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): PageCollection
-  pageCursorCollection(limit: Int = 100, locale: String, order: [RentalItemDetailsLinkingCollectionsPageCursorCollectionOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): PageCursorCollection
+  groupedContentCollection(limit: Int = 100, locale: String, order: [RentalItemDetailsLinkingCollectionsGroupedContentCollectionOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): GroupedContentCollection
+  groupedContentCursorCollection(limit: Int = 100, locale: String, order: [RentalItemDetailsLinkingCollectionsGroupedContentCursorCollectionOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): GroupedContentCursorCollection
   rentalCategoryCollection(limit: Int = 100, locale: String, order: [RentalItemDetailsLinkingCollectionsRentalCategoryCollectionOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): RentalCategoryCollection
   rentalCategoryCursorCollection(limit: Int = 100, locale: String, order: [RentalItemDetailsLinkingCollectionsRentalCategoryCursorCollectionOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): RentalCategoryCursorCollection
 }
 
-enum RentalItemDetailsLinkingCollectionsPageCollectionOrder {
+enum RentalItemDetailsLinkingCollectionsGroupedContentCollectionOrder {
+  groupType_ASC
+  groupType_DESC
   internalName_ASC
   internalName_DESC
-  pageName_ASC
-  pageName_DESC
-  slug_ASC
-  slug_DESC
   sys_firstPublishedAt_ASC
   sys_firstPublishedAt_DESC
   sys_id_ASC
@@ -1353,13 +1514,11 @@ enum RentalItemDetailsLinkingCollectionsPageCollectionOrder {
   sys_publishedVersion_DESC
 }
 
-enum RentalItemDetailsLinkingCollectionsPageCursorCollectionOrder {
+enum RentalItemDetailsLinkingCollectionsGroupedContentCursorCollectionOrder {
+  groupType_ASC
+  groupType_DESC
   internalName_ASC
   internalName_DESC
-  pageName_ASC
-  pageName_DESC
-  slug_ASC
-  slug_DESC
   sys_firstPublishedAt_ASC
   sys_firstPublishedAt_DESC
   sys_id_ASC
@@ -1415,8 +1574,6 @@ enum RentalItemDetailsLinkingCollectionsRentalCategoryCursorCollectionOrder {
 enum RentalItemDetailsOrder {
   cost_ASC
   cost_DESC
-  featuredItem_ASC
-  featuredItem_DESC
   name_ASC
   name_DESC
   slug_ASC
@@ -1572,10 +1729,8 @@ type SeoLinkingCollections {
 }
 
 enum SeoLinkingCollectionsPageCollectionOrder {
-  internalName_ASC
-  internalName_DESC
-  pageName_ASC
-  pageName_DESC
+  landingPage_ASC
+  landingPage_DESC
   slug_ASC
   slug_DESC
   sys_firstPublishedAt_ASC
@@ -1589,10 +1744,8 @@ enum SeoLinkingCollectionsPageCollectionOrder {
 }
 
 enum SeoLinkingCollectionsPageCursorCollectionOrder {
-  internalName_ASC
-  internalName_DESC
-  pageName_ASC
-  pageName_DESC
+  landingPage_ASC
+  landingPage_DESC
   slug_ASC
   slug_DESC
   sys_firstPublishedAt_ASC
@@ -1683,6 +1836,78 @@ type TaxonomyConcept {
   id: String
 }
 
+"""
+[See type definition](https://app.contentful.com/spaces/h6lueo8xvk4p/content_types/testModel)
+"""
+type TestModel implements Entry & _Node {
+  _id: ID!
+  contentfulMetadata: ContentfulMetadata!
+  internalName(locale: String, useFallbackLocale: Boolean): String
+  linkedFrom(allowedLocales: [String]): TestModelLinkingCollections
+  rentalItemsCollection(limit: Int = 100, locale: String, preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): TestModelRentalItemsCollection
+  rentalItemsCursorCollection(limit: Int = 100, locale: String, pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): TestModelRentalItemsCursorCollection
+  sys: Sys!
+}
+
+type TestModelCollection {
+  items: [TestModel]!
+  limit: Int!
+  skip: Int!
+  total: Int!
+}
+
+type TestModelCursorCollection {
+  items: [TestModel]!
+  limit: Int!
+  pages: CursorPages!
+}
+
+input TestModelFilter {
+  AND: [TestModelFilter]
+  OR: [TestModelFilter]
+  contentfulMetadata: ContentfulMetadataFilter
+  internalName: String
+  internalName_contains: String
+  internalName_exists: Boolean
+  internalName_in: [String]
+  internalName_not: String
+  internalName_not_contains: String
+  internalName_not_in: [String]
+  rentalItemsCollection_exists: Boolean
+  sys: SysFilter
+}
+
+type TestModelLinkingCollections {
+  entryCollection(limit: Int = 100, locale: String, preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): EntryCollection
+  entryCursorCollection(limit: Int = 100, locale: String, pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): EntryCursorCollection
+}
+
+enum TestModelOrder {
+  internalName_ASC
+  internalName_DESC
+  sys_firstPublishedAt_ASC
+  sys_firstPublishedAt_DESC
+  sys_id_ASC
+  sys_id_DESC
+  sys_publishedAt_ASC
+  sys_publishedAt_DESC
+  sys_publishedVersion_ASC
+  sys_publishedVersion_DESC
+}
+
+type TestModelRentalItemsCollection {
+  items: [Entry]!
+  limit: Int!
+  skip: Int!
+  total: Int!
+}
+
+type TestModelRentalItemsCursorCollection {
+  items: [Entry]!
+  limit: Int!
+  pages: CursorPages!
+}
+
 input TimelineFilterInput {
   """Preview content starting from a given release date"""
   release_lte: String
@@ -1693,6 +1918,49 @@ input TimelineFilterInput {
 
 interface _Node {
   _id: ID!
+}
+
+input cfHeroSlideNestedFilter {
+  AND: [cfHeroSlideNestedFilter]
+  OR: [cfHeroSlideNestedFilter]
+  contentfulMetadata: ContentfulMetadataFilter
+  description: String
+  description_contains: String
+  description_exists: Boolean
+  description_in: [String]
+  description_not: String
+  description_not_contains: String
+  description_not_in: [String]
+  internalName: String
+  internalName_contains: String
+  internalName_exists: Boolean
+  internalName_in: [String]
+  internalName_not: String
+  internalName_not_contains: String
+  internalName_not_in: [String]
+  slideImage_exists: Boolean
+  subTitle: String
+  subTitle_contains: String
+  subTitle_exists: Boolean
+  subTitle_in: [String]
+  subTitle_not: String
+  subTitle_not_contains: String
+  subTitle_not_in: [String]
+  sys: SysFilter
+  titleForegroundColor: String
+  titleForegroundColor_contains: String
+  titleForegroundColor_exists: Boolean
+  titleForegroundColor_in: [String]
+  titleForegroundColor_not: String
+  titleForegroundColor_not_contains: String
+  titleForegroundColor_not_in: [String]
+  titleSecondaryColor: String
+  titleSecondaryColor_contains: String
+  titleSecondaryColor_exists: Boolean
+  titleSecondaryColor_in: [String]
+  titleSecondaryColor_not: String
+  titleSecondaryColor_not_contains: String
+  titleSecondaryColor_not_in: [String]
 }
 
 input cfIconTextComponentNestedFilter {
@@ -1771,6 +2039,59 @@ input cfIconTextComponentNestedFilter {
   text_not_in: [String]
 }
 
+input cfRentalCategoryNestedFilter {
+  AND: [cfRentalCategoryNestedFilter]
+  OR: [cfRentalCategoryNestedFilter]
+  categoryImage_exists: Boolean
+  categoryName: String
+  categoryName_contains: String
+  categoryName_exists: Boolean
+  categoryName_in: [String]
+  categoryName_not: String
+  categoryName_not_contains: String
+  categoryName_not_in: [String]
+  contentfulMetadata: ContentfulMetadataFilter
+  displayOrder: Int
+  displayOrder_exists: Boolean
+  displayOrder_gt: Int
+  displayOrder_gte: Int
+  displayOrder_in: [Int]
+  displayOrder_lt: Int
+  displayOrder_lte: Int
+  displayOrder_not: Int
+  displayOrder_not_in: [Int]
+  longDescription: String
+  longDescription_contains: String
+  longDescription_exists: Boolean
+  longDescription_in: [String]
+  longDescription_not: String
+  longDescription_not_contains: String
+  longDescription_not_in: [String]
+  rentalItemsCollection_exists: Boolean
+  shortDescription: String
+  shortDescription_contains: String
+  shortDescription_exists: Boolean
+  shortDescription_in: [String]
+  shortDescription_not: String
+  shortDescription_not_contains: String
+  shortDescription_not_in: [String]
+  slug: String
+  slug_contains: String
+  slug_exists: Boolean
+  slug_in: [String]
+  slug_not: String
+  slug_not_contains: String
+  slug_not_in: [String]
+  subHeader: String
+  subHeader_contains: String
+  subHeader_exists: Boolean
+  subHeader_in: [String]
+  subHeader_not: String
+  subHeader_not_contains: String
+  subHeader_not_in: [String]
+  sys: SysFilter
+}
+
 input cfRentalItemDetailsNestedFilter {
   AND: [cfRentalItemDetailsNestedFilter]
   OR: [cfRentalItemDetailsNestedFilter]
@@ -1785,15 +2106,6 @@ input cfRentalItemDetailsNestedFilter {
   cost_lte: Float
   cost_not: Float
   cost_not_in: [Float]
-  featuredItem: Int
-  featuredItem_exists: Boolean
-  featuredItem_gt: Int
-  featuredItem_gte: Int
-  featuredItem_in: [Int]
-  featuredItem_lt: Int
-  featuredItem_lte: Int
-  featuredItem_not: Int
-  featuredItem_not_in: [Int]
   features_contains_all: [String]
   features_contains_none: [String]
   features_contains_some: [String]
@@ -1865,46 +2177,4 @@ input cfSeoNestedFilter {
   title_not: String
   title_not_contains: String
   title_not_in: [String]
-}
-
-input cfadditionalSectionsMultiTypeNestedFilter {
-  AND: [cfadditionalSectionsMultiTypeNestedFilter]
-  OR: [cfadditionalSectionsMultiTypeNestedFilter]
-  contentfulMetadata: ContentfulMetadataFilter
-  longDescription: String
-  longDescription_contains: String
-  longDescription_exists: Boolean
-  longDescription_in: [String]
-  longDescription_not: String
-  longDescription_not_contains: String
-  longDescription_not_in: [String]
-  slug: String
-  slug_contains: String
-  slug_exists: Boolean
-  slug_in: [String]
-  slug_not: String
-  slug_not_contains: String
-  slug_not_in: [String]
-  sys: SysFilter
-}
-
-input cfsectionMultiTypeNestedFilter {
-  AND: [cfsectionMultiTypeNestedFilter]
-  OR: [cfsectionMultiTypeNestedFilter]
-  contentfulMetadata: ContentfulMetadataFilter
-  longDescription: String
-  longDescription_contains: String
-  longDescription_exists: Boolean
-  longDescription_in: [String]
-  longDescription_not: String
-  longDescription_not_contains: String
-  longDescription_not_in: [String]
-  slug: String
-  slug_contains: String
-  slug_exists: Boolean
-  slug_in: [String]
-  slug_not: String
-  slug_not_contains: String
-  slug_not_in: [String]
-  sys: SysFilter
 }
