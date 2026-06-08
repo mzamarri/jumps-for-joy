@@ -3,6 +3,7 @@ import { InfoOverlay } from 'components/ui'
 import { Balloon, PartyPopper, ShieldCheck, CalendarCheck, ChevronRight } from 'lucide-react'
 import { SiFacebook, SiInstagram } from '@icons-pack/react-simple-icons';
 import type { LucideIcon } from 'lucide-react'
+import bounceHouse from '../../assets/logo-bounce-house-remade.png'
 
 type OverviewCard = {
     id: string;
