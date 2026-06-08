@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState } from "react"; 
 import type { PointerEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import InfoOverlay from "./info-overlay";
