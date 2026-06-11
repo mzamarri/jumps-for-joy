@@ -1,21 +1,15 @@
 import { RentalItemCard } from "components/ui";
 import { Star } from "lucide-react"
 import { graphql, useFragment } from "app/lib/gql/client"
-import type { HomeContentQuery } from "lib/gql/client/graphql";
 import type { SectionProps } from ".";
 
 const FeaturedCardFieldsFragment = graphql(`
-    fragment FeaturedCards on RentalCategory {
+    fragment FeaturedCards on RentalItemDetails {
         __typename
         sys {
             id
         }
         slug
-        rentalItemsCollection {
-            items {
-                ...RentalItemCard
-            }
-        }
     }
 `)
 

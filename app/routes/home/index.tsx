@@ -125,7 +125,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         if (loaderData.isPreview && ["featured", "hero"].includes(id)) {
             document.getElementById(id)?.scrollIntoView();
         }
-    }, [])
+}, [])
 
     return (
         <div className='home relative z-0 overflow-hidden'>

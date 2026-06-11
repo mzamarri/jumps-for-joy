@@ -6,7 +6,6 @@ import { useCart } from "context/cart-context";
 import { useToast } from "context/toast-context";
 import { graphql, useFragment, type FragmentType } from "app/lib/gql/client";
 import { useContentfulInspectorMode } from "@contentful/live-preview/react";
-import type { RentalItemCardFragment } from "lib/gql/client/graphql";
 
 const RentalItemCardFragment = graphql(`
     fragment RentalItemCard on RentalItemDetails {
@@ -34,7 +33,7 @@ const RentalItemCardFragment = graphql(`
 
 
 export type RentalItemCardProps = {
-    categorySlug: string,
+    categorySlug: string | undefined | null,
     rentalItem: FragmentType<typeof RentalItemCardFragment>
 }
 
@@ -56,7 +55,7 @@ export default function RentalItemCard({ categorySlug, rentalItem }: RentalItemC
 
     const handleNavigate = () => {
         startTransition(() => {
-            navigate(`/rentals/${categorySlug}/${rentalItemSlug}`);
+            navigate(`/rentals/${categorySlug || data?.linkedFrom?.rentalCategoryCollection?.items[0]?.slug}/${rentalItemSlug}`);
         });
     };
 
