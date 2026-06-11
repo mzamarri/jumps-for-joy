@@ -153,7 +153,6 @@ const BusinessInformationQueryDocument = graphql(`
                 }
                 phoneNumber
                 email
-                location
                 facebookLink
                 instagramLink
             }
@@ -164,13 +163,20 @@ const BusinessInformationQueryDocument = graphql(`
 export const loader = apolloLoader()(({ preloadQuery }) => {
     const contentfulLocale = process.env.CONTENTFUL_LOCALE || "en-US";
     const variables = { preview: isPreview };
-    const businessInformationRef = preloadQuery(BusinessInformationQueryDocument, { variables });
+    try {
+        const businessInformationRef = preloadQuery(BusinessInformationQueryDocument, { variables });
+    
+        return {
+            businessInformationRef,
+            isPreview,
+            contentfulLocale
+        } satisfies RootOutletContext;
+    } catch (error) {
+        console.error("FULL ERROR: ");
+        console.error(error);
 
-    return {
-        businessInformationRef,
-        isPreview,
-        contentfulLocale
-    } satisfies RootOutletContext;
+        throw error
+    }
 });
 
 export default function Root() {
@@ -178,6 +184,12 @@ export default function Root() {
     return (
         <ApolloProvider client={client}>
             <ApolloHydrationHelper>
+                <title>Party Rentals in Chandler, AZ | Jump For Joy Inflatables</title>
+                <meta property="og:title" content='Party Rentals in Chandler, AZ | Jump For Joy Inflatables' />
+                <meta 
+                    name='description' 
+                    content='Rent bounce houses, water slides, tents, tables, chairs, and party equipment for birthdays, school events, church functions, and celebrations throughout Chandler and nearby areas.' 
+                />
                 <RootContent />
             </ApolloHydrationHelper>
         </ApolloProvider>

@@ -242,7 +242,7 @@ enum EntryOrder {
 }
 
 """
-[See type definition](https://app.contentful.com/spaces/h6lueo8xvk4p/content_types/generalBusinessInformation)
+[See type definition](https://app.contentful.com/spaces/1y0rs2pqvui4/content_types/generalBusinessInformation)
 """
 type GeneralBusinessInformation implements Entry & _Node {
   _id: ID!
@@ -348,7 +348,7 @@ enum GeneralBusinessInformationOrder {
 }
 
 """
-[See type definition](https://app.contentful.com/spaces/h6lueo8xvk4p/content_types/groupedContent)
+[See type definition](https://app.contentful.com/spaces/1y0rs2pqvui4/content_types/groupedContent)
 """
 type GroupedContent implements Entry & _Node {
   _id: ID!
@@ -583,7 +583,7 @@ enum GroupedContentRentalCategoriesCursorCollectionOrder {
 }
 
 """
-[See type definition](https://app.contentful.com/spaces/h6lueo8xvk4p/content_types/heroSlide)
+[See type definition](https://app.contentful.com/spaces/1y0rs2pqvui4/content_types/heroSlide)
 """
 type HeroSlide implements Entry & _Node {
   _id: ID!
@@ -714,7 +714,7 @@ enum HeroSlideOrder {
 scalar HexColor
 
 """
-[See type definition](https://app.contentful.com/spaces/h6lueo8xvk4p/content_types/iconTextComponent)
+[See type definition](https://app.contentful.com/spaces/1y0rs2pqvui4/content_types/iconTextComponent)
 """
 type IconTextComponent implements Entry & _Node {
   _id: ID!
@@ -1028,75 +1028,6 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 scalar JSON
 
 """
-[See type definition](https://app.contentful.com/spaces/h6lueo8xvk4p/content_types/page)
-"""
-type Page implements Entry & _Node {
-  _id: ID!
-  contentfulMetadata: ContentfulMetadata!
-  landingPage(locale: String, useFallbackLocale: Boolean): String
-  linkedFrom(allowedLocales: [String]): PageLinkingCollections
-  seo(locale: String, preview: Boolean, useFallbackLocale: Boolean, where: SeoFilter): Seo
-  slug(locale: String, useFallbackLocale: Boolean): String
-  sys: Sys!
-}
-
-type PageCollection {
-  items: [Page]!
-  limit: Int!
-  skip: Int!
-  total: Int!
-}
-
-type PageCursorCollection {
-  items: [Page]!
-  limit: Int!
-  pages: CursorPages!
-}
-
-input PageFilter {
-  AND: [PageFilter]
-  OR: [PageFilter]
-  contentfulMetadata: ContentfulMetadataFilter
-  landingPage: String
-  landingPage_contains: String
-  landingPage_exists: Boolean
-  landingPage_in: [String]
-  landingPage_not: String
-  landingPage_not_contains: String
-  landingPage_not_in: [String]
-  seo: cfSeoNestedFilter
-  seo_exists: Boolean
-  slug: String
-  slug_contains: String
-  slug_exists: Boolean
-  slug_in: [String]
-  slug_not: String
-  slug_not_contains: String
-  slug_not_in: [String]
-  sys: SysFilter
-}
-
-type PageLinkingCollections {
-  entryCollection(limit: Int = 100, locale: String, preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): EntryCollection
-  entryCursorCollection(limit: Int = 100, locale: String, pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): EntryCursorCollection
-}
-
-enum PageOrder {
-  landingPage_ASC
-  landingPage_DESC
-  slug_ASC
-  slug_DESC
-  sys_firstPublishedAt_ASC
-  sys_firstPublishedAt_DESC
-  sys_id_ASC
-  sys_id_DESC
-  sys_publishedAt_ASC
-  sys_publishedAt_DESC
-  sys_publishedVersion_ASC
-  sys_publishedVersion_DESC
-}
-
-"""
 The 'Quality' type represents quality as whole numeric values between `1` and `100`.
 """
 scalar Quality
@@ -1121,9 +1052,6 @@ type Query {
   iconTextComponent(id: String!, locale: String, preview: Boolean, useFallbackLocale: Boolean): IconTextComponent
   iconTextComponentCollection(limit: Int = 100, locale: String, order: [IconTextComponentOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: IconTextComponentFilter): IconTextComponentCollection
   iconTextComponentCursorCollection(limit: Int = 100, locale: String, order: [IconTextComponentOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean, where: IconTextComponentFilter): IconTextComponentCursorCollection
-  page(id: String!, locale: String, preview: Boolean, useFallbackLocale: Boolean): Page
-  pageCollection(limit: Int = 100, locale: String, order: [PageOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: PageFilter): PageCollection
-  pageCursorCollection(limit: Int = 100, locale: String, order: [PageOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean, where: PageFilter): PageCursorCollection
   rentalCategory(id: String!, locale: String, preview: Boolean, useFallbackLocale: Boolean): RentalCategory
   rentalCategoryCollection(limit: Int = 100, locale: String, order: [RentalCategoryOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: RentalCategoryFilter): RentalCategoryCollection
   rentalCategoryCursorCollection(limit: Int = 100, locale: String, order: [RentalCategoryOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean, where: RentalCategoryFilter): RentalCategoryCursorCollection
@@ -1139,7 +1067,7 @@ type Query {
 }
 
 """
-[See type definition](https://app.contentful.com/spaces/h6lueo8xvk4p/content_types/rentalCategory)
+[See type definition](https://app.contentful.com/spaces/1y0rs2pqvui4/content_types/rentalCategory)
 """
 type RentalCategory implements Entry & _Node {
   _id: ID!
@@ -1334,7 +1262,7 @@ enum RentalCategoryRentalItemsCursorCollectionOrder {
 }
 
 """
-[See type definition](https://app.contentful.com/spaces/h6lueo8xvk4p/content_types/rentalItemDetails)
+[See type definition](https://app.contentful.com/spaces/1y0rs2pqvui4/content_types/rentalItemDetails)
 """
 type RentalItemDetails implements Entry & _Node {
   _id: ID!
@@ -1658,7 +1586,7 @@ enum RentalItemDetailsSpecificationsCursorCollectionOrder {
 }
 
 """
-[See type definition](https://app.contentful.com/spaces/h6lueo8xvk4p/content_types/seo)
+[See type definition](https://app.contentful.com/spaces/1y0rs2pqvui4/content_types/seo)
 """
 type Seo implements Entry & _Node {
   _id: ID!
@@ -1724,38 +1652,6 @@ input SeoFilter {
 type SeoLinkingCollections {
   entryCollection(limit: Int = 100, locale: String, preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): EntryCollection
   entryCursorCollection(limit: Int = 100, locale: String, pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): EntryCursorCollection
-  pageCollection(limit: Int = 100, locale: String, order: [SeoLinkingCollectionsPageCollectionOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean): PageCollection
-  pageCursorCollection(limit: Int = 100, locale: String, order: [SeoLinkingCollectionsPageCursorCollectionOrder], pageNext: String, pagePrev: String, preview: Boolean, useFallbackLocale: Boolean): PageCursorCollection
-}
-
-enum SeoLinkingCollectionsPageCollectionOrder {
-  landingPage_ASC
-  landingPage_DESC
-  slug_ASC
-  slug_DESC
-  sys_firstPublishedAt_ASC
-  sys_firstPublishedAt_DESC
-  sys_id_ASC
-  sys_id_DESC
-  sys_publishedAt_ASC
-  sys_publishedAt_DESC
-  sys_publishedVersion_ASC
-  sys_publishedVersion_DESC
-}
-
-enum SeoLinkingCollectionsPageCursorCollectionOrder {
-  landingPage_ASC
-  landingPage_DESC
-  slug_ASC
-  slug_DESC
-  sys_firstPublishedAt_ASC
-  sys_firstPublishedAt_DESC
-  sys_id_ASC
-  sys_id_DESC
-  sys_publishedAt_ASC
-  sys_publishedAt_DESC
-  sys_publishedVersion_ASC
-  sys_publishedVersion_DESC
 }
 
 enum SeoOrder {
@@ -1837,7 +1733,7 @@ type TaxonomyConcept {
 }
 
 """
-[See type definition](https://app.contentful.com/spaces/h6lueo8xvk4p/content_types/testModel)
+[See type definition](https://app.contentful.com/spaces/1y0rs2pqvui4/content_types/testModel)
 """
 type TestModel implements Entry & _Node {
   _id: ID!
@@ -2142,39 +2038,4 @@ input cfRentalItemDetailsNestedFilter {
   specificationsCollection_exists: Boolean
   sys: SysFilter
   thumbnailImage_exists: Boolean
-}
-
-input cfSeoNestedFilter {
-  AND: [cfSeoNestedFilter]
-  OR: [cfSeoNestedFilter]
-  contentfulMetadata: ContentfulMetadataFilter
-  description: String
-  description_contains: String
-  description_exists: Boolean
-  description_in: [String]
-  description_not: String
-  description_not_contains: String
-  description_not_in: [String]
-  image_exists: Boolean
-  name: String
-  name_contains: String
-  name_exists: Boolean
-  name_in: [String]
-  name_not: String
-  name_not_contains: String
-  name_not_in: [String]
-  noFollow: Boolean
-  noFollow_exists: Boolean
-  noFollow_not: Boolean
-  noIndex: Boolean
-  noIndex_exists: Boolean
-  noIndex_not: Boolean
-  sys: SysFilter
-  title: String
-  title_contains: String
-  title_exists: Boolean
-  title_in: [String]
-  title_not: String
-  title_not_contains: String
-  title_not_in: [String]
 }

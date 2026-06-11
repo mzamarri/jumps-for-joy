@@ -1,7 +1,8 @@
 import { useState, type FormEvent, type KeyboardEvent } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { ClientActionFunctionArgs } from "react-router";
-import { Mail, Phone, Clock } from "lucide-react";
+import { Mail, Phone, Clock, Link } from "lucide-react";
+import { SiFacebook, SiInstagram } from "@icons-pack/react-simple-icons";
 import Icon from 'components/ui/icon';
 import { useAppConfig } from "context/app-config-context";
 import { sendContactEmails } from "../lib/emailjs-client";
@@ -174,11 +175,30 @@ export default function ContactPage() {
                                 </ol>
                             </div>
                         </li>
+                        <li className="flex items-start gap-4">
+                            <Icon 
+                                icon={Link}
+                                containerClassName="w-12 h-12 bg-secondary/30 flex justify-center items-center rounded-lg" 
+                                iconClassName="w-6 h-6 text-primary" 
+                            />
+                            <div className="flex-1">
+                                <h1 className="text-lg font-semibold text-foreground">Social Media</h1>
+                                <p className="text-muted-foreground">Need inspiration for your next event? Consider checking out our social media and feel free to reach out to us there!</p>
+                                <div className='flex justify-center gap-3 pt-2'>
+                                    <div className='group p-4 bg-primary/10 rounded-full hover:bg-secondary/30 cursor-pointer'>
+                                        <SiFacebook size={28} className='text-primary group-hover:text-secondary-foreground'/>
+                                    </div>
+                                    <div className='group p-4 bg-primary/10 rounded-full hover:bg-secondary/30 cursor-pointer'>
+                                        <SiInstagram size={28} className='text-primary group-hover:text-secondary-foreground'/>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
                     </ul>
                 </div>
 
                 <div id="contact-form" className="max-w-2xl flex-1 rounded-2xl border border-border bg-card p-6 space-y-4">
-                    <h2 className="text-2xl font-semibold md:text-3xl">Send Us a Message</h2>
+                    <h2 className="text-2xl font-semibold md:text-3xl">Send Us A Message</h2>
                     <Form method="post" className="space-y-4 text-sm" onSubmit={handleClientValidation}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="flex flex-col gap-1 text-sm">
