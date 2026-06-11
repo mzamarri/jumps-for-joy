@@ -57,6 +57,8 @@ export default function Rentals({ loaderData }: Route.ComponentProps) {
 
     return (
         <div className='px-4 py-8 space-y-4 sm:px-6 lg:px-24'>
+            <title>Bounce Houses, Water Slides, Dry Slides & More Party Rentals</title>
+            <meta name='description' content='Browse our selection of bounce houses, water slides, tents, tables, chairs, generators, and party rentals available in Chandler, Arizona and surrounding communities.' />
             <div className='text-center space-y-3'>
                 <span className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-semibold text-sm rounded-full">
                     <Search className="w-4 h-4" /> Browse Our Collection
