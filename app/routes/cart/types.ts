@@ -6,7 +6,9 @@ export type CartItem = {
     name: string,
     cost: number;
     description: string,
-    quantity: number;
+    singleItem: boolean,
+    quantity: number,
+    image: string
     
     [key: string]: unknown;
 };

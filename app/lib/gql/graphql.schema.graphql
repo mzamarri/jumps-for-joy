@@ -390,6 +390,8 @@ enum GroupedContentFeaturedCardsCollectionOrder {
   cost_DESC
   name_ASC
   name_DESC
+  singleItem_ASC
+  singleItem_DESC
   slug_ASC
   slug_DESC
   smallDescription_ASC
@@ -415,6 +417,8 @@ enum GroupedContentFeaturedCardsCursorCollectionOrder {
   cost_DESC
   name_ASC
   name_DESC
+  singleItem_ASC
+  singleItem_DESC
   slug_ASC
   slug_DESC
   smallDescription_ASC
@@ -537,8 +541,6 @@ type GroupedContentRentalCategoriesCollection {
 enum GroupedContentRentalCategoriesCollectionOrder {
   categoryName_ASC
   categoryName_DESC
-  displayOrder_ASC
-  displayOrder_DESC
   shortDescription_ASC
   shortDescription_DESC
   slug_ASC
@@ -564,8 +566,6 @@ type GroupedContentRentalCategoriesCursorCollection {
 enum GroupedContentRentalCategoriesCursorCollectionOrder {
   categoryName_ASC
   categoryName_DESC
-  displayOrder_ASC
-  displayOrder_DESC
   shortDescription_ASC
   shortDescription_DESC
   slug_ASC
@@ -833,6 +833,8 @@ enum IconTextComponentLinkingCollectionsRentalItemDetailsCollectionOrder {
   cost_DESC
   name_ASC
   name_DESC
+  singleItem_ASC
+  singleItem_DESC
   slug_ASC
   slug_DESC
   smallDescription_ASC
@@ -852,6 +854,8 @@ enum IconTextComponentLinkingCollectionsRentalItemDetailsCursorCollectionOrder {
   cost_DESC
   name_ASC
   name_DESC
+  singleItem_ASC
+  singleItem_DESC
   slug_ASC
   slug_DESC
   smallDescription_ASC
@@ -1074,7 +1078,6 @@ type RentalCategory implements Entry & _Node {
   categoryImage(locale: String, preview: Boolean, useFallbackLocale: Boolean): Asset
   categoryName(locale: String, useFallbackLocale: Boolean): String
   contentfulMetadata: ContentfulMetadata!
-  displayOrder(locale: String, useFallbackLocale: Boolean): Int
   linkedFrom(allowedLocales: [String]): RentalCategoryLinkingCollections
   longDescription(locale: String, useFallbackLocale: Boolean): String
   rentalItemsCollection(limit: Int = 100, locale: String, order: [RentalCategoryRentalItemsCollectionOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: RentalItemDetailsFilter): RentalCategoryRentalItemsCollection
@@ -1110,15 +1113,6 @@ input RentalCategoryFilter {
   categoryName_not_contains: String
   categoryName_not_in: [String]
   contentfulMetadata: ContentfulMetadataFilter
-  displayOrder: Int
-  displayOrder_exists: Boolean
-  displayOrder_gt: Int
-  displayOrder_gte: Int
-  displayOrder_in: [Int]
-  displayOrder_lt: Int
-  displayOrder_lte: Int
-  displayOrder_not: Int
-  displayOrder_not_in: [Int]
   longDescription: String
   longDescription_contains: String
   longDescription_exists: Boolean
@@ -1192,8 +1186,6 @@ enum RentalCategoryLinkingCollectionsGroupedContentCursorCollectionOrder {
 enum RentalCategoryOrder {
   categoryName_ASC
   categoryName_DESC
-  displayOrder_ASC
-  displayOrder_DESC
   shortDescription_ASC
   shortDescription_DESC
   slug_ASC
@@ -1222,6 +1214,8 @@ enum RentalCategoryRentalItemsCollectionOrder {
   cost_DESC
   name_ASC
   name_DESC
+  singleItem_ASC
+  singleItem_DESC
   slug_ASC
   slug_DESC
   smallDescription_ASC
@@ -1247,6 +1241,8 @@ enum RentalCategoryRentalItemsCursorCollectionOrder {
   cost_DESC
   name_ASC
   name_DESC
+  singleItem_ASC
+  singleItem_DESC
   slug_ASC
   slug_DESC
   smallDescription_ASC
@@ -1276,6 +1272,7 @@ type RentalItemDetails implements Entry & _Node {
   linkedFrom(allowedLocales: [String]): RentalItemDetailsLinkingCollections
   longDescription(locale: String, useFallbackLocale: Boolean): String
   name(locale: String, useFallbackLocale: Boolean): String
+  singleItem(locale: String, useFallbackLocale: Boolean): Boolean
   slug(locale: String, useFallbackLocale: Boolean): String
   smallDescription(locale: String, useFallbackLocale: Boolean): String
   specificationsCollection(limit: Int = 100, locale: String, order: [RentalItemDetailsSpecificationsCollectionOrder], preview: Boolean, skip: Int = 0, useFallbackLocale: Boolean, where: IconTextComponentFilter): RentalItemDetailsSpecificationsCollection
@@ -1398,6 +1395,9 @@ input RentalItemDetailsFilter {
   name_not: String
   name_not_contains: String
   name_not_in: [String]
+  singleItem: Boolean
+  singleItem_exists: Boolean
+  singleItem_not: Boolean
   slug: String
   slug_contains: String
   slug_exists: Boolean
@@ -1460,8 +1460,6 @@ enum RentalItemDetailsLinkingCollectionsGroupedContentCursorCollectionOrder {
 enum RentalItemDetailsLinkingCollectionsRentalCategoryCollectionOrder {
   categoryName_ASC
   categoryName_DESC
-  displayOrder_ASC
-  displayOrder_DESC
   shortDescription_ASC
   shortDescription_DESC
   slug_ASC
@@ -1481,8 +1479,6 @@ enum RentalItemDetailsLinkingCollectionsRentalCategoryCollectionOrder {
 enum RentalItemDetailsLinkingCollectionsRentalCategoryCursorCollectionOrder {
   categoryName_ASC
   categoryName_DESC
-  displayOrder_ASC
-  displayOrder_DESC
   shortDescription_ASC
   shortDescription_DESC
   slug_ASC
@@ -1504,6 +1500,8 @@ enum RentalItemDetailsOrder {
   cost_DESC
   name_ASC
   name_DESC
+  singleItem_ASC
+  singleItem_DESC
   slug_ASC
   slug_DESC
   smallDescription_ASC
@@ -1947,15 +1945,6 @@ input cfRentalCategoryNestedFilter {
   categoryName_not_contains: String
   categoryName_not_in: [String]
   contentfulMetadata: ContentfulMetadataFilter
-  displayOrder: Int
-  displayOrder_exists: Boolean
-  displayOrder_gt: Int
-  displayOrder_gte: Int
-  displayOrder_in: [Int]
-  displayOrder_lt: Int
-  displayOrder_lte: Int
-  displayOrder_not: Int
-  displayOrder_not_in: [Int]
   longDescription: String
   longDescription_contains: String
   longDescription_exists: Boolean
@@ -2021,6 +2010,9 @@ input cfRentalItemDetailsNestedFilter {
   name_not: String
   name_not_contains: String
   name_not_in: [String]
+  singleItem: Boolean
+  singleItem_exists: Boolean
+  singleItem_not: Boolean
   slug: String
   slug_contains: String
   slug_exists: Boolean

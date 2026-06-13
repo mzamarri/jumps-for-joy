@@ -16,6 +16,7 @@ const RentalItemCardFragment = graphql(`
         name
         cost
         smallDescription
+        singleItem
         slug
         thumbnailImage {
             contentType
@@ -44,6 +45,7 @@ export default function RentalItemCard({ categorySlug, rentalItem }: RentalItemC
         name,
         cost,
         smallDescription: description,
+        singleItem,
         slug: rentalItemSlug,
         thumbnailImage
     } = data;
@@ -66,8 +68,9 @@ export default function RentalItemCard({ categorySlug, rentalItem }: RentalItemC
             name: name ?? "",
             cost: cost ?? 0,
             description: description ?? "",
+            singleItem: singleItem ?? false,
             quantity: 1,
-            image: thumbnailImage?.url
+            image: thumbnailImage?.url || ""
         });
         showToast(`${name} successfully added`);
     };
