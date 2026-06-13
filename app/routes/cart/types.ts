@@ -2,7 +2,7 @@ import type { Dispatch, FormEvent, SetStateAction } from "react";
 import type { LucideIcon } from "lucide-react";
 
 export type CartItem = {
-    id: number | string;
+    id: string;
     name: string,
     cost: number;
     description: string,

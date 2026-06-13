@@ -5,6 +5,7 @@ import { ArrowRight, Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
 import { useAppConfig } from "context/app-config-context";
 import type { CartItem } from "./types.js";
 import { graphql, useFragment, type FragmentType } from "lib/gql/client/";
+import { useContentfulInspectorMode } from "@contentful/live-preview/react";
 // import Item from './Item'
 
 export default function CartSection() {
@@ -118,17 +119,37 @@ function Item({
         setValue(lastPositive.current);
     }
 
-        return (
+    const inspectorProps = useContentfulInspectorMode({ entryId: item?.id });
+
+    return (
         <li className='w-full bg-card border border-border rounded-xl shadow-md overflow-hidden'>
             <div className="flex flex-col sm:flex-row sm:items-start gap-4 p-4">
                 <div className='h-40 w-full sm:w-32 sm:h-32 bg-muted rounded-lg overflow-hidden flex items-center justify-center shrink-0'>
-                    <img src={item?.image} alt={String(item?.name ?? "Rental item")} className="h-full w-full object-contain p-3" />
+                    <img 
+                        src={item?.image} 
+                        alt={String(item?.name ?? "Rental item")} 
+                        className="h-full w-full object-contain p-3"
+                        {...inspectorProps({ fieldId: "thumbnailImage" })}
+                    />
                 </div>
                 <div className="max-h-32 flex-1 flex items-start justify-between gap-4">
                     <div className="flex flex-col">
-                        <h2 className='sm:text-xl text-foreground font-semibold'>{String(item.name ?? "Rental Item")}</h2>
-                        <p className="text-primary sm:text-lg font-bold">${item?.cost}/day</p>
-                        <p className="max-w-3xs text-xs sm:text-sm text-muted-foreground">
+                        <h2 
+                            className='sm:text-xl text-foreground font-semibold'
+                            {...inspectorProps({ fieldId: "name" })}
+                        >
+                            {String(item.name ?? "Rental Item")}
+                        </h2>
+                        <p 
+                            className="text-primary sm:text-lg font-bold"
+                            {...inspectorProps({ fieldId: "cost" })}
+                        >
+                            ${item?.cost}/day
+                        </p>
+                        <p 
+                            className="max-w-3xs text-xs sm:text-sm text-muted-foreground"
+                            {...inspectorProps({ fieldId: "smallDescription" })}
+                        >
                             {item?.description}
                         </p>
                     </div>
@@ -176,5 +197,5 @@ function Item({
                 </div>
             }
         </li>
-    )
+        )
 }
