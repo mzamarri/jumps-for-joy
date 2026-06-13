@@ -64,7 +64,7 @@ export default function RentalItemCard({ categorySlug, rentalItem }: RentalItemC
     const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
         event.stopPropagation();
         addItem({
-            id: rentalItemSlug ?? "",
+            id: sys.id ?? "",
             name: name ?? "",
             cost: cost ?? 0,
             description: description ?? "",
