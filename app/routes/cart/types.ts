@@ -1,17 +1,30 @@
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import type { LucideIcon } from "lucide-react";
 
-export type CartItem = {
-    id: string;
+export interface BaseCartItem {
+    readonly id: string,
     name: string,
-    cost: number;
+    cost: number,
     description: string,
-    singleItem: boolean,
-    quantity: number,
-    image: string
-    
-    [key: string]: unknown;
-};
+    image: string,
+    singleItem: boolean
+}
+
+export interface SingleCartItem extends BaseCartItem {
+    singleItem: true
+}
+
+export interface MultiCartItem extends BaseCartItem {
+    singleItem: false,
+    quantity: number
+}
+
+export type CartItem = SingleCartItem | MultiCartItem;
+
+export type KeyOfUnion<T> = T extends unknown ? keyof T : never
+export type DistributivePick<T, K extends KeyOfUnion<T>> = T extends unknown 
+    ? Pick<T, Extract<keyof T, K>> 
+    : never
 
 export type FieldName =
     | "firstName"

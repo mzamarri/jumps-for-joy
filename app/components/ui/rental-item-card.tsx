@@ -51,7 +51,7 @@ export default function RentalItemCard({ categorySlug, rentalItem }: RentalItemC
     } = data;
 
     const navigate = useNavigate();
-    const { addItem } = useCart();
+    const { cart, addItem } = useCart();
     const { showToast } = useToast();
     const inspectorProps = useContentfulInspectorMode({ entryId: sys?.id });
 
@@ -63,13 +63,17 @@ export default function RentalItemCard({ categorySlug, rentalItem }: RentalItemC
 
     const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
         event.stopPropagation();
+        
+        if (singleItem && cart.find(item => item.id === sys.id)) {
+            showToast(`${name} already added`);
+            return;
+        }
         addItem({
             id: sys.id ?? "",
             name: name ?? "",
             cost: cost ?? 0,
             description: description ?? "",
             singleItem: singleItem ?? false,
-            quantity: 1,
             image: thumbnailImage?.url || ""
         });
         showToast(`${name} successfully added`);

@@ -121,7 +121,7 @@ export function validateDraft(draft: RequestDraft): ValidationErrors {
         errors.time = "Select a valid setup time.";
     }
 
-    if (draft.duration.trim() && draft.duration !== "same day") {
+    if (![-1, 1, 2, 3].some(val => val === Number(draft.duration))) {
         errors.duration = "Select a valid rental duration.";
     }
 

@@ -25,7 +25,8 @@ export default function RentalCategoryCard({ rentalCategory }: { rentalCategory:
     return (
         <Link
             to={`/rentals/${category?.slug}`}
-            className='block overflow-hidden rounded-xl border border-border bg-card shadow-md transition-transform hover:cursor-pointer hover:-translate-y-1'
+            className='block overflow-hidden rounded-xl w-sm border border-border bg-card shadow-md transition-transform hover:cursor-pointer hover:-translate-y-1'
+            draggable={false}
         >
             <div 
                 className='flex aspect-square items-center justify-center bg-muted md:h-64 md:aspect-auto'

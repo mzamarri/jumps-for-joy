@@ -1,5 +1,5 @@
 // Cart-specific helpers for draft persistence
-import type { RequestDraft } from "./types";
+import type { RequestDraft, CartItem, MultiCartItem, DistributivePick } from "./types";
 
 export const CLIENT_DRAFT_STORAGE_KEY = "jump-for-joy-client-draft";
 export const persistedClientFields = [
@@ -12,6 +12,7 @@ export const persistedClientFields = [
     "city",
     "state",
     "zip",
+    "duration"
 ] as const;
 
 export function readPersistedClientDraft(): Partial<RequestDraft> {
@@ -31,4 +32,8 @@ export function pickPersistedClientDraft(draft: RequestDraft): Partial<RequestDr
         acc[fieldName] = draft[fieldName];
         return acc;
     }, {} as Partial<RequestDraft>);
+}
+
+export function getCost(item: DistributivePick<CartItem, "singleItem" | "quantity" | "cost">) {
+    return item.singleItem ? item.cost : item.quantity * item.cost;
 }

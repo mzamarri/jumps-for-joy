@@ -133,7 +133,7 @@ function resolveAppConfig(baseConfig: AppConfig, cmsBusinessInfo?: CmsBusinessIn
             email: email
                 ? { display: email, href: createEmailHref(email) }
                 : fallbackBusinessConfig.business.email,
-            location: location || fallbackBusinessConfig.business.location,
+            location: location,
             social: {
                 ...fallbackBusinessConfig.business.social,
                 facebook: facebookLink || fallbackBusinessConfig.business.social.facebook,
@@ -155,6 +155,7 @@ const BusinessInformationQueryDocument = graphql(`
                 email
                 facebookLink
                 instagramLink
+                location
             }
         }
     }

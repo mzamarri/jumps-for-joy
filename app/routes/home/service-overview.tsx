@@ -3,7 +3,7 @@ import { InfoOverlay } from 'components/ui'
 import { Balloon, PartyPopper, ShieldCheck, CalendarCheck, ChevronRight } from 'lucide-react'
 import { SiFacebook, SiInstagram } from '@icons-pack/react-simple-icons';
 import type { LucideIcon } from 'lucide-react'
-import bounceHouse from '../../assets/logo-bounce-house-remade.png'
+import bounceHouse from '../../assets/service-overview-picture.png'
 
 type OverviewCard = {
     id: string;
@@ -62,8 +62,8 @@ export default function ServiceOverview() {
                     <span className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-semibold text-sm rounded-full">
                         <Balloon className='w-4 h-4'/> What We Do
                     </span>
-                    <div className='flex flex-col-reverse items-center gap-8 lg:flex-row lg:items-start lg:gap-16 text-center lg:text-center'>
-                        <div className='space-y-4 lg:flex-2'>
+                    <div className='flex flex-col-reverse items-center gap-8 lg:flex-row lg:items-center lg:gap-16 text-center lg:text-center'>
+                        <div className='space-y-4 lg:flex-3'>
                             <h1 className='text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl'>
                                 Party Rentals For Every Occasion
                             </h1>
@@ -77,16 +77,11 @@ export default function ServiceOverview() {
                                 setup with reliable rental support from planning through event day.
                             </p>
                         </div>  
-                        <div className='flex-1 relative w-full max-w-40 sm:max-w-48 md:max-w-56 lg:max-w-sm overflow-hidden rounded-full lg:border- border-primary lg:flex-1'>
-                            <div
-                                className='absolute inset-0 bg-card'
-                            />
-                            <img 
-                                src={bounceHouse}
-                                alt="Bounce House Image"
-                                className='relative z-10 w-full object-contain bg-muted lgbg-secondary/80'
-                            />
-                        </div>
+                        <img 
+                            src={bounceHouse}
+                            alt="Bounce House Image"
+                            className='relative z-10 flex-2 max-w-40 sm:max-w-48 md:max-w-56 lg:max-w-md rounded-full lg:flex-1'
+                        />
                     </div>
                     <div className='grid grid-cols-1 gap-3 md:grid-cols-3'>
                         {cards.map(card => (

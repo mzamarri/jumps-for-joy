@@ -1,18 +1,21 @@
-import { Link } from "react-router"
+import { Link, useOutletContext } from "react-router"
 import { useState, useRef } from "react"
 import { useCart } from 'context/cart-context'
 import { ArrowRight, Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
 import { useAppConfig } from "context/app-config-context";
-import type { CartItem } from "./types.js";
-import { graphql, useFragment, type FragmentType } from "lib/gql/client/";
+import type { CartItem, CartOutletContext } from "./types.js";
 import { useContentfulInspectorMode } from "@contentful/live-preview/react";
+import { Info } from 'lucide-react'
 // import Item from './Item'
 
 export default function CartSection() {
+    const { draft, setDraft } = useOutletContext<CartOutletContext>();
     const { cart, removeItem, updateQuantity } = useCart();
     const { booking } = useAppConfig();
+    
+    const duration = Number(draft?.duration) || 1;
     const deliveryFee = booking.deliveryFee;
-    const subtotal = cart.reduce((subTotal, item) => subTotal + (item.cost * item.quantity), 0);
+    const subtotal = cart.reduce((subTotal, item) => subTotal + (item.cost * (item.singleItem ? 1 : item.quantity)), 0) * (duration === -1 ? 1 : duration);
 
     return (
         <div className="space-y-8 py-8">
@@ -44,30 +47,53 @@ export default function CartSection() {
                                     top: "calc(var(--h-nav) + 16 * var(--spacing))"
                                 }}
                             >
-                                <div className='bg-card border border-border rounded-lg overflow-hidden shadow-md'>
-                                    <div className="px-6">
-                                        <h1 className='text-2xl border- border-border py-6 font-semibold'>Order Summary</h1>
-                                        <div className="py-3 border-t border-border">
-                                            <h3 className='flex justify-between text-muted-foreground'>
-                                                <span>SubTotal: </span>
-                                                <span>{`$${subtotal}`}</span>
-                                            </h3>
-                                            <h1 className='flex justify-between text-muted-foreground'>
-                                                <span>Delivery Fee: </span>
-                                                <span>{`$${deliveryFee}`}</span>
-                                            </h1>
-                                        </div>
-                                        <div className='flex justify-between items-center text-xl pt-4 border-t border-border'>
-                                            <h2 className="font-semibold">Total: </h2>
-                                            <span className="text-primary font-bold">{`$${deliveryFee + subtotal}`}</span>
-                                        </div>
-                                        <Link 
-                                            to="/cart/details"
-                                            className='bg-accent text-accent-foreground sm:text-sm font-semibold py-3 my-6 rounded-lg flex items-center justify-center gap-2 hover:cursor-pointer hover:bg-accent/90'
+                                <div className='bg-card border border-border rounded-lg overflow-hidden shadow-md p-6'>
+                                    <h1 className='text-2xl font-semibold'>Order Summary</h1>
+                                    <div className="py-4 flex items-center gap-2">
+                                        <label htmlFor="duration" className="text-lg">Duration:</label>
+                                        <select
+                                            id="duration"
+                                            name="duration"
+                                            required
+                                            className="w-full bg-background p-2 rounded-sm border border-border"
+                                            value={duration}
+                                            onChange={(e) => setDraft(prev => ({
+                                                ...prev,
+                                                duration: e.target.value
+                                            }))}
                                         >
-                                            Continue to Details <ArrowRight className="w-4 h-4"/>
-                                        </Link>
+                                            <option value={1}>1 Day</option>
+                                            <option value={2}>2 Days</option>
+                                            <option value={3}>3 Days</option>
+                                            <option value={-1}>4+ Days</option>
+                                        </select>
                                     </div>
+                                    <div className="py-4 border-t border-border">
+                                        <h3 className='flex justify-between text-muted-foreground'>
+                                            <span>SubTotal: </span>
+                                            <span>{`$${subtotal} ${duration === -1 ? "/day" : ""}`}</span>
+                                        </h3>
+                                        <h1 className='flex justify-between text-muted-foreground'>
+                                            <span>Delivery Fee: </span>
+                                            <span>{`$${deliveryFee}`}</span>
+                                        </h1>
+                                    </div>
+                                    <div className='flex justify-between items-center text-xl py-4 border-t border-border'>
+                                        <h2 className="font-semibold">Total: </h2>
+                                        <span className="text-primary font-bold">
+                                            {`$${duration === -1 ? `${subtotal}/day` : deliveryFee + subtotal } ${duration === -1 ? ` + $${deliveryFee}` : ""}`}
+                                        </span>
+                                    </div>
+                                    <Link 
+                                        to="/cart/details"
+                                        className='bg-accent text-accent-foreground sm:text-sm font-semibold py-3 rounded-lg flex items-center justify-center gap-2 hover:cursor-pointer hover:bg-accent/90'
+                                        onClick={() => setDraft(prev => ({
+                                            ...prev,
+                                            duration: String(duration)
+                                        }))}
+                                    >
+                                        Continue to Details <ArrowRight className="w-4 h-4"/>
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -107,8 +133,10 @@ function Item({
     updateItemQuantity: (id: CartItem["id"], quantity: number) => void;
     removeItem: (id: CartItem["id"]) => void;
 }) {
-    const [ value, setValue ] = useState(item.quantity)
-    const lastPositive = useRef(item.quantity <= 0 ? -1 : item.quantity)
+    const quantity = item.singleItem ? 1 : item.quantity;
+    const [ value, setValue ] = useState(quantity);
+    const [ tooltipOpen, setTooltipOpen ] = useState(false);
+    const lastPositive = useRef(quantity <= 0 ? -1 : quantity)
 
     const updateCartValue = (nextValue: number | string) => {
         const parsedValue = typeof nextValue === "number" ? nextValue : Number(nextValue);
@@ -161,41 +189,73 @@ function Item({
                     </button>
                 </div>
             </div>
-            {item?.singleItem ? null :
-                <div className="flex justify-between items-center gap-4 bg-background border-t border-border p-4">
-                    <div className='flex items-center gap-2'>
-                        <button 
-                            type='button'
-                            className='w-10 h-10 rounded-full font-bold bg-muted sm:bg-background hover:bg-muted border border-border text-foreground flex justify-center items-center hover:cursor-pointer'
-                            onClick={() => updateCartValue(item.quantity - 1)}
-                        >
-                            <Minus className="w-5 h-5"/>
-                        </button>
-                        <input
-                            min='1'
-                            className='w-8 text-foreground font-semibold focus:outline-none text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none'
-                            type='number'
-                            value={value}
-                            onChange={e => setValue(Number(e.target.value))}
-                            onKeyDown={e => {
-                                if (e.key === "Enter") {
-                                    updateCartValue((e.target as HTMLInputElement).value);
-                                    e.target.blur();
-                                }
-                            }}
-                            onBlur={() => setValue(lastPositive.current)}
-                        />
-                        <button
-                            type='button'
-                            className='w-10 h-10 rounded-full font-bold bg-muted sm:bg-background hover:bg-muted border border-border text-foreground flex justify-center items-center hover:cursor-pointer'
-                            onClick={() => updateCartValue(item.quantity + 1)}
-                        >
-                            <Plus className="w-5 h-5"/>
-                        </button>
-                    </div>           
-                    <span className="text-lg font-bold">${item.cost * item.quantity}</span>
-                </div>
-            }
+            <div className="flex justify-between items-center gap-4 bg-background border-t border-border p-4 h-20">
+                <div className='flex items-center gap-2'>
+                    {item?.singleItem 
+                        ? (
+                            <div className="relative group">
+                                <Info className="w-5 text-primary" onClick={() => setTooltipOpen(prev => !prev)} />
+                                <div 
+                                    className={`
+                                        absolute top-1/2 -translate-y-1/2 -right-3 translate-x-full
+                                        sm:opacity-0 sm:invisible transition-opacity duration-200 sm:group-hover:visible sm:group-hover:opacity-100
+                                        ${tooltipOpen ? "opacity-100 visible" : "opacity-0 invisible"}
+                                    `}
+                                >
+                                    <div 
+                                        className="
+                                            absolute left-0 -translate-x-1/2 top-1/2 -translate-y-1/2 rotate-45
+                                            w-3 h-3 bg-primary
+                                        "
+                                    />
+                                    <p 
+                                        className="
+                                            bg-primary text-primary-foreground p-2 text-xs sm:w-xs w-64
+                                        "
+                                    >
+                                        Need more than one? This item is fixed to one due to limited inventory. Mention the quantity 
+                                        you’d like in "Important Information", and we’ll check availability.
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <button 
+                                    type='button'
+                                    className='w-10 h-10 rounded-full font-bold bg-muted sm:bg-background hover:bg-muted border border-border text-foreground flex justify-center items-center hover:cursor-pointer'
+                                    onClick={() => updateCartValue(item.quantity - 1)}
+                                >
+                                    <Minus className="w-5 h-5"/>
+                                </button>
+                                <div>
+                                    <input
+                                        min='1'
+                                        className='w-8 text-foreground font-semibold focus:outline-none text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none'
+                                        type='number'
+                                        value={value}
+                                        onChange={e => setValue(Number(e.target.value))}
+                                        onKeyDown={e => {
+                                            if (e.key === "Enter") {
+                                                updateCartValue((e.target as HTMLInputElement).value);
+                                                e.target.blur();
+                                            }
+                                        }}
+                                        onBlur={() => setValue(lastPositive.current)}
+                                    />
+                                </div>
+                                <button
+                                    type='button'
+                                    className='w-10 h-10 rounded-full font-bold bg-muted sm:bg-background hover:bg-muted border border-border text-foreground flex justify-center items-center hover:cursor-pointer'
+                                    onClick={() => updateCartValue(item.quantity + 1)}
+                                >
+                                    <Plus className="w-5 h-5"/>
+                                </button>
+                            </>
+                        )
+                    }
+                </div>           
+                <span className="text-lg font-bold">${item.cost * (item.singleItem ? 1 : item.quantity)}</span>
+            </div>
         </li>
     )
 }

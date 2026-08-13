@@ -21,7 +21,14 @@ const stepperSections = [
 ]
 
 export default function CartLayout() {
-    const [draft, setDraft] = useState(initialRequestDraft);
+    const [ draft, setDraft ] = useState(initialRequestDraft);
+    
+    useEffect(() => {
+        window.addEventListener("beforeunload", (e) => {
+            e.preventDefault();
+            
+        })
+    }, []);
 
     useEffect(() => {
         const persistedClientDraft = readPersistedClientDraft();

@@ -8,6 +8,7 @@ import type { CartOutletContext, FieldName, RequestDraft, ReviewSection } from "
 import { sanitizeFieldValue, validateDraft, validateField } from "./validation.js";
 import { removePreviousPhoneDigit } from "../../lib/validation/form";
 import { sendBookingRequestEmails } from "lib/emailjs-client"
+import { getCost } from './cart-helpers.js';
 
 const fieldSections: ReviewSection[] = [
     {
@@ -46,11 +47,6 @@ const fieldSections: ReviewSection[] = [
                 id: "street",
                 type: "text",
                 label: "Street Address"
-            },
-            {
-                id: "unit",
-                type: "text",
-                label: "Unit"
             },
             {
                 id: "city",
@@ -155,7 +151,7 @@ export default function ReviewSection() {
     const navigation = useNavigation();
     const isSubmitting = navigation.state === "submitting";
     const deliveryFee = booking.deliveryFee;
-    const subtotal = cart.reduce((sum, item) => sum + item.cost * item.quantity, 0);
+    const subtotal = cart.reduce((sum, item) => sum + getCost(item), 0);
     const total = subtotal + deliveryFee;
 
     const handleEdit = (field: FieldName) => setEditingField(field)
@@ -189,7 +185,7 @@ export default function ReviewSection() {
     const cityStateZip = [cityAndState, draft.zip.trim()].filter(Boolean).join(" ");
     const fullAddress = [draft.street.trim(), draft.unit.trim(), cityStateZip].filter(Boolean).join("\n");
     const itemsSummary = cart
-        .map(item => `${item.quantity} x ${String(item.name ?? "Rental Item")} - ${formatCurrency(item.cost * item.quantity)}`)
+        .map(item => `${item.singleItem ? 1 : item.quantity} x ${String(item.name ?? "Rental Item")} - ${formatCurrency(getCost(item))}`)
         .join("\n");
 
     const emailParams = {
@@ -306,11 +302,11 @@ export default function ReviewSection() {
                                             {String(item.name ?? "Rental Item")}
                                         </h2>
                                         <p className='text-sm text-muted-foreground'>
-                                            qty: {item.quantity} x {formatCurrency(item.cost)}
+                                            qty: {item.singleItem ? 1 : item.quantity} x {formatCurrency(item.cost)}
                                         </p>
                                     </div>
                                     <p className='rounded-full bg-secondary px-4 py-2 font-semibold text-secondary-foreground'>
-                                        {formatCurrency(item.cost * item.quantity)}
+                                        {formatCurrency(getCost(item))}
                                     </p>
                                 </div>
                             ))

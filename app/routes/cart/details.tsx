@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import { Link, useOutletContext } from "react-router"
 import { ArrowLeft, ArrowRight, CalendarDays, MapPin, User } from "lucide-react";
 import type { CartOutletContext, FieldName, InputConfig, SectionConfig } from "./types.js";
@@ -122,26 +122,6 @@ const formSections: SectionConfig[] = [
                         type: "time",
                         required: true
                     }
-                },
-                {
-                    label: "Duration",
-                    input: {
-                        id: "duration",
-                        name: "duration",
-                        type: "select",
-                        required: true,
-                        options: [
-                            {
-                                value: "",
-                                disabled: true,
-                                displayText: "Select "
-                            },
-                            {
-                                value: "same day",
-                                displayText: "Same Day"
-                            }
-                        ]
-                    }
                 }
             ],
             [
@@ -187,9 +167,12 @@ const allFieldNames = formSections.flatMap(section =>
 
 export default function DetailsSection() {
     const { draft, setDraft } = useOutletContext<CartOutletContext>();
-    const [touched, setTouched] = useState<TouchedFields>({});
+    const [ touched, setTouched ] = useState<TouchedFields>({});
     const errors = validateDraft(draft);
+    console.log("# of errors: ", errors);
     const canReviewRequest = Object.keys(errors).length === 0;
+
+    console.log("duration: ", draft.duration)
 
     const markAllFieldsTouched = () => {
         setTouched(Object.fromEntries(allFieldNames.map(fieldName => [fieldName, true])) as TouchedFields);
@@ -213,7 +196,7 @@ export default function DetailsSection() {
 
         if (!canReviewRequest) {
             event.preventDefault();
-            return;
+            return true;
         }
     };
 
@@ -299,7 +282,7 @@ type UserInputProps = {
     value: string;
     onChange: (name: FieldName, value: string) => void;
     error?: string;
-};
+}
 
 function UserInput({ label, input, grow=1, value, onChange, error }: UserInputProps) {
     const { id, name, type, required } = input;

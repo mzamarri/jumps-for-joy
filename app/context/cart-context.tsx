@@ -1,25 +1,32 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import type { CartItem } from "../routes/cart/types.js";
+import type { BaseCartItem, CartItem, MultiCartItem, SingleCartItem } from "../routes/cart/types.js";
 
-type CartContextValue = {
+type CartContext = {
     cart: CartItem[];
-    addItem: (item: CartItem) => void;
+    addItem: (item:  BaseCartItem) => void;
     removeItem: (id: CartItem["id"]) => void;
-    updateItem: (id: CartItem["id"], changes: Partial<CartItem>) => void;
+    updateItem: (updatedItem: (
+        Partial<Omit<MultiCartItem, "id" | "singleItem">>
+        & Pick<MultiCartItem, "id">
+    ) | (
+        Partial<Omit<SingleCartItem, "id" | "singleItem">>
+        & Pick<SingleCartItem, "id" | "singleItem">
+    )) => void;
     updateQuantity: (id: CartItem["id"], quantity: number) => void;
     clearCart: () => void;
     totalItems: number;
 };
 
-const CartContext = createContext<CartContextValue | null>(null);
-const CART_STORAGE_KEY = "jump-for-joy-cart";
-const CART_STORAGE_VERSION = 1;
-
 type StoredCartPayload = {
-    version: typeof CART_STORAGE_VERSION;
     items: CartItem[];
 };
 
+const CART_STORAGE_KEY = "jump-for-joy-cart";
+
+const CartContext = createContext<CartContext | null>(null);
+
+// Thinking of returning SingleCartItem and MultiCartItem types instead of just CartItem types.
+// It will make it easier to implement cart items that way I believe.
 const isCartItem = (value: unknown): value is CartItem => {
     if (typeof value !== "object" || value === null) {
         return false;
@@ -27,14 +34,28 @@ const isCartItem = (value: unknown): value is CartItem => {
 
     const item = value as Record<string, unknown>;
 
+
+    if (
+        typeof item.id !== "string"
+        && typeof item.name !== "string"
+        && typeof item.cost !== "number"
+        && !Number.isFinite(item.cost)
+        && typeof item.description !== "string"
+        && typeof item.image !== "string"
+        && typeof item.singleItem !== "boolean"
+    ) {
+        return false
+    }
+
+    if (item.singleItem === true) {
+        return true
+    }
+
     return (
-        (typeof item.id === "string" || typeof item.id === "number")
-        && typeof item.cost === "number"
-        && Number.isFinite(item.cost)
-        && typeof item.quantity === "number"
+        typeof item.quantity === "number"
         && Number.isFinite(item.quantity)
         && item.quantity > 0
-    );
+    )
 };
 
 const readStoredCart = (): CartItem[] => {
@@ -49,11 +70,7 @@ const readStoredCart = (): CartItem[] => {
             return [];
         }
 
-        const parsedCart = JSON.parse(rawCart) as StoredCartPayload;
-
-        if (parsedCart.version !== CART_STORAGE_VERSION || !Array.isArray(parsedCart.items)) {
-            return [];
-        }
+        const parsedCart = JSON.parse(rawCart);
 
         return parsedCart.items.filter(isCartItem);
     } catch {
@@ -67,8 +84,7 @@ const writeStoredCart = (cart: CartItem[]) => {
     }
 
     const payload: StoredCartPayload = {
-        version: CART_STORAGE_VERSION,
-        items: cart,
+        items: cart
     };
 
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(payload));
@@ -104,18 +120,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             setCart(readStoredCart());
         };
 
-        window.addEventListener("storage", syncCartFromStorage);
-
-        return () => window.removeEventListener("storage", syncCartFromStorage);
+        window.addEventListener("storage", syncCartFromStorage); 
     }, []);
 
-    const addItem = (item: CartItem) => {
+    const addItem: CartContext["addItem"] = (item) => {
         setCart(prev => {
-            const existing = prev.find(i => i.id === item.id);
-            if (existing) {
-                return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i);
+            const prevItem: CartItem | undefined = prev.find(i => i.id === item.id);
+            if (prevItem) {
+                if (prevItem.singleItem) {
+                    return prev
+                }
+                const updatedItem = { ...prevItem, quantity: prevItem.quantity + 1 }
+                return prev.map(i => i.id === prevItem.id ? updatedItem : i);
             }
-            return [...prev, item];
+
+            const newItem: CartItem = item.singleItem 
+                ? {
+                    ...item,
+                    singleItem: true
+                } : {
+                    ...item,
+                    singleItem: false,
+                    quantity: 1
+                }
+            return [...prev, newItem]
         });
     };
 
@@ -123,21 +151,32 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setCart(prev => prev.filter(i => i.id !== id));
     };
 
-    const updateItem = (id: CartItem["id"], changes: Partial<CartItem>) => {
-        setCart(prev => prev.map(i => i.id === id ? { ...i, ...changes } : i));
+    const updateItem: CartContext["updateItem"] = (
+        updatedItem
+    ) => {
+        setCart(prev => prev.map(i => {
+            if (i.id !== updatedItem.id) return i;
+
+            return { 
+                ...i,
+                ...Object.fromEntries(
+                    Object.entries(updatedItem).filter(([,value]) => value !== undefined)
+                )
+             }
+        }));
     };
 
     const updateQuantity = (id: CartItem["id"], quantity: number) => {
         if (quantity <= 0) {
             removeItem(id);
         } else {
-            updateItem(id, { quantity });
+            updateItem({id, quantity});
         }
     };
 
     const clearCart = () => setCart([]);
 
-    const totalItems = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
+    const totalItems = useMemo(() => cart.reduce((sum, item) => sum + (item.singleItem === false ? item.quantity : 1), 0), [cart]);
 
     return (
         <CartContext value={{ cart, addItem, removeItem, updateItem, updateQuantity, clearCart, totalItems }}>

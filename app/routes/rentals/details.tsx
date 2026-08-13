@@ -18,6 +18,7 @@ const ItemDetailsFragment = graphql(`
         cost
         smallDescription
         longDescription
+        singleItem
         specificationsCollection {
             items {
                 __typename
@@ -112,13 +113,10 @@ export default function RentalDetails() {
     ].filter(image => image.url);
     
     const cartItem = {
-        id: rentalItem.slug ?? rentalItem.name ?? "rental-item",
-        name: rentalItem.name,
-        cost: rentalItem.cost ?? 0,
-        image: normalizeImageUrl(rentalItem.thumbnailImage?.url),
-        summary: rentalItem.smallDescription ?? "",
-        categoryId,
-        quantity: 1
+        slug: rentalItem?.slug,
+        quantity: 1,
+        singleItem: rentalItem?.singleItem,
+        item: rentalItem
     };
 
     return (
