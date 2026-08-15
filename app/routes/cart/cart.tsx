@@ -48,26 +48,7 @@ export default function CartSection() {
                                 }}
                             >
                                 <div className='bg-card border border-border rounded-lg overflow-hidden shadow-md p-6'>
-                                    <h1 className='text-2xl font-semibold'>Order Summary</h1>
-                                    <div className="py-4 flex items-center gap-2">
-                                        <label htmlFor="duration" className="text-lg">Duration:</label>
-                                        <select
-                                            id="duration"
-                                            name="duration"
-                                            required
-                                            className="w-full bg-background p-2 rounded-sm border border-border"
-                                            value={duration}
-                                            onChange={(e) => setDraft(prev => ({
-                                                ...prev,
-                                                duration: e.target.value
-                                            }))}
-                                        >
-                                            <option value={1}>1 Day</option>
-                                            <option value={2}>2 Days</option>
-                                            <option value={3}>3 Days</option>
-                                            <option value={-1}>4+ Days</option>
-                                        </select>
-                                    </div>
+                                    <h1 className='text-2xl font-semibold mb-4'>Order Summary</h1>
                                     <div className="py-4 border-t border-border">
                                         <h3 className='flex justify-between text-muted-foreground'>
                                             <span>SubTotal: </span>
@@ -87,10 +68,6 @@ export default function CartSection() {
                                     <Link 
                                         to="/cart/details"
                                         className='bg-accent text-accent-foreground sm:text-sm font-semibold py-3 rounded-lg flex items-center justify-center gap-2 hover:cursor-pointer hover:bg-accent/90'
-                                        onClick={() => setDraft(prev => ({
-                                            ...prev,
-                                            duration: String(duration)
-                                        }))}
                                     >
                                         Continue to Details <ArrowRight className="w-4 h-4"/>
                                     </Link>

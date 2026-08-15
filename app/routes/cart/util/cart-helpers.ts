@@ -1,5 +1,5 @@
 // Cart-specific helpers for draft persistence
-import type { RequestDraft, CartItem, MultiCartItem, DistributivePick } from "./types";
+import type { RequestDraft, CartItem, DistributivePick } from "../types";
 
 export const CLIENT_DRAFT_STORAGE_KEY = "jump-for-joy-client-draft";
 export const persistedClientFields = [

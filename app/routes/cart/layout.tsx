@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { Check } from "lucide-react"
 import { Outlet, useLocation } from "react-router"
 import { initialRequestDraft } from "./types.js";
-import { readPersistedClientDraft, pickPersistedClientDraft, CLIENT_DRAFT_STORAGE_KEY } from "./cart-helpers";
+import { readPersistedClientDraft, pickPersistedClientDraft, CLIENT_DRAFT_STORAGE_KEY } from "./util/cart-helpers.js";
 
 
 const stepperSections = [
@@ -20,6 +20,11 @@ const stepperSections = [
     }
 ]
 
+// Create a loader function to preload any form data or start fresh. As of now 
+// there is a bug with link in details.tsx. Since useEffect calls setDraft after
+// loading draft from local storage, the time before causes link to navigate even
+// if the fields contains errors. 
+
 export default function CartLayout() {
     const [ draft, setDraft ] = useState(initialRequestDraft);
     
@@ -30,17 +35,17 @@ export default function CartLayout() {
         })
     }, []);
 
-    useEffect(() => {
-        const persistedClientDraft = readPersistedClientDraft();
-        if (Object.keys(persistedClientDraft).length === 0) return;
-        setDraft(prev => ({ ...prev, ...persistedClientDraft }));
-    }, []);
+    // useEffect(() => {
+    //     const persistedClientDraft = readPersistedClientDraft();
+    //     if (Object.keys(persistedClientDraft).length === 0) return;
+    //     setDraft(prev => ({ ...prev, ...persistedClientDraft }));
+    // }, []);
 
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-        const persistedClientDraft = pickPersistedClientDraft(draft);
-        window.localStorage.setItem(CLIENT_DRAFT_STORAGE_KEY, JSON.stringify(persistedClientDraft));
-    }, [draft]);
+    // useEffect(() => {
+    //     if (typeof window === "undefined") return;
+    //     const persistedClientDraft = pickPersistedClientDraft(draft);
+    //     window.localStorage.setItem(CLIENT_DRAFT_STORAGE_KEY, JSON.stringify(persistedClientDraft));
+    // }, [draft]);
 
     return (
         <div style={{"--h-stepper": "4rem"}}>

@@ -1,6 +1,11 @@
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import type { LucideIcon } from "lucide-react";
 
+export type KeyOfUnion<T> = T extends unknown ? keyof T : never
+export type DistributivePick<T, K extends KeyOfUnion<T>> = T extends unknown 
+    ? Pick<T, Extract<keyof T, K>> 
+    : never
+
 export interface BaseCartItem {
     readonly id: string,
     name: string,
@@ -21,10 +26,28 @@ export interface MultiCartItem extends BaseCartItem {
 
 export type CartItem = SingleCartItem | MultiCartItem;
 
-export type KeyOfUnion<T> = T extends unknown ? keyof T : never
-export type DistributivePick<T, K extends KeyOfUnion<T>> = T extends unknown 
-    ? Pick<T, Extract<keyof T, K>> 
-    : never
+export interface UserInputProps {
+    type: "select" | "textarea" | "input",
+
+}
+
+export interface FieldConfig {
+    label: string,
+    id: string,
+    name: FieldName,
+    type: "text" | "email" | "tel" | "date" | "time" | "text-area" | "select",
+    required: boolean,
+    options?: SelectOption[],
+    rows?: number,
+    grow?: number,
+}
+
+export interface FieldSection {
+    id: "primary-contact" | "rental-address" | "event-info",
+    name: "Primary Contact" | "Rental Address" | "Event Information",
+    icon: LucideIcon,
+    fields: FieldConfig[] | FieldConfig[][]
+}
 
 export type FieldName =
     | "firstName"
@@ -58,21 +81,6 @@ export type SelectOption = {
     displayText: string;
 };
 
-export type InputConfig = {
-    id: string;
-    name: FieldName;
-    type: "text" | "email" | "tel" | "date" | "time" | "text-area" | "select";
-    required: boolean;
-    rows?: number;
-    options?: SelectOption[];
-};
-
-export type FieldConfig = {
-    label: string;
-    input: InputConfig;
-    grow?: number;
-};
-
 export type SectionConfig = {
     id: string;
     name: string;
@@ -80,21 +88,7 @@ export type SectionConfig = {
     fields: Array<FieldConfig | FieldConfig[]>;
 };
 
-export type SectionId = "primaryContact" | "rentalAddress" | "eventInfo";
-
-export type ReviewField = {
-    id: FieldName;
-    type: InputConfig["type"];
-    label: string;
-    options?: SelectOption[];
-};
-
-export type ReviewSection = {
-    id: SectionId;
-    title: string;
-    icon: LucideIcon;
-    fields: ReviewField[];
-};
+export type SectionId = "primary-contact" | "rental-address" | "event-info";
 
 export const initialRequestDraft: RequestDraft = {
     firstName: "",

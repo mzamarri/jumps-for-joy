@@ -1,100 +1,85 @@
-import { useEffect, useState, type KeyboardEvent } from "react";
-import { Link, useOutletContext } from "react-router"
+import { useEffect, useState, type Dispatch, type KeyboardEvent, type SetStateAction } from "react";
+import { Link, useOutlet, useOutletContext } from "react-router"
 import { ArrowLeft, ArrowRight, CalendarDays, MapPin, User } from "lucide-react";
-import type { CartOutletContext, FieldName, InputConfig, SectionConfig } from "./types.js";
-import { sanitizeFieldValue, type TouchedFields, validateDraft } from "./validation.js";
-import { removePreviousPhoneDigit } from "../../lib/validation/form";
+import type { CartOutletContext, FieldConfig, FieldSection, FieldName, SectionConfig, RequestDraft } from "./types.js";
+import { sanitizeFieldValue, type TouchedFields, validateDraft, type ValidationErrors } from "./util/validation.js";
+import { formatPhoneNumber, formatZipCode, isValidPhoneNumberInput, removePreviousPhoneDigit, sanitizePhoneNumber, sanitizeZip } from "../../lib/validation/form";
+import type { Route } from "./+types/details.js";
 
-const formSections: SectionConfig[] = [
+const fieldSections: FieldSection[] = [
     {
-        id: "user-details",
-        name: "User Details",
+        id: "primary-contact",
+        name: "Primary Contact",
         icon: User,
         fields: [
             [
                 {
                     label: "First Name",
-                    input: {
-                        id: "first-name",
-                        name: "firstName",
-                        type: "text",
-                        required: true
-                    }
+                    id: "first-name",
+                    name: "firstName",
+                    type: "text",
+                    required: true
                 },
                 {
                     label: "Last Name",
-                    input: {
-                        id: "last-name",
-                        name: "lastName",
-                        type: "text",
-                        required: true
-                    }
+                    id: "last-name",
+                    name: "lastName",
+                    type: "text",
+                    required: true
                 }
             ],
             [
                 {
                     label: "Phone Number",
-                    input: {
-                        id: "phone-number",
-                        name: "phoneNumber",
-                        type: "tel",
-                        required: true
-                    }
+                    id: "phone-number",
+                    name: "phoneNumber",
+                    type: "tel",
+                    required: true
 
                 },
                 {
                     label: "Email Address",
-                    input: {
-                        id: "email",
-                        name: "email",
-                        type: "email",
-                        required: true
-                    }
+                    id: "email",
+                    name: "email",
+                    type: "email",
+                    required: true
                 }
             ]
         ]
     },
     {
-        id: "setup-location",
-        name: "Setup Location",
+        id: "rental-address",
+        name: "Rental Address",
         icon: MapPin,
         fields: [
             {
                 label: "Street Address",
-                input: {
-                    id: "street",
-                    name: "street",
-                    type: "text",
-                    required: true
-                }
+                id: "street",
+                name: "street",
+                type: "text",
+                required: true
             },
             [
                 {
                     label: "City",
-                    input: {
-                        id: "city",
-                        name: "city",
-                        type: "text",
-                        required: true
-                    }
+                    id: "city",
+                    name: "city",
+                    type: "text",
+                    required: true
                 },
                 {
                     label: "State",
-                    input: {
-                        id: "state",
-                        name: "state",
-                        type: "text",
-                        required: true
-                    }
+                    id: "state",
+                    name: "state",
+                    type: "text",
+                    required: true
                 },
                 {
                     label: "Zip",
-                    input: {
-                        id: "zip",
-                        name: "zip",
-                        type: "text",
-                        required: true
-                    }
+                    id: "zip",
+                    name: "zip",
+                    type: "text",
+                    required: true
                 }
             ]
         ]
@@ -107,96 +92,97 @@ const formSections: SectionConfig[] = [
             [
                 {
                     label: "Rental Date",
-                    input: {
-                        id: "date",
-                        name: "date",
-                        type: "date",
-                        required: true
-                    }
+                    id: "date",
+                    name: "date",
+                    type: "date",
+                    required: true
                 },
                 {
                     label: "Setup Time",
-                    input: {
-                        id: "time",
-                        name: "time",
-                        type: "time",
-                        required: true
-                    }
+                    id: "time",
+                    name: "time",
+                    type: "time",
+                    required: true
                 }
             ],
             [
                 {
                     label: "Event Type",
-                    input: {
-                        id: "event-type",
-                        name: "eventType",
-                        type: "text",
-                        required: false,
-                    }
+                    id: "event-type",
+                    name: "eventType",
+                    type: "text",
+                    required: false
                 },
                 {
                     label: "Surface Type for Setup",
-                    input: {
-                        id: "surface-type",
-                        name: "surfaceType",
-                        type: "text",
-                        required: true
-                    }
+                    id: "surface-type",
+                    name: "surfaceType",
+                    type: "select",
+                    required: true,
+                    options: [
+                        {
+                            value: "",
+                            displayText: "Choose a Surface Type",
+                            disabled: true
+                        },
+                        {
+                            value: "grass",
+                            displayText: "grass"
+                        }
+                    ]
                 }
             ],
             {
                 label: "Special Instructions/Important Information",
-                input: {
-                    id: "notes",
-                    name: "notes",
-                    type: "text-area",
-                    required: false,
-                    rows: 6
-                }
+                id: "notes",
+                name: "notes",
+                type: "text-area",
+                required: false,
+                rows: 6
             }
         ]
     }
 ]
+export { fieldSections as detailsFieldSections }
 
-const allFieldNames = formSections.flatMap(section =>
+const allFieldNames = fieldSections.flatMap(section =>
     section.fields.flatMap(row => {
         const fields = Array.isArray(row) ? row : [row];
-        return fields.map(field => field.input.name);
+        return fields.map(field => field.name);
     })
 );
 
-export default function DetailsSection() {
-    const { draft, setDraft } = useOutletContext<CartOutletContext>();
-    const [ touched, setTouched ] = useState<TouchedFields>({});
-    const errors = validateDraft(draft);
-    console.log("# of errors: ", errors);
-    const canReviewRequest = Object.keys(errors).length === 0;
+export function loader() {
+    return { draft: {} };
+}
 
-    console.log("duration: ", draft.duration)
+export default function DetailsSection({ loaderData }: Route.ComponentProps) {
+    const [ errors, setErrors ] = useState<ValidationErrors>(validateDraft(loaderData.draft));
+    const [ canReviewRequest, setCanReviewRequest ] = useState(true);
+    console.log("errors: ", errors);
 
-    const markAllFieldsTouched = () => {
-        setTouched(Object.fromEntries(allFieldNames.map(fieldName => [fieldName, true])) as TouchedFields);
-    };
+    const validateField = (fieldName: FieldName, draft: RequestDraft): string => {
+        if (canReviewRequest) {
+            return "";
+        };
 
-    const handleFieldChange = (name: FieldName, value: string) => {
-        const nextValue = sanitizeFieldValue(name, value);
-
-        setTouched(prev => ({
-            ...prev,
-            [name]: true,
-        }));
-        setDraft(prev => ({
-            ...prev,
-            [name]: nextValue,
-        }));
-    };
+        setErrors(validateDraft(draft));
+        if (Object.keys(errors).length === 0) {
+            setCanReviewRequest(true);
+        }
+        return errors[fieldName] !== undefined ? errors[fieldName] : "";
+    }
 
     const handleReviewRequest = (event: React.MouseEvent<HTMLAnchorElement>) => {
-        markAllFieldsTouched();
-
         if (!canReviewRequest) {
             event.preventDefault();
-            return true;
+            return;
+        }
+
+        if (Object.keys(errors).length !== 0) {
+            event.preventDefault();
+            setCanReviewRequest(false);
+            return;
         }
     };
 
@@ -213,7 +199,7 @@ export default function DetailsSection() {
                 <p className='text-lg text-muted-foreground'>This will help us prepare an accurate quote & schedule</p>
             </div>
             <div className='text-foreground bg-card border border-border p-4 sm:p-6 space-y-8'>
-                {formSections.map(section => (
+                {fieldSections.map(section => (
                     <div
                         key={section.id}
                         className="space-y-6 sm:space-y-8"
@@ -229,29 +215,25 @@ export default function DetailsSection() {
                                 ? (
                                     <div key={`field-row-${section.id}-${idx}`} className="flex flex-col md:flex-row gap-x-4 gap-y-1 sm:gap-x-8">
                                         {
-                                            field.map(({ label, input, grow }) => (
-                                                <UserInput
-                                                    key={input.id}
-                                                    label={label}
-                                                    input={input}
-                                                    grow={grow}
-                                                    value={draft[input.name]}
-                                                    onChange={handleFieldChange}
-                                                    error={touched[input.name] ? errors[input.name] : undefined}
+                                            field.map(f => (
+                                                <Field
+                                                    key={f.id}
+                                                    field={f}
+                                                    error={errors[f.name] ?? ""}
+                                                    canReviewRequest={canReviewRequest}
+                                                    validateField={validateField}
                                                 />
                                             ))
                                         }
                                     </div>
                                 )
                                 : (
-                                    <UserInput
-                                        key={field.input.id}
-                                        label={field.label}
-                                        input={field.input}
-                                        grow={field.grow}
-                                        value={draft[field.input.name]}
-                                        onChange={handleFieldChange}
-                                        error={touched[field.input.name] ? errors[field.input.name] : undefined}
+                                    <Field
+                                        key={field.id}
+                                        field={field}
+                                        error={errors[field.name] ?? ""}
+                                        canReviewRequest={canReviewRequest}
+                                        validateField={validateField}
                                     />
                                 )
                             )}
@@ -262,6 +244,7 @@ export default function DetailsSection() {
             <Link
                 to="/cart/review"
                 onClick={handleReviewRequest}
+                
                 aria-disabled={!canReviewRequest}
                 className={`w-full py-3 rounded-xl font-semibold flex justify-center items-center gap-2 ${
                     canReviewRequest
@@ -275,78 +258,79 @@ export default function DetailsSection() {
     )
 }
 
-type UserInputProps = {
-    label: string;
-    input: InputConfig;
-    grow?: number | undefined;
-    value: string;
-    onChange: (name: FieldName, value: string) => void;
-    error?: string;
-}
-
-function UserInput({ label, input, grow=1, value, onChange, error }: UserInputProps) {
-    const { id, name, type, required } = input;
+function Field({ field, error, canReviewRequest, validateField }: { 
+    field: FieldConfig, 
+    error: string,
+    canReviewRequest: boolean, 
+    validateField: (fieldName: FieldName, draft: RequestDraft) => string
+}) {
+    const { draft, setDraft } = useOutletContext<CartOutletContext>();
+    const [ checkError, setCheckError ] = useState(true);
 
     const handleFieldChange = (nextValue: string) => {
-        onChange(name, nextValue);
-    };
-
-    const handlePhoneKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-        if (event.key !== "Backspace") {
-            return;
+        const newDraft = {...draft};
+        switch (field.name) {
+            case "phoneNumber":
+                const digits = sanitizePhoneNumber(nextValue);
+                newDraft[field.name] = formatPhoneNumber(digits);
+                break;
+            case "zip":
+                const zip = sanitizeZip(nextValue);
+                newDraft[field.name] = formatZipCode(zip);
+                break;
+            default:
+                newDraft[field.name] = nextValue;
         }
 
-        const { selectionStart, selectionEnd } = event.currentTarget;
-
-        if (selectionStart === null || selectionEnd === null) {
-            return;
+        setDraft(newDraft);
+        if (!canReviewRequest) {
+            validateField(field.name, newDraft);
         }
-
-        event.preventDefault();
-        handleFieldChange(removePreviousPhoneDigit(value, selectionStart, selectionEnd));
-    };
+    }
 
     return (
         <div 
             className="min-w-0 flex flex-1 basis-0 flex-col space-y-1"
-            style={{flexGrow: grow}}
+            style={{flexGrow: field?.grow}}
         >
             <label 
-                htmlFor={id}
+                htmlFor={field.id}
                 className="font-semibold"
             >
-                { `${label}${required ? " *" : ""}` }
+                { `${field.label}${field.required ? " *" : ""}` }
             </label>
             {
-                type === "text-area"
+                field.type === "text-area"
                     ? (
                         <textarea
-                            id={id}
-                            name={name}
-                            className={`w-full bg-background p-2 rounded-sm border ${error ? "border-destructive" : "border-border"}`}
-                            required={required}
-                            rows={input.rows}
-                            value={value}
+                            id={field.id}
+                            name={field.name}
+                            className={`w-full bg-background p-2 rounded-sm border ${!canReviewRequest && checkError && error ? "border-destructive" : "border-border"}`}
+                            required={field.required}
+                            rows={field.rows}
+                            value={draft[field.name]}
                             onChange={e => handleFieldChange(e.target.value)}
-                            onBlur={() => handleFieldChange(value)}
-                            aria-invalid={Boolean(error)}
-                            aria-describedby={error ? `${id}-error` : undefined}
+                            onFocus={() => setCheckError(false)}
+                            onBlur={() => setCheckError(true)}
+                            aria-invalid={Boolean(!canReviewRequest  && error)}
+                            aria-describedby={!canReviewRequest && checkError && error ? `${field.id}-error` : undefined}
                         />
                     ) 
-                    : type === "select"
+                    : field.type === "select"
                         ? (
                             <select
-                                id={id}
-                                name={name}
-                                className={`w-full bg-background p-2 rounded-sm border ${error ? "border-destructive" : "border-border"}`}
-                                required={required}
-                                value={value}
+                                id={field.id}
+                                name={field.name}
+                                className={`w-full bg-background p-2 rounded-sm border ${!canReviewRequest && checkError && error ? "border-destructive" : "border-border"}`}
+                                required={field.required}
+                                value={draft[field.name]}
+                                onFocus={() => setCheckError(false)}
+                                onBlur={() => setCheckError(true)}
                                 onChange={e => handleFieldChange(e.target.value)}
-                                onBlur={() => handleFieldChange(value)}
                                 aria-invalid={Boolean(error)}
-                                aria-describedby={error ? `${id}-error` : undefined}
+                                aria-describedby={error ? `${field.id}-error` : undefined}
                             >
-                                {input.options?.map((option, idx) => (
+                                {field.options?.map((option, idx) => (
                                     <option
                                         key={idx}
                                         value={option.value}
@@ -359,25 +343,25 @@ function UserInput({ label, input, grow=1, value, onChange, error }: UserInputPr
                         ) 
                         : (
                             <input
-                                type={type}
-                                id={id}
-                                name={name}
-                                className={`w-full bg-background p-2 rounded-sm border ${error ? "border-destructive" : "border-border"}`}
-                                required={required}
-                                value={value}
+                                type={field.type}
+                                id={field.id}
+                                name={field.name}
+                                className={`w-full bg-background p-2 rounded-sm border ${!canReviewRequest && checkError && error ? "border-destructive" : "border-border"}`}
+                                required={field.required}
+                                value={draft[field.name]}
                                 onChange={e => handleFieldChange(e.target.value)}
-                                onKeyDown={name === "phoneNumber" ? handlePhoneKeyDown : undefined}
-                                onBlur={() => handleFieldChange(value)}
-                                aria-invalid={Boolean(error)}
-                                aria-describedby={error ? `${id}-error` : undefined}
-                                inputMode={name === "phoneNumber" || name === "zip" ? "numeric" : undefined}
-                                maxLength={name === "phoneNumber" ? 14 : name === "state" ? 2 : name === "zip" ? 10 : undefined}
+                                onFocus={() => setCheckError(false)}
+                                onBlur={() => setCheckError(true)}
+                                aria-invalid={Boolean(!canReviewRequest && checkError  && error)}
+                                aria-describedby={!canReviewRequest && checkError  && error ? `${field.id}-error` : undefined}
+                                inputMode={field.name === "phoneNumber" || field.name === "zip" ? "numeric" : undefined}
+                                maxLength={field.name === "phoneNumber" ? 14 : field.name === "state" ? 2 : field.name === "zip" ? 10 : undefined}
                             />
                         )
             }
             <p
-                id={`${id}-error`}
-                className={`min-h-5 text-sm font-medium leading-5 text-destructive ${error ? "visible" : "invisible"}`}
+                id={`${field.id}-error`}
+                className={`min-h-5 text-sm font-medium leading-5 text-destructive ${!canReviewRequest && checkError  && error ? "visible" : "invisible"}`}
             >
                 {error ?? "No validation error"}
             </p>
