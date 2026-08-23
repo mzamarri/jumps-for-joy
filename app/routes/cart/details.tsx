@@ -1,10 +1,9 @@
-import { useEffect, useState, type Dispatch, type KeyboardEvent, type SetStateAction } from "react";
-import { Link, useOutlet, useOutletContext } from "react-router"
+import { useState } from "react";
+import { Link, useOutletContext } from "react-router"
 import { ArrowLeft, ArrowRight, CalendarDays, MapPin, User } from "lucide-react";
-import type { CartOutletContext, FieldConfig, FieldSection, FieldName, SectionConfig, RequestDraft } from "./types.js";
-import { sanitizeFieldValue, type TouchedFields, validateDraft, type ValidationErrors } from "./util/validation.js";
-import { formatPhoneNumber, formatZipCode, isValidPhoneNumberInput, removePreviousPhoneDigit, sanitizePhoneNumber, sanitizeZip } from "../../lib/validation/form";
-import type { Route } from "./+types/details.js";
+import { type CartOutletContext, type FieldConfig, type FieldSection, type FieldName, type RequestDraft } from "./types.js";
+import { validateDraft, type ValidationErrors, formatField } from "./util/validation.js";
+import { writeStorageDraft } from "./util/storage.js";
 
 const fieldSections: FieldSection[] = [
     {
@@ -114,7 +113,7 @@ const fieldSections: FieldSection[] = [
                     required: false
                 },
                 {
-                    label: "Surface Type for Setup",
+                    label: "Surface Type",
                     id: "surface-type",
                     name: "surfaceType",
                     type: "select",
@@ -128,6 +127,10 @@ const fieldSections: FieldSection[] = [
                         {
                             value: "grass",
                             displayText: "grass"
+                        },
+                        {
+                            value: "concrete",
+                            displayText: "Concrete"
                         }
                     ]
                 }
@@ -145,31 +148,24 @@ const fieldSections: FieldSection[] = [
 ]
 export { fieldSections as detailsFieldSections }
 
-const allFieldNames = fieldSections.flatMap(section =>
-    section.fields.flatMap(row => {
-        const fields = Array.isArray(row) ? row : [row];
-        return fields.map(field => field.name);
-    })
-);
-
-export function loader() {
-    return { draft: {} };
-}
-
-export default function DetailsSection({ loaderData }: Route.ComponentProps) {
-    const [ errors, setErrors ] = useState<ValidationErrors>(validateDraft(loaderData.draft));
+export default function DetailsSection() {
+    const { draft } = useOutletContext<CartOutletContext>();
+    const [ errors, setErrors ] = useState<ValidationErrors>(validateDraft(draft));
     const [ canReviewRequest, setCanReviewRequest ] = useState(true);
-    console.log("errors: ", errors);
+    console.log("Errors: ", errors)
 
     const validateField = (fieldName: FieldName, draft: RequestDraft): string => {
+        const newErrors = validateDraft(draft);
+        setErrors(newErrors);
+        
         if (canReviewRequest) {
             return "";
         };
 
-        setErrors(validateDraft(draft));
-        if (Object.keys(errors).length === 0) {
+        if (Object.keys(newErrors).length === 0) {
             setCanReviewRequest(true);
         }
+
         return errors[fieldName] !== undefined ? errors[fieldName] : "";
     }
 
@@ -184,6 +180,8 @@ export default function DetailsSection({ loaderData }: Route.ComponentProps) {
             setCanReviewRequest(false);
             return;
         }
+
+        writeStorageDraft(false, draft);
     };
 
     return (
@@ -268,24 +266,11 @@ function Field({ field, error, canReviewRequest, validateField }: {
     const [ checkError, setCheckError ] = useState(true);
 
     const handleFieldChange = (nextValue: string) => {
-        const newDraft = {...draft};
-        switch (field.name) {
-            case "phoneNumber":
-                const digits = sanitizePhoneNumber(nextValue);
-                newDraft[field.name] = formatPhoneNumber(digits);
-                break;
-            case "zip":
-                const zip = sanitizeZip(nextValue);
-                newDraft[field.name] = formatZipCode(zip);
-                break;
-            default:
-                newDraft[field.name] = nextValue;
-        }
+        const newDraft = { ...draft };
+        newDraft[field.name] = formatField(field.name, nextValue);
 
         setDraft(newDraft);
-        if (!canReviewRequest) {
-            validateField(field.name, newDraft);
-        }
+        validateField(field.name, newDraft);
     }
 
     return (

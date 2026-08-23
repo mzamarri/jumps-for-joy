@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Check } from "lucide-react"
 import { Outlet, useLocation } from "react-router"
-import { initialRequestDraft } from "./types.js";
-import { readPersistedClientDraft, pickPersistedClientDraft, CLIENT_DRAFT_STORAGE_KEY } from "./util/cart-helpers.js";
+import { readStorageDraft } from "./util/storage.js";
+import { useCart } from "context/cart-context.js";
+import { useAppConfig } from "context/app-config-context.js";
+import type { Route } from "./+types/layout.js";
 
 
 const stepperSections = [
@@ -24,33 +26,28 @@ const stepperSections = [
 // there is a bug with link in details.tsx. Since useEffect calls setDraft after
 // loading draft from local storage, the time before causes link to navigate even
 // if the fields contains errors. 
+export async function clientLoader() {
+    const draft = readStorageDraft();
+    return { draft }
+}
 
-export default function CartLayout() {
-    const [ draft, setDraft ] = useState(initialRequestDraft);
-    
-    useEffect(() => {
-        window.addEventListener("beforeunload", (e) => {
-            e.preventDefault();
-            
-        })
-    }, []);
+export function HydrateFallback() {
+    return <div className="h-full">is Loading...</div>
+}
 
-    // useEffect(() => {
-    //     const persistedClientDraft = readPersistedClientDraft();
-    //     if (Object.keys(persistedClientDraft).length === 0) return;
-    //     setDraft(prev => ({ ...prev, ...persistedClientDraft }));
-    // }, []);
-
-    // useEffect(() => {
-    //     if (typeof window === "undefined") return;
-    //     const persistedClientDraft = pickPersistedClientDraft(draft);
-    //     window.localStorage.setItem(CLIENT_DRAFT_STORAGE_KEY, JSON.stringify(persistedClientDraft));
-    // }, [draft]);
+export default function CartLayout({ loaderData }: Route.ComponentProps) {
+    const [ draft, setDraft ] = useState(loaderData.draft);
+    const { booking } = useAppConfig();
+    const { cart } = useCart();
+    const cost = {
+        subTotal: cart.reduce((subTotal, item) => subTotal + (item.cost * (item.singleItem ? 1 : item.quantity)), 0),
+        deliveryFee: booking.deliveryFee,
+    }
 
     return (
         <div style={{"--h-stepper": "4rem"}}>
             <RentalRequestStepper />
-            <Outlet context={{ draft, setDraft }} />
+            <Outlet context={{ draft, setDraft, cost }} />
         </div>
     )
 }

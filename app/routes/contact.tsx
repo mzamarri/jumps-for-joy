@@ -7,11 +7,8 @@ import Icon from 'components/ui/icon';
 import { useAppConfig } from "context/app-config-context";
 import { sendContactEmails } from "../lib/emailjs-client";
 import {
-    formatPhoneNumber,
-    isValidEmail,
-    isValidPhoneNumber,
-    removePreviousPhoneDigit,
-    PHONE_NUMBER_ERROR_MESSAGE,
+    formatField,
+    isValidField,
 } from "../lib/validation/form";
 
 const initialContactForm = {
@@ -31,10 +28,10 @@ export async function clientAction({ request }: ClientActionFunctionArgs) {
     if (!name || !email || !message) {
         return { error: "Please enter your name, email, and message before submitting." };
     }
-    if (!isValidEmail(email)) {
+    if (!isValidField("email", email)) {
         return { error: "Please enter a valid email address, like name@example.com." };
     }
-    if (phone && !isValidPhoneNumber(phone)) {
+    if (phone && !isValidField("phoneNumber", phone)) {
         return { error: PHONE_NUMBER_ERROR_MESSAGE };
     }
 
@@ -75,12 +72,12 @@ export default function ContactPage() {
             setClientError("Please enter your name, email, and message before submitting.");
             return;
         }
-        if (!isValidEmail(form.email)) {
+        if (!isValidField("email", form.email)) {
             event.preventDefault();
             setClientError("Please enter a valid email address, like name@example.com.");
             return;
         }
-        if (form.phone.trim() && !isValidPhoneNumber(form.phone)) {
+        if (form.phone.trim() && !isValidField("phoneNumber", form.phone)) {
             event.preventDefault();
             setClientError(PHONE_NUMBER_ERROR_MESSAGE);
             return;
@@ -88,7 +85,7 @@ export default function ContactPage() {
     };
 
     const handleFieldChange = (field: keyof typeof form, value: string) => {
-        const nextValue = field === "phone" ? formatPhoneNumber(value) : value;
+        const nextValue = field === "phone" ? formatField("phoneNumber", value) : value;
 
         setForm(prev => ({
             ...prev,

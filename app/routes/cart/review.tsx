@@ -1,14 +1,12 @@
-import { useCallback, useEffect, useState, type FormEvent, type KeyboardEvent } from 'react'
-import { Link, useNavigation, useOutletContext, Form, redirect, useOutlet } from "react-router";
-import { ArrowLeft, Save, SquarePen, User, MapPin, CalendarDays, ShoppingBag } from 'lucide-react';
+import { useState, type FormEvent, useRef, useEffect } from 'react'
+import { Link,  useOutletContext, Form, redirect } from "react-router";
+import { ArrowLeft, Save, SquarePen, ShoppingBag } from 'lucide-react';
 import Icon from 'components/ui/icon';
 import { useCart } from "context/cart-context";
-import { useAppConfig } from "context/app-config-context";
-import type { CartOutletContext, FieldConfig, FieldName, FieldSection, RequestDraft } from "./types.js";
-import { sanitizeFieldValue, validateDraft, validateField } from "./util/validation.js";
-import { removePreviousPhoneDigit } from "../../lib/validation/form";
+import { fields, initialRequestDraft, type CartItem, type CartOutletContext, type FieldConfig, type FieldName, type KeyOfUnion, type RequestDraft } from "./types.js";
+import { formatField, validateDraft, type ValidationErrors } from "./util/validation.js";
 import { sendBookingRequestEmails } from "lib/emailjs-client"
-import { getCost } from './util/cart-helpers.js';
+import { getCost, writeStorageDraft } from './util/storage.js';
 import { detailsFieldSections } from './details.js';
 
 const fieldSections = detailsFieldSections.map(section => ({
@@ -16,27 +14,88 @@ const fieldSections = detailsFieldSections.map(section => ({
     fields: section.fields.flat()
 }))
 
-const formatValidationMessage = (errors: Record<string, string>) =>
-    `Please fix the following before submitting: ${Object.values(errors).join(" ")}`;
+export type EmailName = 
+    | "fullName"
+    | "fullAddress"
+    | "itemsSummary"
+    | "deliveryFee"
+    | "subTotal"
+    | "total"
+    | Extract<
+        FieldName,
+        | "phoneNumber"
+        | "email"
+        | "date"
+        | "time"
+        | "eventType"
+        | "surfaceType"
+        | "notes"
+    >
+export type EmailFormat = Record<EmailName, string>
+
+export type CartItemValidation = [
+    {}
+]
 
 export async function clientAction({ request }: { request: Request }) {
     console.log("running action...")
     const formData = await request.formData();
-    const intent = String(formData.get("_intent") ?? "");
+    const draft: RequestDraft = { ...initialRequestDraft }
 
-    if (intent !== "submit-booking") {
-        return null;
+    for (const fieldName of fields) {
+        const fieldValue = formData.get(fieldName) ?? "";
+        draft[fieldName] = typeof fieldValue === "string" ? fieldValue : "";
     }
 
-    const serializedEmailParams = String(formData.get("emailParams") ?? "");
+    const normalizeCart = (cartData: FormDataEntryValue | null): CartItem[] => {
+        if (typeof cartData !== "string") {
+            return []
+        }
 
-    if (!serializedEmailParams) {
-        return { error: "Unable to submit request. Please try again." };
+        const parsedCartData = JSON.parse(cartData);
+        if (!Array.isArray(parsedCartData) || parsedCartData.length === 0) {
+            return []
+        }
+
+        const cart: CartItem[] = []
+        const id: KeyOfUnion<CartItem> = "id";
+        const name: KeyOfUnion<CartItem> = "name";
+        const cost: KeyOfUnion<CartItem> = "cost";
+        const description: KeyOfUnion<CartItem> = "description";
+        const image: KeyOfUnion<CartItem> = "image";
+        const singleItem: KeyOfUnion<CartItem> = "singleItem";
+        const quantity: KeyOfUnion<CartItem> = "quantity";
+
+        for (const item of parsedCartData) {
+            if (
+                (id in item && typeof item[id] === "string") &&
+                (name in item && typeof item[name] === "string") &&
+                (cost in item && typeof item[cost] === "number") &&
+                (description in item && typeof item[description] === "string") &&
+                (image in item && typeof item === "string") &&
+                (singleItem in item && typeof item[singleItem] === "boolean")
+            ) {
+                if (item[singleItem] === false && quantity in item && typeof item[quantity] === "number") {
+                    cart.push({
+                        id: item[id],
+                        name: item[name],
+                        cost: item[cost],
+                        description: item[description],
+                        image: item[image],
+                        singleItem: false,
+                        quantity: item[quantity]
+                    })
+                }
+            }
+        }
+
+        return cart;
     }
 
     try {
-        const emailParams = JSON.parse(serializedEmailParams) as Record<string, string>;
-        await sendBookingRequestEmails(emailParams);
+        const cart = normalizeCart(formData.get("cart"));
+        await sendBookingRequestEmails(draft);
+        writeStorageDraft(true, draft);
         console.log("Successfully sent");
     } catch (error) {
         console.error("Booking request email failed", error);
@@ -48,37 +107,36 @@ export async function clientAction({ request }: { request: Request }) {
 
 export default function ReviewSection() {
     const { cart } = useCart()
-    const [ errors, setErrors ] = useState<ValidationErrors>(validateDraft({}));
-    const [ canSubmitRequest, setCanSubmitRequest ] = useState(true);
-    console.log("errors: ", errors);
+    const { draft, cost } = useOutletContext<CartOutletContext>();
+    const [ errors, setErrors ] = useState<ValidationErrors>(validateDraft(draft));
+    const [ requestAcknowledged, setRequestAcknowledged ] = useState(false);
+    const canSubmitRequest = Object.keys(errors).length === 0 && requestAcknowledged
+
+    const formatCurrency = (value: number) =>
+        new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+    }).format(value);
 
     const validateField = (fieldName: FieldName, draft: RequestDraft): string => {
-        if (canSubmitRequest) {
-            return "";
-        };
-
-        setErrors(validateDraft(draft));
-        if (Object.keys(errors).length === 0) {
-            setCanSubmitRequest(true);
-        }
+        const newErrors = validateDraft(draft);
+        setErrors(newErrors);
         return errors[fieldName] !== undefined ? errors[fieldName] : "";
     }
 
-    const handleReviewRequest = (event: React.MouseEvent<HTMLAnchorElement>) => {
-        if (!canSubmitRequest) {
-            event.preventDefault();
-            return;
-        }
-
+    const handleSubmitRequest = (event: FormEvent<HTMLFormElement>) => {
         if (Object.keys(errors).length !== 0) {
             event.preventDefault();
-            setCanSubmitRequest(false);
             return;
         }
     };
 
     return (
-        <Form method="post" className="max-w-4xl m-4 sm:mx-8 lg:mx-auto py-8 space-y-8">
+        <Form 
+            method="post"
+            className="max-w-4xl m-4 sm:mx-8 lg:mx-auto py-8 space-y-8"
+            onSubmit={handleSubmitRequest}
+        >
             <Link
                 to="/cart/details"
                 className="inline-flex items-center gap-2 text-primary font-semibold hover:underline"
@@ -106,7 +164,6 @@ export default function ReviewSection() {
                                     key={field.id}
                                     field={field}
                                     error={errors[field.name] ?? ""}
-                                    canSubmitRequest={canSubmitRequest}
                                     validateField={validateField}
                                 />
                             )) }
@@ -154,18 +211,23 @@ export default function ReviewSection() {
                     <div className='border-y border-border space-y-2 py-4'>
                         <p className='flex justify-between gap-4'>
                             <span className='text-muted-foreground'>Subtotal:</span>
-                            <span className=''>{formatCurrency(subtotal)}</span>
+                            <span className=''>{formatCurrency(cost.subTotal)}</span>
                         </p>
                         <p className='flex justify-between gap-4'>
                             <span className='text-muted-foreground'>Delivery Fee:</span>
-                            <span className=''>{formatCurrency(deliveryFee)}</span>
+                            <span className=''>{formatCurrency(cost.deliveryFee)}</span>
                         </p>
                     </div>
                     <div className='flex items-center justify-between gap-4 py-4'>
                         <h1 className='text-2xl font-semibold'>Total:</h1>
-                        <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
+                        <span className="text-2xl font-bold text-primary">{formatCurrency(cost.subTotal + cost.deliveryFee)}</span>
                     </div>
                 </div>
+                <input
+                    type="hidden"
+                    name="cart"
+                    value={JSON.stringify(cart)}
+                />
             </div>
             <div className='flex flex-col items-center space-y-8'>
                 <div className='flex justify-center gap-2'>
@@ -173,148 +235,214 @@ export default function ReviewSection() {
                             type="checkbox"
                             id="agree"
                             name="agree"
-                            onChange={e => setCanProceed(e.target.checked)}
+                            defaultChecked={false}
+                            onChange={e => setRequestAcknowledged(e.target.checked)}
                         />
                         <label htmlFor="agree" className="flex justify-center">
                             I understand this is a request, not a booking
                         </label>
                 </div>
-                {(statusMessage || actionError) ? (
-                    <p className="w-full rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-center text-sm font-semibold text-destructive" role="alert">
-                        {statusMessage || actionError}
-                    </p>
-                ) : null}
-                <button type="submit" disabled={!canProceed || isSubmitting} className={`py-3 w-full rounded-lg ${
-                    canProceed && !isSubmitting
-                        ? "text-accent-foreground bg-accent hover:bg-accent/90  hover:cursor-pointer"
-                        : "bg-muted text-muted-foreground"
-                }`}>
-                    {isSubmitting ? "Sending Request..." : "Submit Request"}
+                <button 
+                    type="submit" 
+                    disabled={!canSubmitRequest} 
+                    className={`py-3 w-full rounded-lg ${
+                        canSubmitRequest
+                            ? "text-accent-foreground bg-accent hover:bg-accent/90  hover:cursor-pointer"
+                            : "bg-muted text-muted-foreground"
+                    }`}
+                >
+                    Submit Request
                 </button>
             </div>
         </Form>
     )
 }
 
-function Field({ field, error, canSubmitRequest, validateField }: { 
+/* 
+Functional Requirements
+    1. Errors should:
+        a. Keep field in editing mode and display error message
+        b. Disable submit button.
+    2. 
+*/
+function Field({ field, error, validateField }: { 
     field: FieldConfig, 
     error: string,
-    canSubmitRequest: boolean, 
     validateField: (fieldName: FieldName, draft: RequestDraft) => string
 }) {
     const { draft, setDraft } = useOutletContext<CartOutletContext>();
     const [ checkError, setCheckError ] = useState(true);
+    const [ isEditing, setIsEditing ] = useState(Boolean(error));
+    const inputRef = useRef<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+        inputRef.current?.focus();
+    }, [isEditing]);
+
+    const setFieldRef = (
+        element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null
+    ) => {
+        inputRef.current = element;
+    }
 
     const handleFieldChange = (nextValue: string) => {
-        const newDraft = {...draft};
-        switch (field.name) {
-            case "phoneNumber":
-                const digits = sanitizePhoneNumber(nextValue);
-                newDraft[field.name] = formatPhoneNumber(digits);
-                break;
-            case "zip":
-                const zip = sanitizeZip(nextValue);
-                newDraft[field.name] = formatZipCode(zip);
-                break;
-            default:
-                newDraft[field.name] = nextValue;
-        }
+        const newDraft = {
+            ...draft,
+            [field.name]: formatField(field.name, nextValue)
+        };
 
         setDraft(newDraft);
-        if (!canSubmitReques) {
-            validateField(field.name, newDraft);
-        }
+        validateField(field.name, newDraft);
     }
+
+    const handleSave = () => {
+        if (error) {
+            setCheckError(true);
+            inputRef !== null && inputRef.current?.focus();
+            return;
+        };
+
+        setCheckError(false);
+        setIsEditing(false);
+    }
+
+    const handleEdit = () => {
+        console.log("isEditing: ", isEditing)
+        setIsEditing(true);
+    }
+
+    const editingClass = isEditing 
+        ? `bg-background rounded-sm ${error ? "border-destructive" : "border-border"}`
+        : "text-muted-foreground border-transparent appearance-none resize-none";
+
+    const applyFullWidth: FieldConfig["type"][] = [
+        "text",
+        "email",
+        "tel"
+    ] 
 
     return (
         <div className="px-4 md:px-8 flex items-center gap-6 py-7 sm:py-8">
-            {isEditing ? (
-                <>
-                    <div className='flex-1 sm:flex sm:items-center'>
-                        <label className="inline-block p-2 text-base font-semibold min-w-52" htmlFor={name}>{label}</label>
-                        <div className="flex-1 relative">
-                            {type === "select" ? (
-                                <select
-                                    className={`h-11 bg-background px-2 flex-items-center border rounded-sm ${visibleError ? "border-destructive" : "border-border"}`}
-                                    id={name}
-                                    value={nextValue}
-                                    onChange={e => handleFieldChange(e.target.value)}
-                                    onBlur={() => handleFieldChange(nextValue)}
-                                    aria-invalid={Boolean(visibleError)}
-                                    aria-describedby={`${name}-review-error`}
-                                    autoFocus
+            <div 
+                className={`
+                    flex-1 flex flex-col 
+                    ${field.type === "text-area" 
+                        ? "sm:flex-col sm:gap-2" 
+                        : "sm: flex-row sm:justify-between sm:items-center sm:gap-4"
+                    }
+                `}
+            >
+                <label 
+                    className={`
+                        p-2 font-semibold ${field.type === "text-area" ? "w-full" : "w-40"}
+                    `} 
+                    htmlFor={
+                        field.name
+                    }
+                >
+                    {field.label}:
+                </label>
+                <div 
+                    className={`
+                        flex-1 relative
+                        ${!isEditing 
+                            ? `
+                                [&_input:-webkit-autofill]:[-webkit-box-shadow:0_0_0_1000px_var(--color-card)_inset]
+                                [&_input:-webkit-autofill]:[-webkit-text-fill-color:var(--color-muted-foreground)]
+                                [&_input:-webkit-autofill]:border-card
+                                [&_textarea:-webkit-autofill]:[-webkit-box-shadow:0_0_0_1000px_var(--color-card)_inset]
+                                [&_textarea:-webkit-autofill]:[-webkit-text-fill-color:var(--color-muted-foreground)]
+                                [&_textarea:-webkit-autofill]:border-card
+                                [&_select:-webkit-autofill]:[-webkit-box-shadow:0_0_0_1000px_var(--color-card)_inset]
+                                [&_select:-webkit-autofill]:[-webkit-text-fill-color:var(--color-muted-foreground)]
+                                [&_select:-webkit-autofill]:border-card
+                            ` : ""
+                        
+                        }
+                    `}
+                >
+                    {field.type === "select" ? (
+                        <select
+                            className={`w-64 p-2 border ${editingClass}`}
+                            id={field.name}
+                            name={field.name}
+                            value={draft[field.name]}
+                            disabled={!isEditing}
+                            onChange={e => handleFieldChange(e.target.value)}
+                            aria-invalid={Boolean(error)}
+                            aria-describedby={`${field.name}-review-error`}
+                            ref={setFieldRef}
+                        >
+                            {field.options?.map((option, idx) => (
+                                <option
+                                    key={idx}
+                                    value={option.value}
+                                    disabled={option.disabled}
                                 >
-                                    {options?.map((option, idx) => (
-                                        <option
-                                            key={idx}
-                                            value={option.value}
-                                            disabled={option.disabled}
-                                        >
-                                            {option.displayText}
-                                        </option>
-                                    ))}
-                                </select>
-                            ) : (
-                                <input
-                                    className={`w-full bg-background p-2 border rounded-sm ${visibleError ? "border-destructive" : "border-border"}`}
-                                    type={type}
-                                    id={name}
-                                    value={nextValue}
-                                    onChange={e => handleFieldChange(e.target.value)}
-                                    onKeyDown={e => {
-                                        if (name === "phoneNumber") {
-                                            handlePhoneKeyDown(e);
-                                            return;
-                                        }
-
-                                        if (e.key === "Enter") {
-                                            handleSave();
-                                        }
-                                    }}
-                                    onBlur={() => handleFieldChange(nextValue)}
-                                    autoFocus
-                                    aria-invalid={Boolean(visibleError)}
-                                    aria-describedby={`${name}-review-error`}
-                                    inputMode={name === "phoneNumber" || name === "zip" ? "numeric" : undefined}
-                                    maxLength={name === "phoneNumber" ? 14 : name === "state" ? 2 : name === "zip" ? 10 : undefined}
-                                />
-                            )}
-                            <p
-                                id={`${name}-review-error`}
-                                className={`absolute bottom-0 translate-y-full pt-1 text-sm font-medium leading-5 text-destructive ${visibleError ? "visible" : "invisible"}`}
-                            >
-                                {visibleError ?? "No validation error"}
-                            </p>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        disabled={Boolean(saveError)}
-                        className={`flex justify-center items-center sm:gap-2 sm:w-auto sm:h-auto sm:px-4 sm:py-2 w-10 h-10 rounded-full ${
-                            saveError
-                                ? "bg-muted text-muted-foreground cursor-not-allowed"
-                                : "hover:cursor-pointer bg-primary/10 text-primary"
-                        }`}
-                        onClick={handleSave}
+                                    {option.displayText}
+                                </option>
+                            ))}
+                        </select>
+                    ) : field.type === "text-area" ? (
+                        <textarea
+                            className={`w-full p-2 border ${editingClass}`}
+                            id={field.id}
+                            name={field.name}
+                            value={draft[field.name]}
+                            disabled={!isEditing}
+                            required={field.required}
+                            rows={3}
+                            onChange={e => handleFieldChange(e.target.value)}
+                            onFocus={() => setCheckError(false)}
+                            onBlur={() => setCheckError(true)}
+                            ref={setFieldRef}
+                        />
+                    ) : (
+                        <input
+                            className={`p-2 border ${editingClass} ${applyFullWidth.includes(field.type) ? "w-full" : "w-64"}`}
+                            id={field.name}
+                            name={field.name}
+                            value={draft[field.name]}
+                            type={field.type}
+                            disabled={!isEditing}
+                            required={field.required}
+                            onChange={e => handleFieldChange(e.target.value)}
+                            onFocus={() => setCheckError(false)}
+                            onBlur={() => setCheckError(true)}
+                            aria-invalid={Boolean(error)}
+                            aria-describedby={`${field.name}-review-error`}
+                            ref={setFieldRef}
+                        />
+                    )}
+                    <p
+                        id={`${field.name}-review-error`}
+                        className={`absolute bottom-0 translate-y-full pt-1 text-sm font-medium leading-5 text-destructive ${checkError ? "visible" : "invisible"}`}
                     >
-                        <Save className="w-5 h-5"/> <span className="hidden sm:inline">Save</span>
-                    </button>
-                </>
-            ) : (
-                <>
-                    <div className='flex-1 sm:flex sm:items-center'>
-                        <p className='p-2 font-semibold sm:min-w-52'>{label}</p>
-                        <p className="p-2 border border-transparent text-muted-foreground">{value}</p>
-                    </div>
-                    <button
-                        type="button"
-                        className="flex justify-center items-center sm:gap-2 hover:cursor-pointer bg-mute text-primary sm:w-auto sm:h-auto sm:px-4 sm:py-2 w-10 h-10 rounded-full"
-                        onClick={handleEdit}
-                    >
-                        <SquarePen className="w-5 h-5"/> <span className="hidden sm:inline">Edit</span>
-                    </button>
-                </>
-            )}
+                        {error ?? "No validation error"}
+                    </p>
+                </div>
+                <input
+                    type='hidden'
+                    name={field.name}
+                    value={draft[field.name]}
+                />
+            </div>
+            <button
+                type="button"
+                disabled={Boolean(error)}
+                className={`w-12 h-12 sm:w-24 flex justify-center items-center sm:gap-2 sm:px-4 sm:py-2 rounded-full ${
+                    error
+                        ? "bg-muted text-muted-foreground cursor-not-allowed"
+                        : "hover:cursor-pointer bg-primary/10 text-primary"
+                }`}
+                onClick={isEditing ? handleSave : handleEdit}
+            >
+                {isEditing ? (
+                    <><Save className="w-5 h-5"/> <span className="hidden sm:inline">Save</span></>
+                ) : (
+                    <><SquarePen className="w-5 h-5"/> <span className="hidden sm:inline">Edit</span></>
+                )}
+            </button>
         </div>
     )
 }

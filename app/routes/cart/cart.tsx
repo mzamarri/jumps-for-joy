@@ -3,19 +3,17 @@ import { useState, useRef } from "react"
 import { useCart } from 'context/cart-context'
 import { ArrowRight, Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
 import { useAppConfig } from "context/app-config-context";
-import type { CartItem, CartOutletContext } from "./types.js";
+import type { CartItem } from "./types.js";
 import { useContentfulInspectorMode } from "@contentful/live-preview/react";
 import { Info } from 'lucide-react'
 // import Item from './Item'
 
 export default function CartSection() {
-    const { draft, setDraft } = useOutletContext<CartOutletContext>();
     const { cart, removeItem, updateQuantity } = useCart();
     const { booking } = useAppConfig();
     
-    const duration = Number(draft?.duration) || 1;
     const deliveryFee = booking.deliveryFee;
-    const subtotal = cart.reduce((subTotal, item) => subTotal + (item.cost * (item.singleItem ? 1 : item.quantity)), 0) * (duration === -1 ? 1 : duration);
+    const subtotal = cart.reduce((subTotal, item) => subTotal + (item.cost * (item.singleItem ? 1 : item.quantity)), 0);
 
     return (
         <div className="space-y-8 py-8">
@@ -52,7 +50,7 @@ export default function CartSection() {
                                     <div className="py-4 border-t border-border">
                                         <h3 className='flex justify-between text-muted-foreground'>
                                             <span>SubTotal: </span>
-                                            <span>{`$${subtotal} ${duration === -1 ? "/day" : ""}`}</span>
+                                            <span>{`$${subtotal}`}</span>
                                         </h3>
                                         <h1 className='flex justify-between text-muted-foreground'>
                                             <span>Delivery Fee: </span>
@@ -62,7 +60,7 @@ export default function CartSection() {
                                     <div className='flex justify-between items-center text-xl py-4 border-t border-border'>
                                         <h2 className="font-semibold">Total: </h2>
                                         <span className="text-primary font-bold">
-                                            {`$${duration === -1 ? `${subtotal}/day` : deliveryFee + subtotal } ${duration === -1 ? ` + $${deliveryFee}` : ""}`}
+                                            {`$${deliveryFee + subtotal}`}
                                         </span>
                                     </div>
                                     <Link 

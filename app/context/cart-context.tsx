@@ -58,6 +58,81 @@ const isCartItem = (value: unknown): value is CartItem => {
     )
 };
 
+const normalizeCart = (data: unknown): CartItem[] => {
+    if (Array.isArray(data)) {
+        const cart: CartItem[] = [];
+
+        for (const value of data) {
+            if (typeof value !== "object" || value === null) continue;
+
+            const entries = Object.entries(value);
+            for (const [key, value] of entries) {
+                
+                cart.push()
+            }
+            // Ensure required fields exist
+            if (
+                !("id" in value) ||
+                !("name" in value) ||
+                !("cost" in value) ||
+                !("description" in value) ||
+                !("image" in value) ||
+                !("singleItem" in value)
+            ) continue;
+
+            // Type checks
+            if (
+                typeof (value as any).id !== "string" ||
+                typeof (value as any).name !== "string" ||
+                typeof (value as any).description !== "string" ||
+                typeof (value as any).image !== "string" ||
+                typeof (value as any).singleItem !== "boolean" ||
+                typeof (value as any).cost !== "number" ||
+                !Number.isFinite((value as any).cost)
+            ) continue;
+
+            if ((value).singleItem === true) {
+                const item: CartItem = {
+                    id: (value as any).id,
+                    name: (value as any).name,
+                    cost: (value as any).cost,
+                    description: (value as any).description,
+                    image: (value as any).image,
+                    singleItem: true
+                };
+
+                cart.push(item);
+                continue;
+            }
+
+            // multi-item must have a valid quantity
+            if (!("quantity" in value)) continue;
+            if (typeof (value as any).quantity !== "number" || !Number.isFinite((value as any).quantity) || (value as any).quantity <= 0) continue;
+
+            const multiItem: CartItem = {
+                id: (value as any).id,
+                name: (value as any).name,
+                cost: (value as any).cost,
+                description: (value as any).description,
+                image: (value as any).image,
+                singleItem: false,
+                quantity: Math.trunc((value as any).quantity)
+            };
+
+            cart.push(multiItem);
+        }
+
+        return cart;
+    }
+
+    // support payloads like { items: [...] }
+    if (typeof data === "object" && data !== null && "items" in data && Array.isArray((data as any).items)) {
+        return normalizeCart((data as any).items);
+    }
+
+    return [];
+}
+
 const readStoredCart = (): CartItem[] => {
     if (typeof window === "undefined") {
         return [];

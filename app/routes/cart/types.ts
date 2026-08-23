@@ -1,7 +1,7 @@
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import type { LucideIcon } from "lucide-react";
 
-export type KeyOfUnion<T> = T extends unknown ? keyof T : never
+export type KeyOfUnion<T> = T extends unknown ? keyof T : never;
 export type DistributivePick<T, K extends KeyOfUnion<T>> = T extends unknown 
     ? Pick<T, Extract<keyof T, K>> 
     : never
@@ -13,7 +13,7 @@ export interface BaseCartItem {
     description: string,
     image: string,
     singleItem: boolean
-}
+} 
 
 export interface SingleCartItem extends BaseCartItem {
     singleItem: true
@@ -28,7 +28,6 @@ export type CartItem = SingleCartItem | MultiCartItem;
 
 export interface UserInputProps {
     type: "select" | "textarea" | "input",
-
 }
 
 export interface FieldConfig {
@@ -46,33 +45,36 @@ export interface FieldSection {
     id: "primary-contact" | "rental-address" | "event-info",
     name: "Primary Contact" | "Rental Address" | "Event Information",
     icon: LucideIcon,
-    fields: FieldConfig[] | FieldConfig[][]
+    fields: (FieldConfig | FieldConfig[])[]
 }
 
-export type FieldName =
-    | "firstName"
-    | "lastName"
-    | "phoneNumber"
-    | "email"
-    | "street"
-    | "unit"
-    | "city"
-    | "state"
-    | "zip"
-    | "date"
-    | "time"
-    | "duration"
-    | "eventType"
-    | "surfaceType"
-    | "notes";
+export const fields = [
+    "firstName",
+    "lastName",
+    "phoneNumber",
+    "email",
+    "street",
+    "city",
+    "state",
+    "zip",
+    "date",
+    "time",
+    "eventType",
+    "surfaceType",
+    "notes"
+] as const;
+
+export type FieldName = typeof fields[number];
 
 export type RequestDraft = Record<FieldName, string>;
 
 export type CartOutletContext = {
     draft: RequestDraft;
     setDraft: Dispatch<SetStateAction<RequestDraft>>;
-    actionError?: string;
-    setFormSubmitValidator?: Dispatch<SetStateAction<((event: FormEvent<HTMLFormElement>) => void) | null>>;
+    cost: {
+        subTotal: number,
+        deliveryFee: number
+    }
 };
 
 export type SelectOption = {
@@ -96,13 +98,11 @@ export const initialRequestDraft: RequestDraft = {
     phoneNumber: "",
     email: "",
     street: "",
-    unit: "",
     city: "",
     state: "",
     zip: "",
     date: "",
     time: "",
-    duration: "",
     eventType: "",
     surfaceType: "",
     notes: "",
