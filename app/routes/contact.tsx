@@ -6,10 +6,6 @@ import { SiFacebook, SiInstagram } from "@icons-pack/react-simple-icons";
 import Icon from 'components/ui/icon';
 import { useAppConfig } from "context/app-config-context";
 import { sendContactEmails } from "../lib/emailjs-client";
-import {
-    formatField,
-    isValidField,
-} from "../lib/validation/form";
 
 const initialContactForm = {
     name: "",

@@ -1,101 +1,94 @@
 import { useState, type FormEvent, useRef, useEffect } from 'react'
-import { Link,  useOutletContext, Form, redirect } from "react-router";
+import { Link,  useOutletContext, Form, redirect, useSubmit, type FormMethod } from "react-router";
 import { ArrowLeft, Save, SquarePen, ShoppingBag } from 'lucide-react';
 import Icon from 'components/ui/icon';
 import { useCart } from "context/cart-context";
 import { fields, initialRequestDraft, type CartItem, type CartOutletContext, type FieldConfig, type FieldName, type KeyOfUnion, type RequestDraft } from "./types.js";
-import { formatField, validateDraft, type ValidationErrors } from "./util/validation.js";
-import { sendBookingRequestEmails } from "lib/emailjs-client"
+import { formatField, validateDraft, type ValidationErrors } from "./util/validation";
+import { sendBookingRequestEmails, type EmailFormat, type EmailFieldName, emailFields } from "lib/emailjs-client"
 import { getCost, writeStorageDraft } from './util/storage.js';
 import { detailsFieldSections } from './details.js';
+import { appConfig } from 'app/config.js';
+import { validateCart } from './util/validation';
 
 const fieldSections = detailsFieldSections.map(section => ({
     ...section,
     fields: section.fields.flat()
 }))
 
-export type EmailName = 
-    | "fullName"
-    | "fullAddress"
-    | "itemsSummary"
-    | "deliveryFee"
-    | "subTotal"
-    | "total"
-    | Extract<
-        FieldName,
-        | "phoneNumber"
-        | "email"
-        | "date"
-        | "time"
-        | "eventType"
-        | "surfaceType"
-        | "notes"
-    >
-export type EmailFormat = Record<EmailName, string>
-
-export type CartItemValidation = [
-    {}
-]
+const formatCurrency = (value: number) =>
+        new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+    }).format(value);
 
 export async function clientAction({ request }: { request: Request }) {
-    console.log("running action...")
-    const formData = await request.formData();
-    const draft: RequestDraft = { ...initialRequestDraft }
-
-    for (const fieldName of fields) {
-        const fieldValue = formData.get(fieldName) ?? "";
-        draft[fieldName] = typeof fieldValue === "string" ? fieldValue : "";
+    const isString = (value: unknown): value is string => {
+        return typeof value === "string"
     }
 
-    const normalizeCart = (cartData: FormDataEntryValue | null): CartItem[] => {
-        if (typeof cartData !== "string") {
-            return []
+    const normalizeFormData = (formData: FormData): Record<string, string> => {
+        const formFields = [
+            ...fields,
+            "cart",
+            "deliveryFee"
+        ] as const
+        const data: Record<string, string> = {}
+
+        for (const field of formFields) {
+            const value = formData.get(field);
+            data[field] = typeof value === "string" ? value : "";
         }
+
+        return data;
+    }
+
+    const normalizeCart = (cartData: string): CartItem[] => {
+        if (!cartData) return [];
 
         const parsedCartData = JSON.parse(cartData);
-        if (!Array.isArray(parsedCartData) || parsedCartData.length === 0) {
+        try {
+            const cart = validateCart.parse(parsedCartData);
+            return cart;
+        } catch {
+            console.log("Not a valid array of cart items. Returning [].");
             return []
         }
-
-        const cart: CartItem[] = []
-        const id: KeyOfUnion<CartItem> = "id";
-        const name: KeyOfUnion<CartItem> = "name";
-        const cost: KeyOfUnion<CartItem> = "cost";
-        const description: KeyOfUnion<CartItem> = "description";
-        const image: KeyOfUnion<CartItem> = "image";
-        const singleItem: KeyOfUnion<CartItem> = "singleItem";
-        const quantity: KeyOfUnion<CartItem> = "quantity";
-
-        for (const item of parsedCartData) {
-            if (
-                (id in item && typeof item[id] === "string") &&
-                (name in item && typeof item[name] === "string") &&
-                (cost in item && typeof item[cost] === "number") &&
-                (description in item && typeof item[description] === "string") &&
-                (image in item && typeof item === "string") &&
-                (singleItem in item && typeof item[singleItem] === "boolean")
-            ) {
-                if (item[singleItem] === false && quantity in item && typeof item[quantity] === "number") {
-                    cart.push({
-                        id: item[id],
-                        name: item[name],
-                        cost: item[cost],
-                        description: item[description],
-                        image: item[image],
-                        singleItem: false,
-                        quantity: item[quantity]
-                    })
-                }
-            }
-        }
-
-        return cart;
     }
 
+    console.log("running action...")
+    const formData = await request.formData();
+
     try {
-        const cart = normalizeCart(formData.get("cart"));
-        await sendBookingRequestEmails(draft);
-        writeStorageDraft(true, draft);
+        const entries = normalizeFormData(formData);
+        const cart = normalizeCart(entries?.cart ?? "");
+        const subTotal = cart.reduce((sum, item) => sum + item.cost, 0);
+        const total = subTotal + Number(entries.deliveryFee);
+        const itemsSummary = cart
+            .map(cartItem => {
+                const { name, cost } = cartItem;
+                const quantity = cartItem.singleItem ? 1 : cartItem.quantity;
+                return `${quantity} x ${name} - ${formatCurrency(quantity * cost)}`
+            })
+            .join("\n");
+
+        const emailFields: EmailFormat = {
+            fullName: `${entries.firstName} ${entries.lastName}`,
+            email: entries.email,
+            phoneNumber: entries.phoneNumber,
+            fullAddress: `${entries.street} ${entries.city} ${entries.state} ${entries.zip}`,
+            date: entries.date,
+            time: entries.time,
+            eventType: entries.eventType,
+            surfaceType: entries.surfaceType,
+            notes: entries.notes,
+            itemsSummary,
+            deliveryFee: formatCurrency(Number(entries.deliveryFee)),
+            subTotal: formatCurrency(subTotal),
+            total: formatCurrency(total)
+        }
+
+        await sendBookingRequestEmails(emailFields);
         console.log("Successfully sent");
     } catch (error) {
         console.error("Booking request email failed", error);
@@ -111,12 +104,7 @@ export default function ReviewSection() {
     const [ errors, setErrors ] = useState<ValidationErrors>(validateDraft(draft));
     const [ requestAcknowledged, setRequestAcknowledged ] = useState(false);
     const canSubmitRequest = Object.keys(errors).length === 0 && requestAcknowledged
-
-    const formatCurrency = (value: number) =>
-        new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-    }).format(value);
+    const submit = useSubmit();
 
     const validateField = (fieldName: FieldName, draft: RequestDraft): string => {
         const newErrors = validateDraft(draft);
@@ -125,10 +113,19 @@ export default function ReviewSection() {
     }
 
     const handleSubmitRequest = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        
         if (Object.keys(errors).length !== 0) {
-            event.preventDefault();
             return;
         }
+
+        const formData = new FormData(event.currentTarget);
+        formData.append("cart", JSON.stringify(cart));
+        formData.append("deliveryFee", String(appConfig.booking.deliveryFee));
+
+        submit(formData, {
+            method: event.currentTarget.method as FormMethod
+        });
     };
 
     return (
@@ -223,11 +220,6 @@ export default function ReviewSection() {
                         <span className="text-2xl font-bold text-primary">{formatCurrency(cost.subTotal + cost.deliveryFee)}</span>
                     </div>
                 </div>
-                <input
-                    type="hidden"
-                    name="cart"
-                    value={JSON.stringify(cart)}
-                />
             </div>
             <div className='flex flex-col items-center space-y-8'>
                 <div className='flex justify-center gap-2'>
@@ -446,4 +438,3 @@ function Field({ field, error, validateField }: {
         </div>
     )
 }
-

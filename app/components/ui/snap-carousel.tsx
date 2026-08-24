@@ -26,6 +26,7 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
     const [cardIndex, setCardIndex] = useState(0);
     const [cardWidth, setCardWidth] = useState(0);
     const [cardsPerView, setCardsPerView] = useState(visibleCount);
+    const [cardDragged, setCardDragges] = useState(false); 
 
     const maxIndex = useMemo(
         () => Math.max(0, cards.length - cardsPerView),
@@ -103,7 +104,7 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
                             className="shrink-0"
                             style={{ width: cardWidth }}
                         >
-                            {Card ? <Card rentalCategory={card} /> : null}
+                            {Card ? <Card rentalCategory={card}/> : null}
                         </div>
                     ))}
                 </motion.div>

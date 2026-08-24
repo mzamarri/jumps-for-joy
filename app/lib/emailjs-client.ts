@@ -1,5 +1,6 @@
 import emailjs from "@emailjs/browser";
 import { appConfig } from "../config";
+import type { FieldName } from "app/routes/cart/types";
 
 type TemplateParams = Record<string, unknown>;
 
@@ -9,6 +10,25 @@ type FormEmailConfig = {
     internalTemplateId: string;
     autoReplyTemplateId: string;
 };
+
+export const emailFields = [
+    "fullName",
+    "fullAddress",
+    "itemsSummary",
+    "deliveryFee",
+    "subTotal",
+    "total",
+    "phoneNumber",
+    "email",
+    "date",
+    "time",
+    "eventType",
+    "surfaceType",
+    "notes"
+] as const;
+export type EmailFieldName = typeof emailFields[number]
+
+export type EmailFormat = Record<EmailFieldName, string>
 
 const config = appConfig.emailjs;
 
@@ -44,5 +64,9 @@ const sendConfiguredEmails = async (templateConfig: FormEmailConfig, params: Tem
 export const sendContactEmails = (params: TemplateParams) =>
     sendConfiguredEmails(config.contactForm, params);
 
-export const sendBookingRequestEmails = (params: TemplateParams) =>
+export const sendBookingRequestEmails = (params: EmailFormat) =>
     sendConfiguredEmails(config.bookingForm, params);
+
+export const createEmailFormat = () => {
+
+}

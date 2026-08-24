@@ -25,8 +25,6 @@ const CART_STORAGE_KEY = "jump-for-joy-cart";
 
 const CartContext = createContext<CartContext | null>(null);
 
-// Thinking of returning SingleCartItem and MultiCartItem types instead of just CartItem types.
-// It will make it easier to implement cart items that way I believe.
 const isCartItem = (value: unknown): value is CartItem => {
     if (typeof value !== "object" || value === null) {
         return false;

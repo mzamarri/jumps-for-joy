@@ -1,4 +1,5 @@
-import { type FieldName, type RequestDraft } from "../types.js";
+import * as z from "zod";
+import type { FieldName, RequestDraft, CartItem } from "../types.js";
 
 export type FieldPatterns =  Partial<Record<FieldName, RegExp>>
 export type FieldValidation = { 
@@ -185,3 +186,23 @@ export function formatField(name: FieldName, value: string) {
 
     return normalizedValue;
 }
+
+export const validateCart = z.array(z.discriminatedUnion("singleItem", [
+    z.object({
+        id: z.string(),
+        name: z.string(),
+        cost: z.number(),
+        description: z.string(),
+        image: z.string(),
+        singleItem: z.literal(true)
+    }),
+    z.object({
+        id: z.string(),
+        name: z.string(),
+        cost: z.number(),
+        description: z.string(),
+        image: z.string(),
+        singleItem: z.literal(false),
+        quantity: z.number()
+    })
+])) satisfies z.ZodType<CartItem[]>

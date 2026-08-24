@@ -1,6 +1,6 @@
 type Validator<T> = (value: unknown) => T
 
-type ValidatorType<V> = V extends Validator<infer T>
+export type ValidatorType<V> = V extends Validator<infer T>
     ? T
     : never
 
@@ -18,9 +18,21 @@ export const v = {
     validateType
 } as const
 
-export function validateType<T>() {
-    return (validator: Validator<T>): Validator<T> => {
-        return validator
+export function validateType<T>(validator: Validator<T>): Validator<T> {
+    return validator
+}
+
+export function union<T extends readonly Validator<unknown>[]>(...validators: T): ReturnType<Validator<T[number]>> {
+    return value => {
+        for (const validator of validators) {
+            try {
+                return validator(value);
+            } catch {
+             console.log("Validator did not work.");
+            }
+        }
+
+        throw new Error("None of the validators worked.");
     }
 }
 
@@ -48,46 +60,44 @@ export function objectValidator<S extends Record<string, Validator<any>>>(
                 continue;
             }
 
-            throw new Error("Key not in object.");
+            throw new Error(`Key ${key} not in object.`);
         }
 
         return value as ObjectOutput<S>;
     }
 }
 
-export function arrayValidator(validator: Validator<unknown>): Validator<unknown[]> {
-    return <T>(value: unknown): T => {
+export function arrayValidator<T>(validator: Validator<T>): Validator<T[]> {
+    return (value: unknown): T[] => {
         if (Array.isArray(value)) {
-            for (const item of value) {
-                validator(item);
-            }
-            return value as T;
+            value.forEach(item => validator(item));
+            return value as T[];
         }
-        throw new Error("Not an array")
+        throw new Error(`${value} not an array`)
     }
 }
 
-export function stringValidator(): Validator<string> {
+export function stringValidator(compare?: string): Validator<string> {
     return (value: unknown): string => {
-        if (typeof value === "string") {
+        if (typeof value === "string" && (!compare || value === compare)) {
             return value;
         }
-        throw Error("Not a \"string\" type.");
+        throw Error(`${value} not a string.`);
     }
 }
-export function numberValidator(): Validator<number> {
+export function numberValidator(compare?: number): Validator<number> {
     return (value: unknown): number => {
-        if (typeof value === "number") {
+        if (typeof value === "number" && (!compare || value === compare)) {
             return value;
         }
-        throw Error("Not a \"number\" type.");
+        throw Error(`${value} not a number.`);
     }
 }
-export function booleanValidator(): Validator<boolean> {
+export function booleanValidator(compare?: boolean): Validator<boolean> {
     return (value: unknown): boolean => {
-        if (typeof value === "boolean") {
+        if (typeof value === "boolean" && (!compare || value === compare)) {
             return value;
         }
-        throw Error("Not a \"boolean\" type.");
+        throw Error(`${value} not a boolean.`);
     }
 }
