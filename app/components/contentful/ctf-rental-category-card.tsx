@@ -1,6 +1,8 @@
 import { graphql, type FragmentType, useFragment } from "lib/gql/client";
 import { useContentfulInspectorMode } from "@contentful/live-preview/react";
 import { Link } from "react-router";
+import { type MouseEvent, type RefObject } from "react";
+import { fa } from "zod/v4/locales";
 
 const RentalCategoryCardFieldsFragment = graphql(`
     fragment RentalCategoryCardFields on RentalCategory {
@@ -18,15 +20,26 @@ const RentalCategoryCardFieldsFragment = graphql(`
     }
 `);
 
-export default function RentalCategoryCard({ rentalCategory }: { rentalCategory: FragmentType<typeof RentalCategoryCardFieldsFragment>}) {
+export default function RentalCategoryCard({ rentalCategory, hasDragged }: { 
+    rentalCategory: FragmentType<typeof RentalCategoryCardFieldsFragment>,
+    hasDragged: RefObject<boolean>
+
+}) {
     const category = useFragment(RentalCategoryCardFieldsFragment, rentalCategory);
     const inspectorProps = useContentfulInspectorMode({ entryId: category?.sys?.id });
+    const handleClick = (event: MouseEvent<HTMLAnchorElement>): void => {
+        if (hasDragged.current) {
+            hasDragged.current = false;
+            event.preventDefault();
+        }
+    }
 
     return (
         <Link
             to={`/rentals/${category?.slug}`}
             className='block overflow-hidden rounded-xl w-sm border border-border bg-card shadow-md transition-transform hover:cursor-pointer hover:-translate-y-1'
             draggable={false}
+            onClick={handleClick}
         >
             <div 
                 className='flex aspect-square items-center justify-center bg-muted md:h-64 md:aspect-auto'

@@ -1,9 +1,9 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { motion } from "motion/react";
-import type { PanInfo } from "motion/react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { motion, animate, useMotionValue, type DragHandler } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const DRAG_THRESHOLD = 60;
+const HAS_DRAGGED_THRESHOLD = 10;
 
 type SnapCarouselCard = {
     id: string | number;
@@ -11,7 +11,7 @@ type SnapCarouselCard = {
 
 type SnapCarouselProps<TCard extends SnapCarouselCard> = {
     cards?: TCard[];
-    Card?: React.ComponentType<{ rentalCategory: TCard }>;
+    Card?: React.ComponentType<{ rentalCategory: TCard, hasDragged: RefObject<boolean> }>;
     visibleCount?: number;
     gap?: number;
 };
@@ -26,7 +26,8 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
     const [cardIndex, setCardIndex] = useState(0);
     const [cardWidth, setCardWidth] = useState(0);
     const [cardsPerView, setCardsPerView] = useState(visibleCount);
-    const [cardDragged, setCardDragges] = useState(false); 
+    const cardDraggedRef = useRef<boolean>(false); 
+    const x = useMotionValue(0);
 
     const maxIndex = useMemo(
         () => Math.max(0, cards.length - cardsPerView),
@@ -58,23 +59,42 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
         return () => window.removeEventListener("resize", measure);
     }, [visibleCount, gap]);
 
-    const nextCard = () => setCardIndex(prev => Math.min(prev + 1, maxIndex));
-    const prevCard = () => setCardIndex(prev => Math.max(prev - 1, 0));
+    const animateToIndex = (nextIndex: number) => {
+        setCardIndex(nextIndex);
 
-    const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+        animate(x, -(nextIndex * step), {
+            type: "spring",
+            stiffness: 360,
+            damping: 38
+        });
+    }
+
+    const nextCard = () => animateToIndex(Math.min(cardIndex + 1, maxIndex));
+    const prevCard = () => animateToIndex(Math.max(cardIndex - 1, 0));
+
+    const handleHasDragged: DragHandler = (_event, info) => {
+        if (!cardDraggedRef.current) {
+            const delta = info.offset.x;
+    
+            if (delta <= -HAS_DRAGGED_THRESHOLD || delta >= HAS_DRAGGED_THRESHOLD) {
+                cardDraggedRef.current = true;
+            }
+        }
+    }
+
+    const handleDragEnd: DragHandler = (_event, info) => {
         const delta = info.offset.x;
 
+        let nextIndex = cardIndex;
         if (delta <= -DRAG_THRESHOLD) {
-            setCardIndex(prev => Math.min(prev + 1, maxIndex));
-            return;
+            nextIndex = Math.min(cardIndex + 1, maxIndex);
         }
 
         if (delta >= DRAG_THRESHOLD) {
-            setCardIndex(prev => Math.max(prev - 1, 0));
-            return;
+            nextIndex = Math.max(cardIndex - 1, 0);
         }
 
-        setCardIndex(prev => prev);
+        animateToIndex(nextIndex);
     };
 
     const canShift = cards.length > cardsPerView;
@@ -89,13 +109,12 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
             <div ref={viewportRef} className="overflow-hidden">
                 <motion.div
                     className="flex"
-                    style={{ gap }}
-                    animate={{ x: translateX }}
-                    transition={{ type: "spring", stiffness: 360, damping: 38 }}
+                    style={{ gap, x }}
                     drag={canShift ? "x" : false}
                     dragConstraints={{ left: dragLeftLimit, right: 0 }}
                     dragElastic={0.06}
                     dragMomentum={false}
+                    onDrag={handleHasDragged}
                     onDragEnd={handleDragEnd}
                 >
                     {cards.map(card => (
@@ -104,7 +123,7 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
                             className="shrink-0"
                             style={{ width: cardWidth }}
                         >
-                            {Card ? <Card rentalCategory={card}/> : null}
+                            {Card ? <Card rentalCategory={card} hasDragged={cardDraggedRef} /> : null}
                         </div>
                     ))}
                 </motion.div>
