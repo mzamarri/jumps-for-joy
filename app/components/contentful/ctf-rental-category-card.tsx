@@ -2,7 +2,6 @@ import { graphql, type FragmentType, useFragment } from "lib/gql/client";
 import { useContentfulInspectorMode } from "@contentful/live-preview/react";
 import { Link } from "react-router";
 import { type MouseEvent, type RefObject } from "react";
-import { fa } from "zod/v4/locales";
 
 const RentalCategoryCardFieldsFragment = graphql(`
     fragment RentalCategoryCardFields on RentalCategory {

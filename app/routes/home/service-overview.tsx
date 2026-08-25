@@ -62,8 +62,14 @@ export default function ServiceOverview() {
                     <span className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground font-semibold text-sm rounded-full">
                         <Balloon className='w-4 h-4'/> What We Do
                     </span>
-                    <div className='flex flex-col-reverse items-center gap-8 lg:flex-row lg:items-center lg:gap-16 text-center lg:text-center'>
-                        <div className='space-y-4 lg:flex-3'>
+                    <div 
+                        className='
+                            text-center lg:text-center
+                            flex flex-col-reverse items-center gap-8 
+                            xl:flex-row lg:justify-center xl:items-center lg:gap-16
+                        '
+                    >
+                        <div className='space-y-4 max-w-3xl'>
                             <h1 className='text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl'>
                                 Party Rentals For Every Occasion
                             </h1>
@@ -80,7 +86,13 @@ export default function ServiceOverview() {
                         <img 
                             src={bounceHouse}
                             alt="Bounce House Image"
-                            className='relative z-10 flex-2 max-w-40 sm:max-w-48 md:max-w-56 lg:max-w-md rounded-full lg:flex-1'
+                            className='
+                                relative z-10 rounded-full shrink-0
+                                w-80 h-80
+                                sm:w-88 sm:h-88
+                                md:w-96 md:h-96
+                                lg:w-104 lg:h-104
+                            '
                         />
                     </div>
                     <div className='grid grid-cols-1 gap-3 md:grid-cols-3'>

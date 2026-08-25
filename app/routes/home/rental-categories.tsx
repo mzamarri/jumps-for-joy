@@ -26,7 +26,7 @@ export default function HomeCategories({ queryData }: SectionProps) {
                         setup for your next event.
                     </p>
                 </div>
-                <SnapCarousel cards={[...rentalCategories, ...rentalCategories, ...rentalCategories, ...rentalCategories, ...rentalCategories]} Card={RentalCategoryCard} visibleCount={3} />
+                <SnapCarousel cards={rentalCategories} Card={RentalCategoryCard} visibleCount={3} />
             </div>
         </div>
     )
