@@ -20,49 +20,39 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
     cards = [],
     Card,
     visibleCount = 3,
-    gap = 16,
 }: SnapCarouselProps<TCard>) {
-    const viewportRef = useRef<HTMLDivElement | null>(null);
     const [cardIndex, setCardIndex] = useState(0);
-    const [cardWidth, setCardWidth] = useState(0);
-    const [cardsPerView, setCardsPerView] = useState(visibleCount);
+    const [visibleCards, setVisibleCards] = useState(visibleCount);
     const cardDraggedRef = useRef<boolean>(false); 
     const x = useMotionValue(0);
 
-    const maxIndex = useMemo(
-        () => Math.max(0, cards.length - cardsPerView),
-        [cards.length, cardsPerView]
-    );
-
     useEffect(() => {
-        setCardIndex(prev => Math.min(prev, maxIndex));
-    }, [maxIndex]);
-
-    useLayoutEffect(() => {
-        const measure = () => {
-            if (!viewportRef.current) return;
-            const width = viewportRef.current.clientWidth;
-            const nextVisibleCount = width < 640
-                ? 1
-                : width < 1024
-                    ? Math.min(2, visibleCount)
-                    : visibleCount;
-
-            setCardsPerView(nextVisibleCount);
-
-            const nextCardWidth = (width - gap * (nextVisibleCount - 1)) / nextVisibleCount;
-            setCardWidth(Math.max(0, nextCardWidth));
+        const sm = window.matchMedia("(max-width: 639px)");
+        const md = window.matchMedia("(max-width: 1023px)");
+        const updateVisibleCount = () => {
+            if (sm.matches) {
+                setVisibleCards(1);
+            } else if (md.matches) {
+                setVisibleCards(2);
+            } else {
+                setVisibleCards(3);
+            }
         };
-
-        measure();
-        window.addEventListener("resize", measure);
-        return () => window.removeEventListener("resize", measure);
-    }, [visibleCount, gap]);
+        updateVisibleCount();
+        sm.addEventListener("change", updateVisibleCount);
+        md.addEventListener("change", updateVisibleCount);
+        return () => {
+            sm.removeEventListener("change", updateVisibleCount);
+            md.removeEventListener("change", updateVisibleCount);
+        };
+    }, [])
 
     const animateToIndex = (nextIndex: number) => {
         setCardIndex(nextIndex);
 
-        animate(x, -(nextIndex * step), {
+        const translateX = -nextIndex * step;
+
+        animate(x, translateX, {
             type: "spring",
             stiffness: 360,
             damping: 38
@@ -97,36 +87,52 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
         animateToIndex(nextIndex);
     };
 
-    const canShift = cards.length > cardsPerView;
-    const canScrollLeft = cardIndex > 0;
-    const canScrollRight = cardIndex < maxIndex;
+    const cardWidth = 384; // 384px = 24rem
+    const gap = 32; // 32px = 2rem;
     const step = cardWidth + gap;
-    const translateX = -(cardIndex * step);
-    const dragLeftLimit = -(maxIndex * step);
+    const containerWidth = (3 * cardWidth) + (2 * gap);
+    const maxIndex = cards.length - visibleCards;
+    const dragLeftLimit = -maxIndex * step;
+
+    const canShift = visibleCount < cards.length;
+    const canScrollRight = cardIndex < maxIndex;
+    const canScrollLeft = cardIndex > 0;
 
     return (
         <div className="relative w-full">
-            <div ref={viewportRef} className="overflow-hidden">
-                <motion.div
-                    className="flex"
-                    style={{ gap, x }}
-                    drag={canShift ? "x" : false}
-                    dragConstraints={{ left: dragLeftLimit, right: 0 }}
-                    dragElastic={0.06}
-                    dragMomentum={false}
-                    onDrag={handleHasDragged}
-                    onDragEnd={handleDragEnd}
+            <div 
+                className="overflow-hidden p-4 box-content  "
+                style={{width: containerWidth}}
+            >
+                <div
+                    style={{width: containerWidth}}
                 >
-                    {cards.map(card => (
-                        <div
-                            key={card.id}
-                            className="shrink-0"
-                            style={{ width: cardWidth }}
-                        >
-                            {Card ? <Card rentalCategory={card} hasDragged={cardDraggedRef} /> : null}
-                        </div>
-                    ))}
-                </motion.div>
+                    <motion.div
+                        className={`w-max`}
+                        style={{ 
+                            x,
+                            display: "flex",
+                            gap
+                        }}
+                        drag={canShift ? "x" : false}
+                        dragConstraints={{left: dragLeftLimit, right: 0}}
+                        dragElastic={0.1}
+                        dragMomentum={false}
+                        onDrag={handleHasDragged}
+                        onDragEnd={handleDragEnd}
+                    >
+                        {cards.map(card => (
+                            <div
+                                key={card.id}
+                                style={{
+                                    width: cardWidth
+                                }}
+                            >
+                                {Card ? <Card rentalCategory={card} hasDragged={cardDraggedRef} /> : null}
+                            </div>
+                        ))}
+                    </motion.div>
+                </div>
             </div>
 
             {canShift && (

@@ -37,7 +37,7 @@ export default function RentalCategoryCard({ rentalCategory, hasDragged }: {
     return (
         <Link
             to={`/rentals/${category?.slug}`}
-            className='block overflow-hidden rounded-xl w-sm border border-border bg-card shadow-md transition-transform hover:cursor-pointer hover:-translate-y-1'
+            className='block overflow-hidden rounded-xl w-full border border-border bg-card shadow-md transition-transform hover:cursor-pointer hover:-translate-y-1'
             draggable={false}
             onClick={handleClick}
         >
