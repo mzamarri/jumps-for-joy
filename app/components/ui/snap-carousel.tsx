@@ -84,6 +84,7 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
                 className="
                     overflow-hidden p-4 box-content
                     [--card-width:20rem]
+                    sm:[--card-width:24rem]
                     [--card-gap:2rem]
                     [--step:calc(var(--card-width)+var(--card-gap))]
                 "
@@ -105,7 +106,6 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
                     <motion.div
                         className={`w-max flex gap-(--card-gap)`}
                         drag={canShift ? "x" : false}
-                        dragSnapToOrigin
                         dragConstraints={{left: 0, right: 0}}
                         dragElastic={0.2}
                         dragMomentum={false}
@@ -130,9 +130,15 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
                         type="button"
                         aria-label="Previous cards"
                         onClick={prevCard}
-                        className={`absolute left-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md disabled:opacity-40 sm:left-3 sm:h-11 sm:w-11 ${
-                            canScrollLeft ? 'cursor-pointer hover:bg-muted' : 'cursor-default'
-                        }`}
+                        className={`
+                            absolute left-2 top-1/2 -translate-y-1/2
+                            hidden sm:flex items-center justify-center 
+                            h-10 w-10 sm:h-11 sm:w-11 rounded-full border border-border 
+                            bg-card text-foreground shadow-md disabled:opacity-40
+                            ${
+                                canScrollLeft ? 'cursor-pointer hover:bg-muted' : 'cursor-default'
+                            }
+                        `}
                         disabled={!canScrollLeft}
                     >
                         <ChevronLeft className="w-5 h-5" />
@@ -141,9 +147,15 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
                         type="button"
                         aria-label="Next cards"
                         onClick={nextCard}
-                        className={`absolute right-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md disabled:opacity-40 sm:right-3 sm:h-11 sm:w-11 ${
-                            canScrollRight ? 'cursor-pointer hover:bg-muted' : 'cursor-default'
-                        }`}
+                        className={`
+                            absolute right-2 top-1/2 -translate-y-1/2 
+                            hidden sm:flex items-center justify-center 
+                            h-10 w-10 sm:h-11 sm:w-11 rounded-full border border-border 
+                            bg-card text-foreground shadow-md disabled:opacity-40
+                            ${
+                                canScrollRight ? 'cursor-pointer hover:bg-muted' : 'cursor-default'
+                            }
+                        `}
                         disabled={!canScrollRight}
                     >
                         <ChevronRight className="w-5 h-5" />
