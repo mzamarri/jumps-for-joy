@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { motion, animate, useMotionValue, type DragHandler } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -23,8 +23,7 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
 }: SnapCarouselProps<TCard>) {
     const [cardIndex, setCardIndex] = useState(0);
     const [visibleCards, setVisibleCards] = useState(visibleCount);
-    const cardDraggedRef = useRef<boolean>(false); 
-    const x = useMotionValue(0);
+    const cardDraggedRef = useRef<boolean>(false);
 
     useEffect(() => {
         const sm = window.matchMedia("(max-width: 639px)");
@@ -47,20 +46,8 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
         };
     }, [])
 
-    const animateToIndex = (nextIndex: number) => {
-        setCardIndex(nextIndex);
-
-        const translateX = -nextIndex * step;
-
-        animate(x, translateX, {
-            type: "spring",
-            stiffness: 360,
-            damping: 38
-        });
-    }
-
-    const nextCard = () => animateToIndex(Math.min(cardIndex + 1, maxIndex));
-    const prevCard = () => animateToIndex(Math.max(cardIndex - 1, 0));
+    const nextCard = () => setCardIndex(Math.min(cardIndex + 1, maxIndex));
+    const prevCard = () => setCardIndex(Math.max(cardIndex - 1, 0));
 
     const handleHasDragged: DragHandler = (_event, info) => {
         if (!cardDraggedRef.current) {
@@ -75,48 +62,52 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
     const handleDragEnd: DragHandler = (_event, info) => {
         const delta = info.offset.x;
 
-        let nextIndex = cardIndex;
         if (delta <= -DRAG_THRESHOLD) {
-            nextIndex = Math.min(cardIndex + 1, maxIndex);
+            setCardIndex(Math.min(cardIndex + 1, maxIndex));
         }
 
         if (delta >= DRAG_THRESHOLD) {
-            nextIndex = Math.max(cardIndex - 1, 0);
+            setCardIndex(Math.max(cardIndex - 1, 0));
         }
-
-        animateToIndex(nextIndex);
     };
 
-    const cardWidth = 384; // 384px = 24rem
-    const gap = 32; // 32px = 2rem;
-    const step = cardWidth + gap;
-    const containerWidth = (3 * cardWidth) + (2 * gap);
     const maxIndex = cards.length - visibleCards;
-    const dragLeftLimit = -maxIndex * step;
-
     const canShift = visibleCount < cards.length;
     const canScrollRight = cardIndex < maxIndex;
     const canScrollLeft = cardIndex > 0;
 
     return (
-        <div className="relative w-full">
+        <div 
+            className="relative w-fit"
+        >
             <div 
-                className="overflow-hidden p-4 box-content  "
-                style={{width: containerWidth}}
+                className="
+                    overflow-hidden p-4 box-content
+                    [--card-width:20rem]
+                    [--card-gap:2rem]
+                    [--step:calc(var(--card-width)+var(--card-gap))]
+                "
             >
-                <div
-                    style={{width: containerWidth}}
+                <motion.div
+                    style={{
+                        width: `calc((${visibleCards - 1} * var(--card-gap)) + (${visibleCards} * var(--card-width)))`
+                    }}
+                    className=""
+                    animate={{
+                        x: `calc(-${cardIndex} * var(--step))`
+                    }}
+                    transition={{
+                        type: "spring",
+                        stiffness: 360,
+                        damping: 38
+                    }}
                 >
                     <motion.div
-                        className={`w-max`}
-                        style={{ 
-                            x,
-                            display: "flex",
-                            gap
-                        }}
+                        className={`w-max flex gap-(--card-gap)`}
                         drag={canShift ? "x" : false}
-                        dragConstraints={{left: dragLeftLimit, right: 0}}
-                        dragElastic={0.1}
+                        dragSnapToOrigin
+                        dragConstraints={{left: 0, right: 0}}
+                        dragElastic={0.2}
                         dragMomentum={false}
                         onDrag={handleHasDragged}
                         onDragEnd={handleDragEnd}
@@ -124,15 +115,13 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
                         {cards.map(card => (
                             <div
                                 key={card.id}
-                                style={{
-                                    width: cardWidth
-                                }}
+                                className="w-(--card-width)"
                             >
                                 {Card ? <Card rentalCategory={card} hasDragged={cardDraggedRef} /> : null}
                             </div>
                         ))}
                     </motion.div>
-                </div>
+                </motion.div>
             </div>
 
             {canShift && (

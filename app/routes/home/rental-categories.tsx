@@ -13,7 +13,7 @@ export default function HomeCategories({ queryData }: SectionProps) {
 
     return (
         <div className='relative w-full overflow-hidden px-4 py-8 sm:px-6 lg:px-24'>
-            <div className='flex flex-col space-y-8 md:space-y-10'>
+            <div className='flex flex-col space-y-8 md:space-y-10 items-center'>
                 <div className='text-center space-y-4'>
                     <span className='inline-flex items-center gap-2 font-semibold text-sm bg-secondary text-secondary-foreground py-2 px-4 rounded-full'>
                         <Castle className='w-4 h-4'/>
@@ -26,9 +26,7 @@ export default function HomeCategories({ queryData }: SectionProps) {
                         setup for your next event.
                     </p>
                 </div>
-                <div className='h-fit'>
-                    <SnapCarousel cards={rentalCategories} Card={RentalCategoryCard} visibleCount={3} />
-                </div>
+                <SnapCarousel cards={[...rentalCategories, ...rentalCategories, ...rentalCategories, ...rentalCategories, ...rentalCategories]} Card={RentalCategoryCard} visibleCount={3} />
             </div>
         </div>
     )
