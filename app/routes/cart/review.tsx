@@ -23,10 +23,6 @@ const formatCurrency = (value: number) =>
     }).format(value);
 
 export async function clientAction({ request }: { request: Request }) {
-    const isString = (value: unknown): value is string => {
-        return typeof value === "string"
-    }
-
     const normalizeFormData = (formData: FormData): Record<string, string> => {
         const formFields = [
             ...fields,
@@ -102,14 +98,29 @@ export default function ReviewSection() {
     const { cart } = useCart()
     const { draft, cost } = useOutletContext<CartOutletContext>();
     const [ errors, setErrors ] = useState<ValidationErrors>(validateDraft(draft));
+    const [ fieldsEditing, setFieldsEditing ] = useState<Record<FieldName, boolean>>(fields.reduce((acc, fieldName) => {
+        acc[fieldName] = false;
+        return acc;
+    }, {} as Record<FieldName, boolean>));
     const [ requestAcknowledged, setRequestAcknowledged ] = useState(false);
-    const canSubmitRequest = Object.keys(errors).length === 0 && requestAcknowledged
+    const editingField = Object.values(fieldsEditing).some(value => value);
+    const canSubmitRequest = 
+        Object.keys(errors).length === 0 && 
+        !editingField && 
+        requestAcknowledged
     const submit = useSubmit();
 
     const validateField = (fieldName: FieldName, draft: RequestDraft): string => {
         const newErrors = validateDraft(draft);
         setErrors(newErrors);
         return errors[fieldName] !== undefined ? errors[fieldName] : "";
+    }
+
+    const setIsEditing = (fieldName: FieldName, value: boolean) => {
+        setFieldsEditing(prev => ({
+            ...prev,
+            [fieldName]: value
+        }))
     }
 
     const handleSubmitRequest = (event: FormEvent<HTMLFormElement>) => {
@@ -161,6 +172,8 @@ export default function ReviewSection() {
                                     key={field.id}
                                     field={field}
                                     error={errors[field.name] ?? ""}
+                                    isEditing={fieldsEditing[field.name]}
+                                    setIsEditing={setIsEditing}
                                     validateField={validateField}
                                 />
                             )) }
@@ -234,37 +247,38 @@ export default function ReviewSection() {
                             I understand this is a request, not a booking
                         </label>
                 </div>
-                <button 
-                    type="submit" 
-                    disabled={!canSubmitRequest} 
-                    className={`py-3 w-full rounded-lg ${
-                        canSubmitRequest
-                            ? "text-accent-foreground bg-accent hover:bg-accent/90  hover:cursor-pointer"
-                            : "bg-muted text-muted-foreground"
-                    }`}
+                <div
+                    className='relative w-full'
                 >
-                    Submit Request
-                </button>
+                    <button 
+                        type="submit" 
+                        disabled={!canSubmitRequest} 
+                        className={`py-3 w-full rounded-lg ${
+                            canSubmitRequest
+                                ? "text-accent-foreground bg-accent hover:bg-accent/90  hover:cursor-pointer"
+                                : "bg-muted text-muted-foreground"
+                        }`}
+                    >
+                        Submit Request
+                    </button>
+                    <p className='w-full h-8 absolute text-destructive flex justify-center items-center'>
+                        {requestAcknowledged && editingField ? "Save all fields." : ""}
+                    </p>
+                </div>
             </div>
         </Form>
     )
 }
 
-/* 
-Functional Requirements
-    1. Errors should:
-        a. Keep field in editing mode and display error message
-        b. Disable submit button.
-    2. 
-*/
-function Field({ field, error, validateField }: { 
+function Field({ field, error, isEditing, setIsEditing, validateField }: { 
     field: FieldConfig, 
     error: string,
+    isEditing: boolean,
+    setIsEditing: (fieldName: FieldName, value: boolean) => void,
     validateField: (fieldName: FieldName, draft: RequestDraft) => string
 }) {
     const { draft, setDraft } = useOutletContext<CartOutletContext>();
     const [ checkError, setCheckError ] = useState(true);
-    const [ isEditing, setIsEditing ] = useState(Boolean(error));
     const inputRef = useRef<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(null);
 
     useEffect(() => {
@@ -295,16 +309,16 @@ function Field({ field, error, validateField }: {
         };
 
         setCheckError(false);
-        setIsEditing(false);
+        setIsEditing(field.name, false);
     }
 
     const handleEdit = () => {
         console.log("isEditing: ", isEditing)
-        setIsEditing(true);
+        setIsEditing(field.name, true);
     }
 
     const editingClass = isEditing 
-        ? `bg-background rounded-sm ${error ? "border-destructive" : "border-border"}`
+        ? `bg-background rounded-sm ${error ? "border-destructive focus:outline-destructive" : "border-border"}`
         : "text-muted-foreground border-transparent appearance-none resize-none";
 
     const applyFullWidth: FieldConfig["type"][] = [
@@ -385,8 +399,6 @@ function Field({ field, error, validateField }: {
                             required={field.required}
                             rows={3}
                             onChange={e => handleFieldChange(e.target.value)}
-                            onFocus={() => setCheckError(false)}
-                            onBlur={() => setCheckError(true)}
                             ref={setFieldRef}
                         />
                     ) : (
@@ -399,8 +411,6 @@ function Field({ field, error, validateField }: {
                             disabled={!isEditing}
                             required={field.required}
                             onChange={e => handleFieldChange(e.target.value)}
-                            onFocus={() => setCheckError(false)}
-                            onBlur={() => setCheckError(true)}
                             aria-invalid={Boolean(error)}
                             aria-describedby={`${field.name}-review-error`}
                             ref={setFieldRef}
@@ -425,7 +435,7 @@ function Field({ field, error, validateField }: {
                 className={`w-12 h-12 sm:w-24 flex justify-center items-center sm:gap-2 sm:px-4 sm:py-2 rounded-full ${
                     error
                         ? "bg-muted text-muted-foreground cursor-not-allowed"
-                        : "hover:cursor-pointer bg-primary/10 text-primary"
+                        : `hover:cursor-pointer ${isEditing ? "bg-secondary/30 text-secondary-foreground" : "bg-primary/10 text-primary"}`
                 }`}
                 onClick={isEditing ? handleSave : handleEdit}
             >

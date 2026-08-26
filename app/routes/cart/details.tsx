@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, type RefObject } from "react";
 import { Link, useOutletContext } from "react-router"
 import { ArrowLeft, ArrowRight, CalendarDays, MapPin, User } from "lucide-react";
 import { type CartOutletContext, type FieldConfig, type FieldSection, type FieldName, type RequestDraft } from "./types.js";
@@ -125,12 +125,32 @@ const fieldSections: FieldSection[] = [
                             disabled: true
                         },
                         {
-                            value: "grass",
-                            displayText: "grass"
+                            value: "Grass",
+                            displayText: "Grass"
                         },
                         {
-                            value: "concrete",
+                            value: "Concrete",
                             displayText: "Concrete"
+                        },
+                        {
+                            value: "Asphalt",
+                            displayText: "Asphalt"
+                        },
+                        {
+                            value: "Turf",
+                            displayText: "Artifical Turf"
+                        },
+                        {
+                            value: "Pavers",
+                            displayText: "Pavers/Bricks"
+                        },
+                        {
+                            value: "Dirt",
+                            displayText: "Dirt"
+                        },
+                        {
+                            value: "Other",
+                            displayText: "Other Surface"
                         }
                     ]
                 }
@@ -152,7 +172,7 @@ export default function DetailsSection() {
     const { draft } = useOutletContext<CartOutletContext>();
     const [ errors, setErrors ] = useState<ValidationErrors>(validateDraft(draft));
     const [ canReviewRequest, setCanReviewRequest ] = useState(true);
-    console.log("Errors: ", errors)
+    const fieldsRef = useRef<Partial<Record<FieldName, HTMLElement | null>>>({});
 
     const validateField = (fieldName: FieldName, draft: RequestDraft): string => {
         const newErrors = validateDraft(draft);
@@ -175,9 +195,11 @@ export default function DetailsSection() {
             return;
         }
 
-        if (Object.keys(errors).length !== 0) {
+        const fieldErrors = Object.keys(errors) as FieldName[];
+        if (fieldErrors.length !== 0) {
             event.preventDefault();
             setCanReviewRequest(false);
+            fieldsRef.current[fieldErrors[0]]?.focus();
             return;
         }
 
@@ -220,6 +242,7 @@ export default function DetailsSection() {
                                                     error={errors[f.name] ?? ""}
                                                     canReviewRequest={canReviewRequest}
                                                     validateField={validateField}
+                                                    fieldsRef={fieldsRef}
                                                 />
                                             ))
                                         }
@@ -232,6 +255,7 @@ export default function DetailsSection() {
                                         error={errors[field.name] ?? ""}
                                         canReviewRequest={canReviewRequest}
                                         validateField={validateField}
+                                        fieldsRef={fieldsRef}
                                     />
                                 )
                             )}
@@ -239,33 +263,43 @@ export default function DetailsSection() {
                     </div>
                 ))}
             </div>
-            <Link
-                to="/cart/review"
-                onClick={handleReviewRequest}
-                
-                aria-disabled={!canReviewRequest}
-                className={`w-full py-3 rounded-xl font-semibold flex justify-center items-center gap-2 ${
-                    canReviewRequest
-                        ? "bg-accent text-accent-foreground hover:bg-accent/90 cursor-pointer"
-                        : "bg-muted text-muted-foreground cursor-not-allowed pointer-events-auto"
-                }`}
-            >
-                Review Request <ArrowRight className="w-4 h-4"/>
-            </Link>
+            <div>
+                <Link
+                    to="/cart/review"
+                    onClick={handleReviewRequest}
+                    
+                    aria-disabled={!canReviewRequest}
+                    className={`w-full py-3 rounded-xl font-semibold flex justify-center items-center gap-2 ${
+                        canReviewRequest
+                            ? "bg-accent text-accent-foreground hover:bg-accent/90 cursor-pointer"
+                            : "bg-muted text-muted-foreground cursor-not-allowed pointer-events-auto"
+                    }`}
+                >
+                    Review Request <ArrowRight className="w-4 h-4"/>
+                </Link>
+            </div>
         </div>
     )
 }
 
-function Field({ field, error, canReviewRequest, validateField }: { 
+function Field({ field, error, canReviewRequest, validateField, fieldsRef }: { 
     field: FieldConfig, 
     error: string,
     canReviewRequest: boolean, 
-    validateField: (fieldName: FieldName, draft: RequestDraft) => string
+    validateField: (fieldName: FieldName, draft: RequestDraft) => string,
+    fieldsRef: RefObject<Partial<Record<FieldName, HTMLElement | null>>>
 }) {
     const { draft, setDraft } = useOutletContext<CartOutletContext>();
     const [ checkError, setCheckError ] = useState(true);
 
+    const addFieldRef = (element: HTMLElement | null) => {
+        fieldsRef.current[field.name] = element;
+    }
+
     const handleFieldChange = (nextValue: string) => {
+        if (checkError) {
+            setCheckError(false);
+        }
         const newDraft = { ...draft };
         newDraft[field.name] = formatField(field.name, nextValue);
 
@@ -290,13 +324,13 @@ function Field({ field, error, canReviewRequest, validateField }: {
                         <textarea
                             id={field.id}
                             name={field.name}
-                            className={`w-full bg-background p-2 rounded-sm border ${!canReviewRequest && checkError && error ? "border-destructive" : "border-border"}`}
+                            className={`w-full bg-background p-2 rounded-sm border ${!canReviewRequest && checkError && error ? "border-destructive focus:outline-destructive" : "border-border"}`}
                             required={field.required}
                             rows={field.rows}
                             value={draft[field.name]}
                             onChange={e => handleFieldChange(e.target.value)}
-                            onFocus={() => setCheckError(false)}
                             onBlur={() => setCheckError(true)}
+                            ref={addFieldRef}
                             aria-invalid={Boolean(!canReviewRequest  && error)}
                             aria-describedby={!canReviewRequest && checkError && error ? `${field.id}-error` : undefined}
                         />
@@ -306,12 +340,12 @@ function Field({ field, error, canReviewRequest, validateField }: {
                             <select
                                 id={field.id}
                                 name={field.name}
-                                className={`w-full bg-background p-2 rounded-sm border ${!canReviewRequest && checkError && error ? "border-destructive" : "border-border"}`}
+                                className={`w-full bg-background p-2 rounded-sm border ${!canReviewRequest && checkError && error ? "border-destructive focus:outline-destructive" : "border-border"}`}
                                 required={field.required}
                                 value={draft[field.name]}
-                                onFocus={() => setCheckError(false)}
                                 onBlur={() => setCheckError(true)}
                                 onChange={e => handleFieldChange(e.target.value)}
+                                ref={addFieldRef}
                                 aria-invalid={Boolean(error)}
                                 aria-describedby={error ? `${field.id}-error` : undefined}
                             >
@@ -331,12 +365,12 @@ function Field({ field, error, canReviewRequest, validateField }: {
                                 type={field.type}
                                 id={field.id}
                                 name={field.name}
-                                className={`w-full bg-background p-2 rounded-sm border ${!canReviewRequest && checkError && error ? "border-destructive" : "border-border"}`}
+                                className={`w-full bg-background p-2 rounded-sm border ${!canReviewRequest && checkError && error ? "border-destructive focus:outline-destructive" : "border-border"}`}
                                 required={field.required}
                                 value={draft[field.name]}
                                 onChange={e => handleFieldChange(e.target.value)}
-                                onFocus={() => setCheckError(false)}
                                 onBlur={() => setCheckError(true)}
+                                ref={addFieldRef}
                                 aria-invalid={Boolean(!canReviewRequest && checkError  && error)}
                                 aria-describedby={!canReviewRequest && checkError  && error ? `${field.id}-error` : undefined}
                                 inputMode={field.name === "phoneNumber" || field.name === "zip" ? "numeric" : undefined}
