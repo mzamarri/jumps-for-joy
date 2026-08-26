@@ -334,7 +334,7 @@ function Field({ field, error, isEditing, setIsEditing, validateField }: {
                     flex-1 flex flex-col 
                     ${field.type === "text-area" 
                         ? "sm:flex-col sm:gap-2" 
-                        : "sm: flex-row sm:justify-between sm:items-center sm:gap-4"
+                        : "sm:flex-row sm:justify-between sm:items-center sm:gap-4"
                     }
                 `}
             >
@@ -369,7 +369,7 @@ function Field({ field, error, isEditing, setIsEditing, validateField }: {
                 >
                     {field.type === "select" ? (
                         <select
-                            className={`w-64 p-2 border ${editingClass}`}
+                            className={`w-56 p-2 border ${editingClass}`}
                             id={field.name}
                             name={field.name}
                             value={draft[field.name]}
@@ -403,7 +403,7 @@ function Field({ field, error, isEditing, setIsEditing, validateField }: {
                         />
                     ) : (
                         <input
-                            className={`p-2 border ${editingClass} ${applyFullWidth.includes(field.type) ? "w-full" : "w-64"}`}
+                            className={`p-2 border ${editingClass} ${applyFullWidth.includes(field.type) ? "w-full" : "w-56"}`}
                             id={field.name}
                             name={field.name}
                             value={draft[field.name]}
