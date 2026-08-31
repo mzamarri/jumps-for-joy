@@ -3,13 +3,14 @@ import { Link,  useOutletContext, Form, redirect, useSubmit, type FormMethod } f
 import { ArrowLeft, Save, SquarePen, ShoppingBag } from 'lucide-react';
 import Icon from 'components/ui/icon';
 import { useCart } from "context/cart-context";
-import { fields, initialRequestDraft, type CartItem, type CartOutletContext, type FieldConfig, type FieldName, type KeyOfUnion, type RequestDraft } from "./types.js";
+import { fields, type CartItem, type CartOutletContext, type FieldConfig, type FieldName, type RequestDraft } from "./types.js";
 import { formatField, validateDraft, type ValidationErrors } from "./util/validation";
-import { sendBookingRequestEmails, type EmailFormat, type EmailFieldName, emailFields } from "lib/emailjs-client"
+import { sendBookingRequestEmails, type EmailFormat } from "lib/emailjs-client"
 import { getCost, writeStorageDraft } from './util/storage.js';
 import { detailsFieldSections } from './details.js';
 import { appConfig } from 'app/config.js';
 import { validateCart } from './util/validation';
+import { handlePhoneKeyDown } from 'lib/event-handlers.js';
 
 const fieldSections = detailsFieldSections.map(section => ({
     ...section,
@@ -411,6 +412,7 @@ function Field({ field, error, isEditing, setIsEditing, validateField }: {
                             disabled={!isEditing}
                             required={field.required}
                             onChange={e => handleFieldChange(e.target.value)}
+                            onKeyDown={e => field.name === "phoneNumber" ? handlePhoneKeyDown(e) : null}
                             aria-invalid={Boolean(error)}
                             aria-describedby={`${field.name}-review-error`}
                             ref={setFieldRef}

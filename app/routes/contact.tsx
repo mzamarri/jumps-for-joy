@@ -1,18 +1,51 @@
-import { useState, type FormEvent, type KeyboardEvent } from "react";
+import { useState } from "react";
+import type { FormEvent, ChangeEvent, InputEvent, MouseEvent, KeyboardEvent } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { ClientActionFunctionArgs } from "react-router";
-import { Mail, Phone, Clock, Link } from "lucide-react";
-import { SiFacebook, SiInstagram } from "@icons-pack/react-simple-icons";
+import { Mail, Phone, Link, ExternalLink } from "lucide-react";
+import IG from "../assets/instagram.svg";
+import FB from "../assets/facebook.svg"
 import Icon from 'components/ui/icon';
 import { useAppConfig } from "context/app-config-context";
 import { sendContactEmails } from "../lib/emailjs-client";
+import { createValidator, requiredString, type NormalizationPattern } from "lib/validation-helpers";
+import * as z from "zod";
+import { formatPhoneNumber, normalizeValue } from "lib/utils";
+import { handlePhoneKeyDown } from "lib/event-handlers";
 
-const initialContactForm = {
-    name: "",
-    phone: "",
-    email: "",
-    message: "",
-};
+const contactFields = [
+    "name",
+    "phoneNumber",
+    "email",
+    "message"
+] as const;
+
+type ContactFieldName = typeof contactFields[number]
+
+type ContactFields = Record<ContactFieldName, string>
+
+type PartialFields = Partial<ContactFields>
+
+const normalizeFields: NormalizationPattern<PartialFields> = {
+    name: /[^a-zA-Z '\-]/g,
+    phoneNumber:/\D+/g,
+    email: /\s+/g
+}
+
+const contactSchema: z.ZodType<Record<ContactFieldName, string>> = z.object({
+    name: requiredString("Name"),
+    email: requiredString("Email")
+        .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Enter valid email, like name@example.com."),
+    phoneNumber: z
+        .string("Phone Number is required.")
+        .refine(
+            value => value === "" || /^\(\d{3}\) \d{3}-\d{4}$/.test(value),
+            "Must be 10 digits or leave blank."
+        ),
+    message: requiredString("Message")
+});
+
+const v = createValidator(contactSchema, normalizeFields);
 
 export async function clientAction({ request }: ClientActionFunctionArgs) {
     const formData = await request.formData();
@@ -20,16 +53,6 @@ export async function clientAction({ request }: ClientActionFunctionArgs) {
     const phone = String(formData.get("phone") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
     const message = String(formData.get("message") ?? "").trim();
-
-    if (!name || !email || !message) {
-        return { error: "Please enter your name, email, and message before submitting." };
-    }
-    if (!isValidField("email", email)) {
-        return { error: "Please enter a valid email address, like name@example.com." };
-    }
-    if (phone && !isValidField("phoneNumber", phone)) {
-        return { error: PHONE_NUMBER_ERROR_MESSAGE };
-    }
 
     try {
         await sendContactEmails({
@@ -51,57 +74,46 @@ export async function clientAction({ request }: ClientActionFunctionArgs) {
 }
 
 export default function ContactPage() {
-    const [form, setForm] = useState(initialContactForm);
-    const [clientError, setClientError] = useState("");
-    const actionData = useActionData<typeof clientAction>();
-    const navigation = useNavigation();
-    const isSubmitting = navigation.state === "submitting";
+    const [ contactFields, setContactFields ] = useState<PartialFields>({});
+    const [ errors, setErrors ] = useState<PartialFields>(v.validate(contactFields));
+    const [ canSubmit, setCanSubmit ] = useState(true);
     const config = useAppConfig();
+    // console.log("errors: ", errors);
 
-    const statusMessage = clientError || actionData?.error || "";
-
-    const handleClientValidation = (event: FormEvent<HTMLFormElement>) => {
-        setClientError("");
-
-        if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+        if (Object.keys(errors).length !== 0) {
+            console.log("error");
             event.preventDefault();
-            setClientError("Please enter your name, email, and message before submitting.");
+            setCanSubmit(false);
             return;
         }
-        if (!isValidField("email", form.email)) {
-            event.preventDefault();
-            setClientError("Please enter a valid email address, like name@example.com.");
-            return;
-        }
-        if (form.phone.trim() && !isValidField("phoneNumber", form.phone)) {
-            event.preventDefault();
-            setClientError(PHONE_NUMBER_ERROR_MESSAGE);
-            return;
-        }
+
+        console.log("success");
     };
 
-    const handleFieldChange = (field: keyof typeof form, value: string) => {
-        const nextValue = field === "phone" ? formatField("phoneNumber", value) : value;
-
-        setForm(prev => ({
-            ...prev,
-            [field]: nextValue,
-        }));
-    };
-
-    const handlePhoneKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-        if (event.key !== "Backspace") {
-            return;
+    const formatField = (fieldName: ContactFieldName, normalizedValue: string): string => {
+        if (fieldName === "phoneNumber") {
+            return formatPhoneNumber(normalizedValue);
         }
 
-        const { selectionStart, selectionEnd } = event.currentTarget;
+        return normalizedValue;
+    }
 
-        if (selectionStart === null || selectionEnd === null) {
-            return;
+    const handleFieldChange = (fieldName: ContactFieldName, nextValue: string) => {
+        const regex = normalizeFields[fieldName];
+        const normalizedValue = regex ? normalizeValue(regex, nextValue) : nextValue;
+        const newContactData = {
+            ...contactFields,
+            [fieldName]: formatField(fieldName, normalizedValue)
+        };
+        const newErrors = v.validate(newContactData);
+
+        if (Object.keys(newErrors).length === 0) {
+            setCanSubmit(true);
         }
 
-        event.preventDefault();
-        handleFieldChange("phone", removePreviousPhoneDigit(form.phone, selectionStart, selectionEnd));
+        setContactFields(newContactData);
+        setErrors(newErrors);
     };
 
     return (
@@ -113,161 +125,189 @@ export default function ContactPage() {
                 </p>
             </div>
 
-            <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8 md:px-8 md:py-12 lg:flex-row">
-                <div className="w-full space-y-4 rounded-2xl p-6 lg:max-w-md">
+            <div className="
+                max-w-6xl mx-auto
+                px-4 py-8 md:px-8 md:py-12 
+                flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8
+            ">
+                <div className="max-w-3xl w-full space-y-4 px-4 lg:px-0 lg:py-8 lg:max-w-md">
                     <h2 className="text-2xl font-semibold md:text-3xl">Contact Information</h2>
                     <p className="flex items-center gap-1 text-muted-foreground">
-                        Reach out anytime. we typically reach out within the hour during business hours
+                        Reach out anytime. we typically reach out within the hour.
                     </p>
                     <ul className="space-y-6">
-                        <li className="flex items-center gap-4">
+                        <li className="
+                            grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-3 sm:gap-y-0
+                        ">
                             <Icon 
                                 icon={Phone} 
-                                containerClassName="bg-secondary/30 w-12 h-12 flex justify-center items-center rounded-lg" 
+                                containerClassName="sm:row-span-2 bg-secondary/30 w-12 h-12 flex justify-center items-center rounded-lg" 
                                 iconClassName="w-6 h-6 text-primary" 
                             />
-                            <div className="">
-                                <h1 className="text-lg font-semibold text-foreground">Phone</h1>
-                                <a href={config.business.phone.href} className="text-muted-foreground">
-                                    {config.business.phone.display}
-                                </a>
-                            </div>
+                            <h1 className="text-lg font-semibold text-foreground">Phone</h1>
+                            <a 
+                                href={config.business.phone.href}
+                                className="col-span-2 sm:col-span-1 text-muted-foreground"
+                            >
+                                {config.business.phone.display}
+                            </a>
                         </li>
-                        <li className="flex items-start gap-4">
+                        <li className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-3 sm:gap-y-0">
                             <Icon 
                                 icon={Mail} 
-                                containerClassName="w-12 h-12 bg-secondary/20 flex justify-center items-center rounded-lg" 
+                                containerClassName="sm:row-span-2 w-12 h-12 bg-secondary/30 flex justify-center items-center rounded-lg" 
                                 iconClassName="w-6 h-6 text-secondary" 
                             />
-                            <div className="">
-                                <h1 className="text-lg font-semibold text-foreground">Email</h1>
-                                <a href={config.business.email.href} className="wrap-break-word text-muted-foreground">
-                                    {config.business.email.display}
-                                </a>
-                            </div>
+                            <h1 className="text-lg font-semibold text-foreground">Email</h1>
+                            <a href={config.business.email.href} className="col-span-2 sm:col-span-1 text-muted-foreground">
+                                {config.business.email.display}
+                            </a>
                         </li>
-                        <li className="flex items-start gap-4">
-                            <Icon 
-                                icon={Clock}
-                                containerClassName="w-12 h-12 bg-secondary/30 flex justify-center items-center rounded-lg" 
-                                iconClassName="w-6 h-6 text-accent" 
-                            />
-                            <div className="flex-1">
-                                <h1 className="text-lg font-semibold text-foreground">Business Hours</h1>
-                                <ol className="text-muted-foreground w-full">
-                                    {config.business.hours.map(item => (
-                                        <li key={item.day} className="flex items-start justify-between gap-4">
-                                            <span>
-                                                {item.day}
-                                            </span>
-                                            <span>
-                                                {item.hours}
-                                            </span>
-                                        </li>
-                                    ))}
-                                </ol>
-                            </div>
-                        </li>
-                        <li className="flex items-start gap-4">
+                        <li className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-3">
                             <Icon 
                                 icon={Link}
                                 containerClassName="w-12 h-12 bg-secondary/30 flex justify-center items-center rounded-lg" 
-                                iconClassName="w-6 h-6 text-primary" 
+                                iconClassName="w-6 h-6 text-accent" 
                             />
-                            <div className="flex-1">
-                                <h1 className="text-lg font-semibold text-foreground">Social Media</h1>
-                                <p className="text-muted-foreground">Need inspiration for your next event? Consider checking out our social media and feel free to reach out to us there!</p>
-                                <div className='flex justify-center gap-3 pt-2'>
-                                    <div className='group p-4 bg-primary/10 rounded-full hover:bg-secondary/30 cursor-pointer'>
-                                        <SiFacebook size={28} className='text-primary group-hover:text-secondary-foreground'/>
-                                    </div>
-                                    <div className='group p-4 bg-primary/10 rounded-full hover:bg-secondary/30 cursor-pointer'>
-                                        <SiInstagram size={28} className='text-primary group-hover:text-secondary-foreground'/>
-                                    </div>
-                                </div>
-                            </div>
+                            <h1 className="text-lg font-semibold text-foreground">Social Media</h1>
+                            <p className="text-muted-foreground col-span-2">
+                                Reach out on social media with any questions, and check out our past events for a little inspiration!
+                            </p>
+                            <ul className='flex flex-col sm:flex-row lg:flex-col gap-4 col-span-2'>
+                                <li className='
+                                    p-4 text-sm cursor-pointer rounded-lg
+                                    bg-card hover:bg-muted
+                                    border border-border hover:boreder-ring
+                                    flex-1 flex items-center gap-3
+                                '>
+                                    <img src={FB} alt="Facebook" className='w-8 h-8'/>
+                                    <span>Add us on Facebook</span>
+                                    <ExternalLink className="ml-auto w-4 h-4"/>
+                                </li>
+                                <li className='
+                                    group p-4 cursor-pointer text-sm rounded-lg
+                                    bg-card hover:bg-muted
+                                    border border-border hover:boreder-ring
+                                    flex-1 flex items-center gap-3
+                                '>
+                                    <img src={IG} alt="Instagram" className='w-8 h-8'/>
+                                    <span>Follow us on Instagram</span>
+                                    <ExternalLink className="ml-auto w-4 h-4"/>
+                                </li>
+                            </ul>
                         </li>
                     </ul>
                 </div>
 
-                <div id="contact-form" className="max-w-2xl flex-1 rounded-2xl border border-border bg-card p-6 space-y-4">
-                    <h2 className="text-2xl font-semibold md:text-3xl">Send Us A Message</h2>
-                    <Form method="post" className="space-y-4 text-sm" onSubmit={handleClientValidation}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="flex flex-col gap-1 text-sm">
-                                <label htmlFor="name" className="font-semibold">
-                                    Full Name *
-                                </label>
-                                <input 
-                                    id="name"
-                                    name="name"
-                                    className="bg-background border border-border rounded-lg p-3" 
-                                    type="text" 
-                                    placeholder="Arthur Morgan" 
-                                    value={form.name}
-                                    onChange={event => handleFieldChange("name", event.target.value)}
-                                    required
-                                />
+                <div className="w-full lg:py-0">
+                    <div id="contact-form" className="
+                        max-w-xl w-full mx-auto rounded-2xl
+                        border border-border bg-card p-6 lg:p-8 space-y-4
+                    ">
+                        <h2 className="text-2xl font-semibold md:text-3xl">Send Us A Message</h2>
+                    <Form method="post" className="space-y-4 text-sm" onSubmit={handleSubmit}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex flex-col gap-1 text-sm">
+                                    <label htmlFor="name" className="font-semibold">
+                                        Full Name *
+                                    </label>
+                                    <input 
+                                        id="name"
+                                        name="name"
+                                        className="bg-background border border-border rounded-lg p-3" 
+                                        type="text" 
+                                        placeholder="Arthur Morgan"
+                                        value={contactFields.name}
+                                        onChange={e => handleFieldChange("name", e.target.value)}
+                                    />
+                                    <p className={`
+                                        h-3 text-sm text-destructive
+                                        ${
+                                            canSubmit ? "opacity-0" : "opacity-100"
+                                        }
+                                    `}>
+                                        {errors["name"] || ""}
+                                    </p>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <label htmlFor="phone" className="font-semibold">
+                                        Phone
+                                    </label>
+                                    <input 
+                                        id="phoneNumber"
+                                        name="phoneNumber"
+                                        className="bg-background border border-border rounded-lg p-3" 
+                                        type="tel"
+                                        placeholder="(555) 123-4567"
+                                        value={contactFields.phoneNumber}
+                                        onChange={e => handleFieldChange("phoneNumber", e.target.value)}
+                                        onKeyDown={handlePhoneKeyDown}
+                                    />
+                                    <p className={`
+                                        h-3 text-sm text-destructive
+                                        ${canSubmit ? "opacity-0" : "opacity-100"}
+                                    `}>
+                                        {errors["phoneNumber"] || ""}
+                                    </p>
+                                </div>
                             </div>
                             <div className="flex flex-col gap-1">
-                                <label htmlFor="phone" className="font-semibold">
-                                    Phone
+                                <label htmlFor="email" className="font-semibold text-sm">
+                                    Email *
                                 </label>
                                 <input 
-                                    id="phone"
-                                    name="phone"
+                                    id="email"
+                                    name="email"
                                     className="bg-background border border-border rounded-lg p-3" 
-                                    type="tel" 
-                                    placeholder="(555) 123-4567" 
-                                    value={form.phone}
-                                    onChange={event => handleFieldChange("phone", event.target.value)}
-                                    onKeyDown={handlePhoneKeyDown}
+                                    placeholder="arthur@example.com"
+                                    value={contactFields.email}
+                                    onChange={e => handleFieldChange("email", e.target.value)}
                                 />
+                                <p className={`
+                                    h-3 text-sm text-destructive
+                                    ${canSubmit ? "opacity-0" : "opacity-100"}
+                                `}>
+                                    {errors["email"] || ""}
+                                </p>
                             </div>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label htmlFor="email" className="font-semibold text-sm">
-                                Email *
-                            </label>
-                            <input 
-                                id="email"
-                                name="email"
-                                className="bg-background border border-border rounded-lg p-3" 
-                                type="email" 
-                                placeholder="arthur@example.com" 
-                                value={form.email}
-                                onChange={event => handleFieldChange("email", event.target.value)}
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="message" className="">
-                                Message *
-                            </label>
-                            <textarea
-                                id="message"
-                                name="message"
-                                className="bg-background border border-border rounded-lg p-3 w-full" 
-                                rows={10}
-                                placeholder="Tell us about your event or ask any questions..." 
-                                value={form.message}
-                                onChange={event => handleFieldChange("message", event.target.value)}
-                                required
-                            />
-                        </div>
-                        {statusMessage ? (
-                            <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive" role="alert">
-                                {statusMessage}
-                            </p>
-                        ) : null}
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="w-full bg-accent text-accent-foreground px-6 py-3 rounded-lg font-semibold cursor-pointer hover:bg-accent/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
-                        >
-                            {isSubmitting ? "Sending..." : "Submit Inquiry"}
-                        </button>
-                    </Form>
+                            <div>
+                                <label htmlFor="message" className="">
+                                    Message *
+                                </label>
+                                <textarea
+                                    id="message"
+                                    name="message"
+                                    className="bg-background border border-border rounded-lg p-3 w-full" 
+                                    rows={10}
+                                    placeholder="Tell us about your event or ask any questions..."
+                                    value={contactFields.message}
+                                    onChange={e => handleFieldChange("message", e.target.value)}
+                                />
+                                <p className={`
+                                    h-3 text-sm text-destructive
+                                    ${canSubmit ? "opacity-0" : "opacity-100"}
+                                `}>
+                                    {errors["message"] || ""}
+                                </p>
+                            </div>
+                            {/* {statusMessage ? (
+                                <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive" role="alert">
+                                    {statusMessage}
+                                </p>
+                            ) : null} */}
+                            <button
+                                type="submit"
+                                disabled={!canSubmit}
+                                className={`
+                                    w-full bg-accent text-accent-foreground px-6 py-3 rounded-lg 
+                                    font-semibold cursor-pointer hover:bg-accent/90 
+                                    disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground
+                                `}
+                            >
+                                Submit Inquiry
+                            </button>
+                        </Form>
+                    </div>
                 </div>
             </div>
         </div>

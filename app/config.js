@@ -11,7 +11,7 @@ export const appConfig = {
         },
         contactForm: {
             serviceId: "j4ji_service",
-            publicKey: "DHPr4G8U2Kz9dLDPR",
+            publicKey: "qvbuBM5VXXMOvEHWw",
             internalTemplateId: "contact_form",
             autoReplyTemplateId: "contact_form_auto_reply",
         }

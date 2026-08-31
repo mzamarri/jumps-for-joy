@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, CalendarDays, MapPin, User } from "lucide-react"
 import { type CartOutletContext, type FieldConfig, type FieldSection, type FieldName, type RequestDraft } from "./types.js";
 import { validateDraft, type ValidationErrors, formatField } from "./util/validation.js";
 import { writeStorageDraft } from "./util/storage.js";
+import { handlePhoneKeyDown } from "lib/event-handlers.js";
 
 const fieldSections: FieldSection[] = [
     {
@@ -369,6 +370,7 @@ function Field({ field, error, canReviewRequest, validateField, fieldsRef }: {
                                 required={field.required}
                                 value={draft[field.name]}
                                 onChange={e => handleFieldChange(e.target.value)}
+                                onKeyDown={e => field.name === "phoneNumber" ? handlePhoneKeyDown(e) : null}
                                 onBlur={() => setCheckError(true)}
                                 ref={addFieldRef}
                                 aria-invalid={Boolean(!canReviewRequest && checkError  && error)}

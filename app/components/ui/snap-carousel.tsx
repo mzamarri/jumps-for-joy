@@ -86,8 +86,7 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
                 <div 
                     className="
                         overflow-hidden p-4 box-content
-                        [--card-width:20rem]
-                        sm:[--card-width:24rem]
+                        [--card-width:18rem]
                         [--card-gap:2rem]
                         [--step:calc(var(--card-width)+var(--card-gap))]
                     "
@@ -118,7 +117,7 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
                             {cards.map(card => (
                                 <div
                                     key={card.id}
-                                    className="w-(--card-width)"
+                                    className="max-w-(--card-width)"
                                 >
                                     {Card ? <Card rentalCategory={card} hasDragged={cardDraggedRef} /> : null}
                                 </div>
@@ -194,11 +193,10 @@ function Pagination({activeIndex, maxIndex}: {
         dots.push(
             <span className={`
                 inline-block w-3 h-3 rounded-full
-                border border-muted-foreground 
                 ${
                     activeIndex === i
                         ? "bg-muted-foreground"
-                        : "bg-muted"
+                        : "bg-border"
                 }
             `}/>
         );

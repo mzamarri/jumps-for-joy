@@ -111,12 +111,18 @@ export default function ServiceOverview() {
                             customers!
                         </p>
                         <div className='flex gap-3'>
-                            <div className='group p-4 bg-primary/10 rounded-full hover:bg-secondary/30 cursor-pointer'>
+                            <a 
+                                className='group p-4 bg-primary/10 rounded-full hover:bg-secondary/30 cursor-pointer'
+                                href=''
+                            >
                                 <SiFacebook size={28} className='text-primary group-hover:text-secondary-foreground'/>
-                            </div>
-                            <div className='group p-4 bg-primary/10 rounded-full hover:bg-secondary/30 cursor-pointer'>
+                            </a>
+                            <a 
+                                className='group p-4 bg-primary/10 rounded-full hover:bg-secondary/30 cursor-pointer'
+                                href=''
+                            >
                                 <SiInstagram size={28} className='text-primary group-hover:text-secondary-foreground'/>
-                            </div>
+                            </a>
                         </div>
                     </div>
                 </div>

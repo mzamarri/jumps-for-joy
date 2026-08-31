@@ -25,6 +25,8 @@ import {
     ContentfulLivePreviewProvider,
     useContentfulLiveUpdates
 } from '@contentful/live-preview/react';
+import { SiFacebook, SiInstagram } from '@icons-pack/react-simple-icons'
+import { formatPhoneNumber } from 'lib/utils'
 
 export function Layout({
     children
@@ -384,7 +386,10 @@ function Footer() {
     return (
         <footer className='bg-primary text-primary-foreground'>
             <div className='p-4 sm:p-8'>
-                <div className='grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-12 gap-8'>
+                <div className='
+                    grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8
+                    
+                '>
                     <div className='sm:col-span-2 lg:col-span-5 lg:row-span-2 space-y-4'>
                         <img src="/logo.png" alt="Jump For Joy Logo" className="h-16 w-16" />
                         <h2 className='text-2xl font-bold'>{config.business.shortName} <span className="text-secondary">Inflatables</span>
@@ -415,7 +420,7 @@ function Footer() {
                         <ul className='space-y-2 text-sm text-primary-foreground/85'>
                             <li className='flex items-center gap-2'>
                                 <Phone className='w-4 h-4 text-secondary' />
-                                <a href={config.business.phone.href}>{config.business.phone.display}</a>
+                                <a href={config.business.phone.href}>{formatPhoneNumber(config.business.phone.display)}</a>
                             </li>
                             <li className='flex items-center gap-2'>
                                 <Mail className='w-4 h-4 text-secondary' />
@@ -425,23 +430,15 @@ function Footer() {
                                 <MapPin className='w-4 h-4 text-secondary' />
                                 <span>{config.business.location}</span>
                             </li>
+                            <li className='flex justify-start items-center gap-2 py-2 text-secondary'>
+                                <a href={config.business.social.facebook}>
+                                    <SiFacebook className='w-5 h-5 hover:cursor-pointer'/>
+                                </a>
+                                <a href={config.business.social.instagram}>
+                                    <SiInstagram className='w-5 h-5 hover:cursor-pointer'/>
+                                </a>
+                            </li>
                         </ul>
-                    </div>
-                    <div className='sm:col-span-2 lg:col-span-4 lg:row-span-1 space-y-5'>
-                        <div className='space-y-2'>
-                            <h3 className='font-bold text-lg flex items-center gap-2'>
-                                <Clock3 className='w-4 h-4 text-secondary' />
-                                Business Hours
-                            </h3>
-                            <ul className='space-y-1 text-sm text-primary-foreground/85'>
-                                {config.business.hours.map(item => (
-                                    <li key={item.day} className='flex justify-between gap-4'>
-                                        <span>{item.day}</span>
-                                        <span>{item.hours}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
                     </div>
                 </div>
 

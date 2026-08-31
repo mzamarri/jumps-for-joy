@@ -1,16 +1,17 @@
 import * as z from "zod";
 import type { FieldName, RequestDraft, CartItem } from "../types.js";
 
-export type FieldPatterns =  Partial<Record<FieldName, RegExp>>
-export type FieldValidation = { 
-    name: FieldName,
+export type FieldPatterns = Partial<Record<FieldName, RegExp>>;
+export type FieldValidationData<F extends string> = { 
+    name: F,
     label: string,
     errorMessage?: string,
     normalizationPattern?: RegExp,
     allowedInputPattern?: RegExp,
     validationPattern?: RegExp
-}
-export type FieldValidationOptions = Omit<FieldValidation, "name" | "label">
+};
+
+export type FieldValidationOptions = Omit<FieldValidationData<FieldName>, "name" | "label">;
 export type ValidationErrors = Partial<Record<FieldName, string>>;
 
 const nameValidation: FieldValidationOptions = {
@@ -19,7 +20,8 @@ const nameValidation: FieldValidationOptions = {
     allowedInputPattern: /^[a-zA-Z '\-]*$/,
     normalizationPattern: /[^a-zA-Z '\-]/g
 }
-export const validateFields: FieldValidation[] = [
+
+export const validateFields: FieldValidationData<FieldName>[] = [
     {
         name: "firstName",
         label: "First Name",
@@ -162,7 +164,7 @@ export function formatField(name: FieldName, value: string) {
         }
 
         if (normalizedValue.length === 3) {
-            return `(${normalizedValue})`;
+            return `(${normalizedValue}`;
         }
 
         if (normalizedValue.length <= 6) {
