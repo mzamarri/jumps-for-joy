@@ -18,5 +18,5 @@ export default [
         route("review", "./routes/cart/review.tsx") 
     ]),
     route("preview", "./routes/preview-resolver.tsx"),
-    route("api/contentful", "./routes/api/contentful.server.ts")
+    route("api/contentful", "./routes/api/contentful.ts")
 ] satisfies RouteConfig;
