@@ -1,44 +1,61 @@
-import { Outlet, useOutletContext, useParams } from "react-router"
+import { Outlet } from "react-router"
 import { useReadQuery } from "@apollo/client/react";
-import { graphql, useFragment } from "app/lib/gql/client";
-import type { RentalCatalogFieldsFragment, RentalCategoriesQuery } from "app/lib/gql/client/graphql";
+import { graphql } from "app/lib/gql/client";
 import { useContentfulLiveUpdates } from "@contentful/live-preview/react";
-import { apolloLoader, isPreview } from "app/apollo.server";
+import { apolloLoader } from "app/apollo";
+import { isPreview } from "../api/contentful.server";
 import type { Route } from "./+types/catalog-provider";
 
-const RentalCatalogQuery = graphql(`
-    query CategoryCatalog($preview: Boolean) {
-        rentalCategoryCollection(limit: 25, preview: $preview) {
+const groupedRentalCategoriesQuery = graphql(`
+    query GroupedRentalCategories($preview: Boolean) {
+        groupedContentCollection(limit: 25, where: { groupType: "rental-categories" }, preview: $preview) {
             items {
-                slug
-                ...RentalCatalogFields
+                __typename
+                sys {
+                    id
+                }
+                rentalCategoriesCollection(limit: 25) {
+                    items {
+                        __typename
+                        sys {
+                            id
+                        }
+                    }
+                }
             }
         }
     }
-`)
+`);
 
 export const loader = apolloLoader<Route.LoaderArgs>()(({ preloadQuery }) => {
     const variables = { preview: isPreview };
-    const rentalCategoriesRef = preloadQuery(RentalCatalogQuery, { variables });
+    const groupedRentalCategoriesRef = preloadQuery(groupedRentalCategoriesQuery, { variables });
 
-    return {
-        isPreview,
-        rentalCategoriesRef
-    }
+    return { groupedRentalCategoriesRef }
 });
 
 export type CatalogOutletContext = {
-    category: RentalCatalogFieldsFragment;
-    categories: RentalCatalogFieldsFragment[];
+    orderCategories: <T extends { sys: { id: string }}>(rentalCategories: T[]) => T[];
 }
 
-export default function RentalCategories({ loaderData, params }: Route.ComponentProps) {
-    const { data } = useReadQuery(loaderData.rentalCategoriesRef);
-    const liveData = useContentfulLiveUpdates(data);
-    const categories = liveData?.rentalCategoryCollection?.items.filter(item => item !== null) ?? [];
-    const category = categories.find(category => category?.slug === params?.categoryId);
+export default function RentalCategories({ loaderData }: Route.ComponentProps) {
+    const { data } = useReadQuery(loaderData.groupedRentalCategoriesRef);
+    const orderedRentalCategoryIds = data?.groupedContentCollection
+        ?.items[0]?.rentalCategoriesCollection
+        ?.items.filter(item => item !== null)
+        ?.map(item => item.sys.id) ?? [];
+
+    const orderCategories = <T extends { sys: { id: string } }>(rentalCategories: T[]): T[] => {
+        return [
+            ...orderedRentalCategoryIds
+                .map(id => rentalCategories?.find(item => item.sys.id === id))
+                .filter(item => item !== undefined),
+            ...rentalCategories
+                .filter(item => !orderedRentalCategoryIds.includes(item.sys.id) && item !== undefined)
+        ]
+    }
 
     return (
-        <Outlet context={{ category, categories }} />
+        <Outlet context={{ orderCategories }} />
     )
 }

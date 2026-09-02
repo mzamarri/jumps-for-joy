@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { motion, animate, useMotionValue, type DragHandler } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const DRAG_THRESHOLD = 60;
+const DRAG_THRESHOLD = 50;
 const HAS_DRAGGED_THRESHOLD = 10;
 
 type SnapCarouselCard = {
@@ -87,6 +87,7 @@ export default function SnapCarousel<TCard extends SnapCarouselCard>({
                     className="
                         overflow-hidden p-4 box-content
                         [--card-width:18rem]
+                        xl:[--card-width:20rem]
                         [--card-gap:2rem]
                         [--step:calc(var(--card-width)+var(--card-gap))]
                     "

@@ -1,34 +1,18 @@
 import { Search } from 'lucide-react'
 import RentalCategoryCard from "components/contentful/ctf-rental-category-card";
+import { useOutletContext } from 'react-router';
+import { type CatalogOutletContext } from './catalog-provider';
 import { graphql } from 'lib/gql/client';
-import { apolloLoader } from 'app/apollo.server';
+import { apolloLoader } from 'app/apollo';
 import type { Route } from './+types';
+import { isPreview } from '../api/contentful.server';
 import { useReadQuery } from '@apollo/client/react';
 import { useContentfulLiveUpdates } from '@contentful/live-preview/react';
-import { isPreview } from "app/apollo.server"
 
-const RentalCategoriesQueryDocument = graphql(`
+const rentalCategoryQuery = graphql(`
     query RentalCategories($preview: Boolean) {
-        rentalCategoriesGroup: groupedContentCollection(limit: 25, where: { groupType: "rental-categories" }, preview: $preview) {
+        rentalCategoryCollection(preview: $preview, limit: 25) {
             items {
-                __typename
-                sys {
-                    id
-                }
-                rentalCategoriesCollection {
-                    items {
-                        __typename
-                        sys {
-                            id
-                        }
-                        ...RentalCategoryCardFields
-                    }
-                }
-            }
-        }
-        rentalCategoryCollection(limit: 25) {
-            items {
-                __typename
                 sys {
                     id
                 }
@@ -36,24 +20,24 @@ const RentalCategoriesQueryDocument = graphql(`
             }
         }
     }
-`)
+`);
 
 export const loader = apolloLoader<Route.LoaderArgs>()(({ preloadQuery }) => {
     const variables = { preview: isPreview };
-    const rentalCategoriesRef = preloadQuery(RentalCategoriesQueryDocument, { variables });
+    const rentalCategoriesRef = preloadQuery(rentalCategoryQuery, { variables });
 
-    return { rentalCategoriesRef }
+    return {
+        rentalCategoriesRef
+    }
 });
 
 export default function Rentals({ loaderData }: Route.ComponentProps) {
+    const { orderCategories } = useOutletContext<CatalogOutletContext>();
     const { data } = useReadQuery(loaderData.rentalCategoriesRef);
     const liveData = useContentfulLiveUpdates(data);
-    const rentalCategoriesGroup = liveData?.rentalCategoriesGroup?.items[0]?.rentalCategoriesCollection?.items.filter(item => item !== null) ?? [];
-    const rentalCategoryCollection = liveData?.rentalCategoryCollection?.items.filter(item => {
-        if (item === null) return false
-        return !rentalCategoriesGroup.some(groupItem => groupItem?.sys?.id === item.sys.id);
-    }) ?? [];
-    const rentalCategories = [ ...rentalCategoriesGroup, ...rentalCategoryCollection ]
+    const rentalCategoryItems = liveData.rentalCategoryCollection?.items.filter(item => item !== null) ?? [];
+
+    const rentalCategories = orderCategories(rentalCategoryItems);
 
     return (
         <div className='px-4 py-8 space-y-4 sm:px-6 lg:px-24'>

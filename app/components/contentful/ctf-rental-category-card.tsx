@@ -3,7 +3,7 @@ import { useContentfulInspectorMode } from "@contentful/live-preview/react";
 import { Link } from "react-router";
 import { type MouseEvent, type RefObject } from "react";
 
-const RentalCategoryCardFieldsFragment = graphql(`
+const rentalCategoryCardFieldsFragment = graphql(`
     fragment RentalCategoryCardFields on RentalCategory {
         __typename
         sys {
@@ -19,14 +19,18 @@ const RentalCategoryCardFieldsFragment = graphql(`
     }
 `);
 
+export type RentalCategoryCardFragmentRef = FragmentType<typeof rentalCategoryCardFieldsFragment>
+
 export default function RentalCategoryCard({ rentalCategory, hasDragged }: { 
-    rentalCategory: FragmentType<typeof RentalCategoryCardFieldsFragment>,
-    hasDragged: RefObject<boolean>
+    rentalCategory: RentalCategoryCardFragmentRef,
+    hasDragged?: RefObject<boolean>
 
 }) {
-    const category = useFragment(RentalCategoryCardFieldsFragment, rentalCategory);
+    const category = useFragment(rentalCategoryCardFieldsFragment, rentalCategory);
     const inspectorProps = useContentfulInspectorMode({ entryId: category?.sys?.id });
     const handleClick = (event: MouseEvent<HTMLAnchorElement>): void => {
+        if (!hasDragged) return;
+
         if (hasDragged.current) {
             hasDragged.current = false;
             event.preventDefault();

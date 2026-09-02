@@ -43,15 +43,13 @@ export function Layout({
                 <Links />
             </head>
             <body>
-                { children }
+                <ApolloHydrationHelper>{ children }</ApolloHydrationHelper>
                 <ScrollRestoration />
                 <Scripts />
             </body>
         </html>
     )
 }
-
-
 
 export type RootOutletContext = {
     businessInformationRef: QueryRef<BusinessInformationQuery>;
@@ -119,7 +117,9 @@ function createEmailHref(email: string): string {
 }
 
 function resolveAppConfig(baseConfig: AppConfig, cmsBusinessInfo?: CmsBusinessInfo | null): ResolvedAppConfig {
-    const phoneNumber = trimString(cmsBusinessInfo?.phoneNumber);
+    const digits = cmsBusinessInfo?.phoneNumber ?? "";
+
+    const phoneNumber = trimString(digits.length === 10 ? digits : digits.replace(/^1/, ""));
     const email = trimString(cmsBusinessInfo?.email);
     const location = trimString(cmsBusinessInfo?.location);
     const facebookLink = trimString(cmsBusinessInfo?.facebookLink);
@@ -183,19 +183,16 @@ export const loader = apolloLoader()(({ preloadQuery }) => {
 });
 
 export default function Root() {
-    const client = useMemo(() => makeClient(), []);
     return (
-        <ApolloProvider client={client}>
-            <ApolloHydrationHelper>
-                <title>Party Rentals in Chandler, AZ | Jump For Joy Inflatables</title>
-                <meta property="og:title" content='Party Rentals in Chandler, AZ | Jump For Joy Inflatables' />
-                <meta 
-                    name='description' 
-                    content='Rent bounce houses, water slides, tents, tables, chairs, and party equipment for birthdays, school events, church functions, and celebrations throughout Chandler and nearby areas.' 
-                />
-                <RootContent />
-            </ApolloHydrationHelper>
-        </ApolloProvider>
+        <>
+            <title>Party Rentals in Chandler, AZ | Jump For Joy Inflatables</title>
+            <meta property="og:title" content='Party Rentals in Chandler, AZ | Jump For Joy Inflatables' />
+            <meta 
+                name='description' 
+                content='Rent bounce houses, water slides, tents, tables, chairs, and party equipment for birthdays, school events, church functions, and celebrations throughout Chandler and nearby areas.' 
+            />
+            <RootContent />
+        </>
     );
 }
 

@@ -1,44 +1,83 @@
-import { Link, NavLink, useOutletContext } from "react-router"
-import { useState } from "react"
-import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react"
+import { Link, NavLink, useOutletContext } from "react-router";
+import { useState } from "react";
+import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
 import { RentalItemCard } from "components/ui";
-import { useContentfulInspectorMode } from "@contentful/live-preview/react";
-import { graphql } from 'lib/gql/client'
-import type { RentalCatalogFieldsFragment } from "lib/gql/client/graphql";
+import { useContentfulInspectorMode, useContentfulLiveUpdates } from "@contentful/live-preview/react";
+import { graphql, type FragmentType, useFragment } from 'lib/gql/client';
 import type { CatalogOutletContext } from "./catalog-provider";
+import type { Route } from "./+types/catalog";
+import { useReadQuery } from "@apollo/client/react";
+import { apolloLoader } from "app/apollo";
+import { isPreview } from "../api/contentful.server";
+import type { CategoryTabsFragment } from "lib/gql/client/graphql";
 
-const RentalCatalogFieldsFragment = graphql(`
-    fragment RentalCatalogFields on RentalCategory {
-         sys {
+const categoryTabsFragment = graphql(`
+    fragment CategoryTabs on RentalCategory {
+        __typename
+        sys {
             id
         }
         categoryName
-        subHeader
-        longDescription
         slug
-        categoryImage {
-            contentType
-            url
-        }
-        rentalItemsCollection(limit: 15) {
+    }
+`)
+
+const catalogQuery = graphql(`
+    query Catalog($slug: String!, $preview: Boolean!) {
+        subTabCategories: rentalCategoryCollection(limit: 25, preview: $preview) {
             items {
+                ...CategoryTabs
+            }
+        }
+
+        rentalCategoryCollection(
+            limit: 1,
+            preview: $preview,
+            where: { slug: $slug }
+        ) {
+            items {
+                __typename
+                sys {
+                    id
+                }
+                categoryName
+                subHeader
+                longDescription
                 slug
-                ...RentalItemCard
-                ...ItemDetails
+                categoryImage {
+                    contentType
+                    url
+                }
+                rentalItemsCollection(limit: 15) {
+                    items {
+                        slug
+                        ...RentalItemCard
+                    }
+                }
             }
         }
     }    
-`)
+`);
 
-export default function RentalCatalog() {
-    const { category, categories } = useOutletContext<CatalogOutletContext>();
-    const rentals = category?.rentalItemsCollection?.items || [];
-    const inspectorProps = useContentfulInspectorMode({ entryId: category?.sys?.id });
+export const loader = apolloLoader<Route.LoaderArgs>()(({ preloadQuery, params }) => {
+    const variables = { preview: isPreview, slug: params.categoryId };
+    const catalogRef = preloadQuery(catalogQuery, { variables });
 
-    if (!category) {
+    return { catalogRef };
+})
+
+export default function RentalCatalog({ loaderData, params }: Route.ComponentProps) {
+    const { data } = useReadQuery(loaderData.catalogRef);
+    const liveData = useContentfulLiveUpdates(data);
+    const categoryTabs = data.subTabCategories?.items.filter(item => item !== null) ?? [];
+    const catalog = liveData.rentalCategoryCollection?.items[0];
+    const rentals = catalog?.rentalItemsCollection?.items.filter(item => item !== null) ?? [];
+    const inspectorProps = useContentfulInspectorMode({ entryId: catalog?.sys?.id });
+
+    if (!catalog) {
         return (
             <div className='space-y-8'>
-                <CategoryTabs categories={categories} currentCategory={category} />
+                <CategoryTabs tabsFragment={categoryTabs} currentTabSlug={params.categoryId} />
                 <div className='px-16 py-8'>
                     <p className='text-muted-foreground'>Category not found.</p>
                 </div>
@@ -48,7 +87,7 @@ export default function RentalCatalog() {
 
     return (
             <div className='space-y-8 pb-8'>
-                <CategoryTabs categories={categories} currentCategory={category}/>
+                <CategoryTabs tabsFragment={categoryTabs} currentTabSlug={params.categoryId}/>
                 <div className='space-y-6 px-4 sm:px-8 lg:px-16'>
                     <Link
                         to="/rentals"
@@ -62,26 +101,26 @@ export default function RentalCatalog() {
                                 className='text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl'
                                 {...inspectorProps({ fieldId: "categoryName" })}
                             >
-                                {category.categoryName}
+                                {catalog.categoryName}
                             </h1>
                             <p 
                                 className='text-sm font-semibold uppercase tracking-widest text-primary sm:text-base'
                                 {...inspectorProps({ fieldId: "subHeader"})}
                             >
-                                {category.subHeader}
+                                {catalog.subHeader}
                             </p>
                             <p 
                                 className='text-base leading-7 text-muted-foreground sm:text-lg'
                                 {...inspectorProps({ fieldId: "longDescription"})}
                             >
-                                {category.longDescription}
+                                {catalog.longDescription}
                             </p>
                         </div>
                         <div className='w-full self-center rounded-full bg-muted p-6 max-w-40 sm:max-w-48 md:max-w-64 lg:max-w-80'>
                             <img
                                 {...inspectorProps({ fieldId: "categoryImage"})}
-                                src={category?.categoryImage?.url || ""}
-                                alt={`${category.categoryName} category`}
+                                src={catalog?.categoryImage?.url || ""}
+                                alt={`${catalog.categoryName} category`}
                                 className='w-full object-contain'
                             />
                         </div>
@@ -91,7 +130,7 @@ export default function RentalCatalog() {
                             rentals.map(item => {
                                 return (
                                     <li key={item?.slug}>
-                                        <RentalItemCard categorySlug={category.slug} rentalItem={item} />
+                                        <RentalItemCard categorySlug={catalog.slug} rentalItem={item} />
                                     </li>
                                 )
                             })
@@ -103,12 +142,16 @@ export default function RentalCatalog() {
 }
 
 function CategoryTabs({
-    categories,
-    currentCategory
+    tabsFragment,
+    currentTabSlug
 }: {
-    categories: CatalogOutletContext["categories"];
-    currentCategory: CatalogOutletContext["category"];
+    tabsFragment: FragmentType<typeof categoryTabsFragment>[];
+    currentTabSlug: string;
 }) {
+    const { orderCategories } = useOutletContext<CatalogOutletContext>(); 
+    const unorderedCategoryTabs = useFragment(categoryTabsFragment, tabsFragment) ?? [];
+    const categoryTabs = orderCategories(unorderedCategoryTabs);
+    const currentTab = categoryTabs.find(tab => tab.slug === currentTabSlug);
     const [open, setOpen] = useState(false);
     const panelId = 'catalog-category-list';
     const inspectorProps = useContentfulInspectorMode();
@@ -131,9 +174,8 @@ function CategoryTabs({
                                     <span className='font-medium '>Category: </span>
                                     <span 
                                         className='text-primary-foreground bg-primary px-3 py-1 font-semibold rounded-full'
-                                        {...inspectorProps({ entryId: currentCategory?.sys?.id, fieldId: "categoryName"})}
                                     >
-                                        {currentCategory?.categoryName ? `${currentCategory.categoryName}` : 'Choose a category'}
+                                        {currentTab ? `${currentTab.categoryName}` : 'Choose a category'}
                                     </span>
                                 </div>
                             </div>
@@ -157,7 +199,7 @@ function CategoryTabs({
                             className='grid grid-cols-1 gap-2 border-t border-border py-4 sm:grid-cols-2 lg:grid-cols-3'
                         >
                             {
-                                categories.map(category => {
+                                categoryTabs.map(category => {
                                     if (!category.slug) return null;
 
                                     return (

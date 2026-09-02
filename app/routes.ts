@@ -7,17 +7,16 @@ export default [
     route("contact", "./routes/contact.tsx"),
     route("success", "./routes/success.tsx"),
     route("faq", "./routes/faq.tsx"),
-    ...prefix("rentals", [
+    route("rentals", "./routes/rentals/catalog-provider.tsx", [
         index("./routes/rentals/index.tsx"),
-        route(":categoryId", "./routes/rentals/catalog-provider.tsx", [
-            index("./routes/rentals/catalog.tsx"),
-            route(":itemId", "./routes/rentals/details.tsx")
-        ])
+        route(":categoryId", "./routes/rentals/catalog.tsx"),
+        route(":categoryId/:itemId", "./routes/rentals/details.tsx")
     ]),
     route("cart", "./routes/cart/layout.tsx", [
         index("./routes/cart/cart.tsx"),
         route("details", "./routes/cart/details.tsx"),
         route("review", "./routes/cart/review.tsx") 
     ]),
-    route("preview", "./routes/preview-resolver.tsx")
+    route("preview", "./routes/preview-resolver.tsx"),
+    route("api/contentful", "./routes/api/contentful.server.ts")
 ] satisfies RouteConfig;

@@ -1,79 +1,113 @@
-import { ArrowLeft, CircleAlert, Droplets, Ruler, ShieldCheck, ShoppingCart, Truck, Users, FileText } from "lucide-react"
+import { ArrowLeft, CircleAlert, ShoppingCart, FileText } from "lucide-react"
 import { Link, useOutletContext, useParams } from "react-router"
 import { useCart } from "context/cart-context";
 import { graphql, useFragment } from "app/lib/gql/client";
-import type { CatalogOutletContext } from "./catalog-provider";
 import CtfIconTextComponent from "components/contentful/ctf-icon-text-component";
 import { RentalImageGallery } from "components/ui";
 import type { RentalGalleryImage } from "components/ui/rental-image-gallery";
-import { useContentfulInspectorMode } from "@contentful/live-preview/react";
+import { useContentfulInspectorMode, useContentfulLiveUpdates } from "@contentful/live-preview/react";
+import { apolloLoader } from "app/apollo";
+import { isPreview } from "../api/contentful.server";
+import type { Route } from "./+types/details";
+import { useReadQuery } from "@apollo/client/react";
+import type { BaseCartItem } from "../cart/types";
 
-const ItemDetailsFragment = graphql(`
-    fragment ItemDetails on RentalItemDetails {
-        __typename
-        sys {
-            id
+const itemDetailsQuery = graphql(`
+    query RentalItemDetails($itemSlug: String!, $categorySlug: String! , $preview: Boolean!) {
+        rentalCategoryCollection(
+            limit: 1,
+            preview: $preview,
+            where:  {
+               slug: $categorySlug
+            }
+        ) {
+            items {
+                categoryName
+                slug
+            }
         }
-        name
-        cost
-        smallDescription
-        longDescription
-        singleItem
-        specificationsCollection {
+
+        rentalItemDetailsCollection(
+            limit: 1,
+            preview: $preview,
+            where:  {
+               slug: $itemSlug
+            }
+        ) {
             items {
                 __typename
                 sys {
                     id
                 }
-                ...IconTextComponentFields
-            }
-        }
-        features
-        thumbnailImage {
-            __typename
-            sys {
-                id
-            }
-            contentType
-            url
-        }
-        galleryImagesCollection {
-            items {
-                __typename
-                sys {
-                    id
+                name
+                cost
+                smallDescription
+                longDescription
+                singleItem
+                specificationsCollection {
+                    items {
+                        __typename
+                        sys {
+                            id
+                        }
+                        ...IconTextComponentFields
+                    }
                 }
-                contentType
-                url
-            }
-        }
-        bookingInformationCollection {
-            items {
-                __typename
-                sys {
-                    id
+                features
+                thumbnailImage {
+                    __typename
+                    sys {
+                        id
+                    }
+                    contentType
+                    url
                 }
-                ...IconTextComponentFields
+                galleryImagesCollection {
+                    items {
+                        __typename
+                        sys {
+                            id
+                        }
+                        contentType
+                        url
+                    }
+                }
+                bookingInformationCollection {
+                    items {
+                        __typename
+                        sys {
+                            id
+                        }
+                        ...IconTextComponentFields
+                    }
+                }
+                slug
             }
         }
-        slug
-    } 
-`)
+    }
+`);
 
 function normalizeImageUrl(url?: string | null) {
     if (!url) return "";
     return url.startsWith("//") ? `https:${url}` : url;
 }
 
-export default function RentalDetails() {
-    const { categoryId, itemId } = useParams();
-    const { addItem } = useCart();
-    const { category } = useOutletContext<CatalogOutletContext>();
-    const rentalItemRef = category?.rentalItemsCollection?.items.find(item => item?.slug === itemId);
-    const rentalItem = useFragment(ItemDetailsFragment, rentalItemRef);
-    const inspectorProps = useContentfulInspectorMode({ entryId: rentalItem?.sys?.id });
+export const loader = apolloLoader<Route.LoaderArgs>()(({ preloadQuery, params }) => {
+    const variables = { preview: isPreview, categorySlug: params.categoryId, itemSlug: params.itemId };
+    const itemDetailsRef = preloadQuery(itemDetailsQuery, { variables });
 
-    if (!category || !rentalItem) {
+    return { itemDetailsRef }
+})
+
+export default function RentalDetails({ loaderData }: Route.ComponentProps) {
+    const { data } = useReadQuery(loaderData.itemDetailsRef);
+    const liveData = useContentfulLiveUpdates(data);
+    const rentalItem = liveData.rentalItemDetailsCollection?.items[0];
+    const category = liveData.rentalCategoryCollection?.items[0];
+    const inspectorProps = useContentfulInspectorMode({ entryId: rentalItem?.sys?.id });
+    const { addItem } = useCart();
+
+    if (!rentalItem) {
         return (
             <div className='px-4 py-8 space-y-4 sm:px-6 lg:px-24'>
                 <Link 
@@ -112,11 +146,13 @@ export default function RentalDetails() {
         }) ?? [])
     ].filter(image => image.url);
     
-    const cartItem = {
-        slug: rentalItem?.slug,
-        quantity: 1,
-        singleItem: rentalItem?.singleItem,
-        item: rentalItem
+    const cartItem: BaseCartItem = {
+        id: rentalItem?.slug ?? "",
+        name: rentalItem?.name ?? "",
+        cost: rentalItem?.cost ?? -1,
+        description: rentalItem?.smallDescription ?? "",
+        image: rentalItem?.thumbnailImage?.url ?? "",
+        singleItem: rentalItem?.singleItem || false,
     };
 
     return (
@@ -127,7 +163,7 @@ export default function RentalDetails() {
                     relative="path"
                     className="inline-flex items-center gap-2 text-primary font-semibold hover:underline"
                 >
-                    <ArrowLeft className="w-4 h-4"/> Back to {category.categoryName}
+                    <ArrowLeft className="w-4 h-4"/> Back to {category?.categoryName}
                 </Link>
                 <div className='rental-item space-y-8'>
                     <div className='flex flex-col gap-8 lg:flex-row'>

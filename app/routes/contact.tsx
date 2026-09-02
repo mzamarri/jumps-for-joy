@@ -149,7 +149,7 @@ export default function ContactPage() {
                                 href={config.business.phone.href}
                                 className="col-span-2 sm:col-span-1 text-muted-foreground"
                             >
-                                {config.business.phone.display}
+                                {formatPhoneNumber(config.business.phone.display)}
                             </a>
                         </li>
                         <li className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-3 sm:gap-y-0">
@@ -174,25 +174,35 @@ export default function ContactPage() {
                                 Reach out on social media with any questions, and check out our past events for a little inspiration!
                             </p>
                             <ul className='flex flex-col sm:flex-row lg:flex-col gap-4 col-span-2'>
-                                <li className='
-                                    p-4 text-sm cursor-pointer rounded-lg
-                                    bg-card hover:bg-muted
-                                    border border-border hover:boreder-ring
-                                    flex-1 flex items-center gap-3
-                                '>
-                                    <img src={FB} alt="Facebook" className='w-8 h-8'/>
-                                    <span>Add us on Facebook</span>
-                                    <ExternalLink className="ml-auto w-4 h-4"/>
+                                <li>
+                                    <a 
+                                        href={config.business.social.facebook}
+                                        className="
+                                            group p-4 cursor-pointer text-sm rounded-lg
+                                            bg-card hover:bg-muted
+                                            border border-border hover:boreder-ring
+                                            flex-1 flex items-center gap-3
+                                        "
+                                    >
+                                        <img src={FB} alt="Facebook" className='w-8 h-8'/>
+                                        <span>Add us on Facebook</span>
+                                        <ExternalLink className="ml-auto w-4 h-4"/>
+                                    </a>
                                 </li>
-                                <li className='
-                                    group p-4 cursor-pointer text-sm rounded-lg
-                                    bg-card hover:bg-muted
-                                    border border-border hover:boreder-ring
-                                    flex-1 flex items-center gap-3
-                                '>
-                                    <img src={IG} alt="Instagram" className='w-8 h-8'/>
-                                    <span>Follow us on Instagram</span>
-                                    <ExternalLink className="ml-auto w-4 h-4"/>
+                                <li>
+                                    <a 
+                                        href={config.business.social.instagram}
+                                        className="
+                                            group p-4 cursor-pointer text-sm rounded-lg
+                                            bg-card hover:bg-muted
+                                            border border-border hover:boreder-ring
+                                            flex-1 flex items-center gap-3
+                                        "
+                                    >
+                                        <img src={IG} alt="Instagram" className='w-8 h-8'/>
+                                        <span>Follow us on Instagram</span>
+                                        <ExternalLink className="ml-auto w-4 h-4"/>
+                                    </a>
                                 </li>
                             </ul>
                         </li>
